@@ -1,88 +1,240 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
-import { usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Search, Plus, Edit2, Trash2, Cog } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 
-function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
+interface Category {
+  id: number;
+  parentId: number | null;
+  name: string;
+  status: boolean;
+  children: Category[];
+}
 
-export default function AdminCategories() {
+const toApiLocale = (locale: string) => (locale === 'zh' ? 'zh_cn' : 'en');
+
+export default function AdminCategoriesPage() {
   const { t } = useTranslations();
-  const pathname = usePathname();
-  const locale = pathname.startsWith('/en') ? 'en' : 'zh';
-  const [categories, setCategories] = useState<any[]>([]);
+  const params = useParams();
+  const locale = (params.locale as string) || 'zh';
+  const apiLocale = toApiLocale(locale);
+
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [form, setForm] = useState({ name: '', parentId: 0, status: true });
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await api.categories.list(toApiLocale(locale));
-        setCategories(data);
-      } catch (err) {
-        console.error('Failed to load categories:', err);
-      } finally {
-        setLoading(false);
-      }
+  const loadCategories = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await api.categories.list();
+      setCategories(data as Category[]);
+      setError(null);
+    } catch (err) {
+      setError('加载分类失败');
+    } finally {
+      setLoading(false);
     }
-    load();
-  }, [locale]);
+  }, []);
 
-  const filtered = categories.filter((c) => c.name?.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => { loadCategories(); }, [loadCategories]);
+
+  const openCreate = (parentId = 0) => {
+    setEditingCategory(null);
+    setForm({ name: '', parentId, status: true });
+    setShowModal(true);
+  };
+
+  const openEdit = (cat: Category) => {
+    setEditingCategory(cat);
+    setForm({ name: cat.name, parentId: cat.parentId ?? 0, status: cat.status });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    try {
+      if (editingCategory) {
+        await api.categories.update(editingCategory.id, {
+          name: form.name,
+          locale: apiLocale,
+          parentId: form.parentId || null,
+          status: form.status,
+        });
+      } else {
+        await api.categories.create({
+          name: form.name,
+          locale: apiLocale,
+          parentId: form.parentId || null,
+          status: form.status,
+        });
+      }
+      setShowModal(false);
+      await loadCategories();
+    } catch (err) {
+      setError(editingCategory ? '更新分类失败' : '创建分类失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('确定要删除此分类吗？')) return;
+    try {
+      await api.categories.delete(id);
+      await loadCategories();
+    } catch (err) {
+      setError('删除分类失败');
+    }
+  };
+
+  const renderTree = (cats: Category[], depth = 0) => {
+    return cats.map((cat) => (
+      <div key={cat.id}>
+        <div
+          className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+          style={{ paddingLeft: `${16 + depth * 24}px` }}
+        >
+          <div className="flex items-center gap-2">
+            {cat.children && cat.children.length > 0 ? (
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            ) : (
+              <span className="w-4" />
+            )}
+            <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${cat.status ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              {cat.status ? '启用' : '禁用'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            {depth === 0 && (
+              <button
+                onClick={() => openCreate(cat.id)}
+                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                title="添加子分类"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => openEdit(cat)}
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="编辑"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleDelete(cat.id)}
+              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="删除"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        {cat.children && cat.children.length > 0 && renderTree(cat.children, depth + 1)}
+      </div>
+    ));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('admin.categories')}</h1>
-          <p className="text-gray-500 mt-1">{categories.length} 个分类</p>
+          <h1 className="text-2xl font-bold text-gray-900">分类管理</h1>
+          <p className="text-sm text-gray-500 mt-1">管理产品分类结构</p>
         </div>
+        <button
+          onClick={() => openCreate()}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          新增分类
+        </button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input type="text" placeholder={t('admin.search')} value={search} onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {categories.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-sm">暂无分类数据</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {renderTree(categories)}
+          </div>
+        )}
       </div>
 
-      {loading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          {Array.from({ length: 6 }).map((_, i) => (<div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.name')}</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.status')}</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">子分类</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((cat) => (
-                <tr key={cat.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <Cog className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium text-gray-900">{cat.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${cat.status ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {cat.status ? '启用' : '禁用'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{cat.children?.length || 0}</td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={3} className="text-center py-8 text-gray-400">暂无分类</td></tr>
-              )}
-            </tbody>
-          </table>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingCategory ? '编辑分类' : '新增分类'}
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">分类名称</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  placeholder="请输入分类名称"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.checked })}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm text-gray-600">启用</span>
+                </label>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!form.name.trim() || saving}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {saving ? '保存中...' : '保存'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

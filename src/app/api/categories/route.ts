@@ -53,43 +53,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * PUT /api/categories
- * 更新分类
- */
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    if (!body.id) {
-      return NextResponse.json({ error: '缺少分类ID' }, { status: 400 });
-    }
-    const category = await CategoryService.update(body.id, body);
-    return NextResponse.json(category);
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '更新分类失败' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * DELETE /api/categories
- * 删除分类
- */
-export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = Number(searchParams.get('id'));
-    if (!id) {
-      return NextResponse.json({ error: '缺少分类ID' }, { status: 400 });
-    }
-    const result = await CategoryService.delete(id);
-    return NextResponse.json({ success: true, data: result });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '删除分类失败' },
-      { status: 500 }
-    );
-  }
-}
+// PUT/DELETE 移至 /api/categories/[id]/route.ts
