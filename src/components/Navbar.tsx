@@ -30,6 +30,8 @@ export default function Navbar() {
     { href: `/${locale}/products`, label: t('nav.products') },
     { href: `/${locale}/categories`, label: t('nav.categories') },
     { href: `/${locale}/brands`, label: t('nav.brands') },
+    { href: `/${locale}/news`, label: t('nav.news') },
+    { href: `/${locale}/about`, label: t('nav.about') },
   ];
 
   return (

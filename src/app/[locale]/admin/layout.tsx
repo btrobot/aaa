@@ -10,6 +10,7 @@ import {
   Users,
   Tags,
   Building2,
+  Newspaper,
   Settings,
   ChevronDown,
   LogOut,
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/admin/customers', label: 'nav.customers', icon: Users },
   { href: '/admin/categories', label: 'nav.categories', icon: Tags },
   { href: '/admin/brands', label: 'nav.brands', icon: Building2 },
+  { href: '/admin/pages', label: 'admin.pages', icon: Newspaper },
   { href: '/admin/settings', label: 'nav.settings', icon: Settings },
 ];
 

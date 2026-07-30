@@ -20,7 +20,9 @@
     "search": "Search products...",
     "dashboard": "Dashboard",
     "backToShop": "Back to Shop",
-    "viewSite": "View Site"
+    "viewSite": "View Site",
+    "about": "About Us",
+    "news": "News Center"
   },
   "home": {
     "heroTitle": "Discover Quality Products",
@@ -45,7 +47,12 @@
     "deals": "Special Offers",
     "dealsDesc": "Don't miss out on great deals",
     "noCategories": "No categories",
-    "noProducts": "No products"
+    "noProducts": "No products",
+    "news": "News Center",
+    "newsDesc": "Stay updated with the latest company news and industry insights",
+    "viewAll": "View All",
+    "noNews": "No news yet",
+    "readMore": "Read More"
   },
   "products": {
     "title": "All Products",
@@ -274,6 +281,17 @@
     "productStatus": {
       "active": "Active",
       "inactive": "Inactive"
-    }
+    },
+    "pages": "Articles",
+    "articles": "Articles"
+  },
+  "news": {
+    "title": "News Center",
+    "desc": "Stay updated with the latest company news and industry insights",
+    "readMore": "Read More",
+    "backToNews": "Back to News",
+    "noNews": "No news yet",
+    "publishedAt": "Published",
+    "author": "Author"
   }
 }

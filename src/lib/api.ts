@@ -1,6 +1,20 @@
 // API 客户端 — 封装所有后端 API 调用
 // 所有函数返回类型与 API 路由响应一致
 
+export interface Page {
+  id: number;
+  authorId: number | null;
+  status: boolean;
+  sortOrder: number;
+  authorName?: string;
+  title?: string;
+  summary?: string;
+  content?: string;
+  locale?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const BASE_URL = '';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -205,5 +219,26 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
+  },
+
+  // 文章
+  pages: {
+    list: (params?: { locale?: string; status?: boolean }) => {
+      const qs = new URLSearchParams();
+      if (params?.locale) qs.set('locale', params.locale);
+      if (params?.status !== undefined) qs.set('status', String(params.status));
+      return request<Page[]>(`/api/pages?${qs.toString()}`);
+    },
+    getById: (id: number) =>
+      request<Page>(`/api/pages/${id}`),
+    create: (data: any) =>
+      request<Page>('/api/pages', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) =>
+      request<Page>(`/api/pages/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: number) =>
+      request<void>(`/api/pages/${id}`, { method: 'DELETE' }),
   },
 };

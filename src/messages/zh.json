@@ -16,6 +16,8 @@
     "orders": "我的订单",
     "wishlist": "收藏夹",
     "addresses": "收货地址",
+    "about": "关于我们",
+    "news": "新闻中心",
     "language": "语言",
     "search": "搜索商品...",
     "dashboard": "控制台",
@@ -45,7 +47,12 @@
     "deals": "限时特惠",
     "dealsDesc": "优惠不容错过",
     "noCategories": "暂无分类",
-    "noProducts": "暂无产品"
+    "noProducts": "暂无产品",
+    "news": "新闻中心",
+    "newsDesc": "了解公司最新动态和行业资讯",
+    "viewAll": "查看全部",
+    "noNews": "暂无新闻",
+    "readMore": "了解更多"
   },
   "products": {
     "title": "全部商品",
@@ -237,6 +244,7 @@
     "customers": "客户管理",
     "categories": "分类管理",
     "brands": "品牌管理",
+    "pages": "文章管理",
     "settings": "系统设置",
     "totalOrders": "总订单数",
     "totalRevenue": "总营收",
@@ -274,6 +282,16 @@
     "productStatus": {
       "active": "上架",
       "inactive": "下架"
-    }
+    },
+    "articles": "文章管理"
+  },
+  "news": {
+    "title": "新闻中心",
+    "desc": "了解公司最新动态和行业资讯",
+    "readMore": "了解更多",
+    "backToNews": "返回新闻中心",
+    "noNews": "暂无新闻",
+    "publishedAt": "发布时间",
+    "author": "作者"
   }
 }

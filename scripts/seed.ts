@@ -20,6 +20,8 @@ import {
   countries,
   zones,
   settings,
+  pages,
+  pageDescriptions,
 } from '../src/lib/db/schema';
 import bcrypt from 'bcryptjs';
 
@@ -345,10 +347,173 @@ async function seed() {
     newsletter: true,
   });
 
-  console.log('\n✅ 种子数据填充完成！');
+  console.log('\n📰 创建文章/新闻...');
+
+  const [article1] = await db.insert(pages).values({
+    status: true,
+    sortOrder: 1,
+  }).returning();
+
+  const [article2] = await db.insert(pages).values({
+    status: true,
+    sortOrder: 2,
+  }).returning();
+
+  const [article3] = await db.insert(pages).values({
+    status: true,
+    sortOrder: 3,
+  }).returning();
+
+  await db.insert(pageDescriptions).values([
+    {
+      pageId: article1.id,
+      locale: 'zh_cn',
+      title: 'NodeCoda 全新大型游乐设备系列正式发布',
+      content: `## 全新系列发布
+
+经过18个月的潜心研发与严格测试，NodeCoda 正式推出「星际探索」系列大型游乐设备。该系列以太空探索为主题，融合了最先进的机械传动技术与沉浸式多媒体互动体验。
+
+### 核心亮点
+
+**安全第一**：全系列产品通过欧盟 CE 认证、美国 ASTM 认证及中国特种设备安全认证，安全标准达到行业最高水平。
+
+**创新设计**：采用模块化设计理念，可根据场地条件灵活组合，最大程度提升空间利用率与游客体验。
+
+**智能运维**：内置 IoT 传感器系统，实时监控设备运行状态，AI 预测性维护可降低 35% 的意外停机时间。
+
+### 市场前景
+
+据行业分析报告显示，全球主题乐园市场预计在 2025 年达到 800 亿美元规模。NodeCoda 凭借技术创新与品质保证，已与来自 12 个国家的 20 余家主题乐园运营商达成合作意向。
+
+欢迎联系我们获取详细产品资料与报价。`,
+      metaTitle: 'NodeCoda 大型游乐设备新系列发布',
+      metaDescription: 'NodeCoda 发布「星际探索」系列大型游乐设备，通过国际安全认证，面向全球市场推出。',
+    },
+    {
+      pageId: article1.id,
+      locale: 'en',
+      title: 'NodeCoda Launches New Premium Amusement Ride Series',
+      content: `## New Series Launch
+
+After 18 months of intensive R&D and rigorous testing, NodeCoda officially launches the "Star Explorer" series of large amusement rides. Inspired by space exploration, this series combines cutting-edge mechanical transmission technology with immersive multimedia interactive experiences.
+
+### Key Highlights
+
+**Safety First**: All products have passed EU CE certification, US ASTM certification, and China Special Equipment Safety certification, meeting the highest industry standards.
+
+**Innovative Design**: Modular design allows flexible combination based on site conditions, maximizing space utilization and visitor experience.
+
+**Smart Operations**: Built-in IoT sensor system monitors equipment status in real-time, with AI predictive maintenance reducing unplanned downtime by 35%.
+
+### Market Outlook
+
+According to industry analysis, the global theme park market is expected to reach $80 billion by 2025. Through technological innovation and quality assurance, NodeCoda has established cooperation意向 with over 20 theme park operators across 12 countries.
+
+Contact us for detailed product information and pricing.`,
+      metaTitle: 'NodeCoda Launches New Amusement Ride Series',
+      metaDescription: 'NodeCoda launches "Star Explorer" series amusement rides with international safety certifications.',
+    },
+    {
+      pageId: article2.id,
+      locale: 'zh_cn',
+      title: '2024 国际游乐设备展览会圆满落幕，NodeCoda 收获颇丰',
+      content: `## 展会回顾
+
+2024 国际游乐设备展览会（IAAPA Expo 2024）于上周在深圳国际会展中心圆满落幕。NodeCoda 以「智造欢乐，连接世界」为主题，携 8 款明星产品精彩亮相。
+
+### 展会亮点
+
+**现场签约**：展会期间，NodeCoda 与来自东南亚、中东、南美等地区的客户现场签约 12 个项目，签约总金额突破 5000 万元人民币。
+
+**新品亮相**：两款新品「云端漫步」摩天轮与「极速光轮」过山车首次公开亮相，获得行业专家与客户的高度评价。
+
+**行业交流**：NodeCoda 技术团队在展会论坛上分享了「AI 在游乐设备安全监控中的应用」主题演讲，引起广泛关注。
+
+### 未来展望
+
+NodeCoda 将继续加大研发投入，以技术创新驱动产品升级，为全球客户提供更安全、更智能、更有趣的游乐体验。`,
+      metaTitle: '2024 国际游乐设备展览会 NodeCoda 签约 5000 万',
+      metaDescription: 'NodeCoda 在 2024 IAAPA 展会现场签约 12 个项目，签约金额突破 5000 万元。',
+    },
+    {
+      pageId: article2.id,
+      locale: 'en',
+      title: 'IAAPA Expo 2024 Concludes Successfully for NodeCoda',
+      content: `## Exhibition Review
+
+The 2024 IAAPA Expo concluded successfully at the Shenzhen International Convention and Exhibition Center. NodeCoda presented 8 flagship products under the theme "Engineering Joy, Connecting the World."
+
+### Exhibition Highlights
+
+**On-site Signings**: During the exhibition, NodeCoda signed 12 projects with clients from Southeast Asia, the Middle East, and South America, with total contract value exceeding 50 million RMB.
+
+**New Product Launch**: Two new products — "Cloud Walk" Ferris wheel and "Speed Light" roller coaster — made their public debut, receiving high praise from industry experts and clients.
+
+**Industry Exchange**: NodeCoda's technical team delivered a keynote on "AI Applications in Amusement Ride Safety Monitoring" at the exhibition forum, attracting widespread attention.
+
+### Future Outlook
+
+NodeCoda will continue to increase R&D investment, driving product upgrades through technological innovation to provide safer, smarter, and more enjoyable experiences for global customers.`,
+      metaTitle: 'IAAPA Expo 2024: NodeCoda Signs 50M+ RMB Contracts',
+      metaDescription: 'NodeCoda signs 12 projects at IAAPA Expo 2024 with total contract value exceeding 50 million RMB.',
+    },
+    {
+      pageId: article3.id,
+      locale: 'zh_cn',
+      title: 'NodeCoda 荣获 2024 年度游乐设备行业创新大奖',
+      content: `## 荣誉时刻
+
+近日，在由中国游乐设备行业协会主办的 2024 年度行业评选中，NodeCoda 凭借「星际探索」系列大型游乐设备，从 200 余家参选企业中脱颖而出，荣获「年度创新大奖」。
+
+### 评选标准
+
+本次评选从技术创新、设计美学、安全性能、市场表现四个维度进行综合评估。NodeCoda 在各项指标中均获得评委高度认可。
+
+### 技术突破
+
+**智能安全系统**：自主研发的多层安全监控系统，可实现 7×24 小时不间断运行状态监测，故障预警准确率达 99.7%。
+
+**沉浸式体验**：融合 AR/VR 技术与实体设备，打造虚实结合的沉浸式游乐体验，游客满意度提升 40%。
+
+**绿色节能**：采用新型节能电机与能量回收系统，单台设备能耗降低 25%，年减碳量相当于种植 500 棵树木。
+
+### 感恩致谢
+
+这一荣誉属于 NodeCoda 全体研发团队，也感谢全球客户与合作伙伴的信任与支持。我们将继续努力，为行业带来更多创新产品。`,
+      metaTitle: 'NodeCoda 荣获游乐设备行业年度创新大奖',
+      metaDescription: 'NodeCoda 凭借「星际探索」系列荣获 2024 年度游乐设备行业创新大奖。',
+    },
+    {
+      pageId: article3.id,
+      locale: 'en',
+      title: 'NodeCoda Wins 2024 Amusement Ride Industry Innovation Award',
+      content: `## Moment of Honor
+
+At the 2024 Annual Industry Awards hosted by the China Amusement Ride Industry Association, NodeCoda stood out from over 200 participating companies to win the "Annual Innovation Award" for its "Star Explorer" series.
+
+### Evaluation Criteria
+
+The evaluation covered four dimensions: technological innovation, design aesthetics, safety performance, and market performance. NodeCoda received high marks from the judging panel across all indicators.
+
+### Technological Breakthroughs
+
+**Smart Safety System**: Self-developed multi-layer safety monitoring system enables 24/7 continuous operation monitoring with 99.7% fault prediction accuracy.
+
+**Immersive Experience**: Integration of AR/VR technology with physical equipment creates immersive experiences, increasing visitor satisfaction by 40%.
+
+**Green Energy**: New energy-efficient motors and energy recovery systems reduce per-unit energy consumption by 25%, with annual carbon reduction equivalent to planting 500 trees.
+
+### Gratitude
+
+This honor belongs to the entire NodeCoda R&D team, and we thank our global customers and partners for their trust and support. We will continue to innovate and bring more groundbreaking products to the industry.`,
+      metaTitle: 'NodeCoda Wins Amusement Ride Industry Innovation Award 2024',
+      metaDescription: 'NodeCoda wins the 2024 Annual Innovation Award for its "Star Explorer" series.',
+    },
+  ]);
+
   console.log('📋 管理员账号: admin@nodecoda.com / admin123');
   console.log('📋 客户账号: customer@nodecoda.com / test123456');
-  console.log(`📦 共创建: ${productData.length} 个产品, ${brandData.length} 个品牌, 6 个分类`);
+  console.log(`📦 共创建: ${productData.length} 个产品, ${brandData.length} 个品牌, 6 个分类, 3 篇文章`);
 
   await closeDb();
 }
