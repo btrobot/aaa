@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockCustomerService = {
@@ -77,6 +78,70 @@ describe('Auth 模块', () => {
   describe('TOKEN_NAME', () => {
     it('应为 nodecoda_token', () => {
       expect(auth.TOKEN_NAME).toBe('nodecoda_token');
+    });
+  });
+});
+
+  // ─── signToken / verifyToken ────────────────────────────────────
+
+  describe('signToken', () => {
+
+  // ─── signToken / verifyToken ────────────────────────────────────
+
+  describe('signToken', () => {
+    it('应能签发 JWT token', async () => {
+      const token = await auth.signToken({ id: 1, email: 'a@b.com', name: 'A', role: 'customer' });
+      expect(typeof token).toBe('string');
+      expect(token.split('.')).toHaveLength(3);
+    });
+
+    it('签发的 token 应能被 verifyToken 解析', async () => {
+      const payload = { id: 5, email: 'test@x.com', name: 'Test', role: 'admin' as const };
+      const token = await auth.signToken(payload);
+      const decoded = await auth.verifyToken(token);
+      expect(decoded.id).toBe(5);
+      expect(decoded.email).toBe('test@x.com');
+      expect(decoded.role).toBe('admin');
+    });
+  });
+
+  describe('verifyToken', () => {
+    it('无效 token 应抛出 AuthError', async () => {
+      await expect(auth.verifyToken('invalid.token.here'))
+        .rejects.toThrow(auth.AuthError);
+    });
+
+    it('篡改的 token 应抛出 AuthError', async () => {
+      const token = await auth.signToken({ id: 1, email: 'a@b.com', name: 'A', role: 'customer' });
+      const tampered = token.slice(0, -5) + 'XXXXX';
+      await expect(auth.verifyToken(tampered))
+        .rejects.toThrow(auth.AuthError);
+    });
+  });
+
+  describe('authenticate', () => {
+    it('有有效 token 的请求应返回 payload', async () => {
+      const token = await auth.signToken({ id: 3, email: 'u@b.com', name: 'U', role: 'customer' });
+      const req = new Request('http://localhost', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await auth.authenticate(req);
+      expect(result.id).toBe(3);
+      expect(result.role).toBe('customer');
+    });
+
+    it('无 token 的请求应抛出 AuthError(401)', async () => {
+      const req = new Request('http://localhost');
+      await expect(auth.authenticate(req))
+        .rejects.toThrow(auth.AuthError);
+    });
+
+    it('无效 token 的请求应抛出 AuthError', async () => {
+      const req = new Request('http://localhost', {
+        headers: { Authorization: 'Bearer bad-token' },
+      });
+      await expect(auth.authenticate(req))
+        .rejects.toThrow(auth.AuthError);
     });
   });
 });

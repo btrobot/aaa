@@ -275,4 +275,43 @@ describe('OrderService', () => {
       });
     });
   });
+
+  // ═══ list (getAll / getCustomerOrders) ═══════════════════════════
+
+  describe('list', () => {
+    it('应返回所有订单列表（happy path）', async () => {
+      mockDb.select.mockReturnValueOnce(createChainMock([
+        { id: 1, number: 'ORD-001', status: 'pending', customerId: 1 },
+        { id: 2, number: 'ORD-002', status: 'completed', customerId: 2 },
+      ]));
+
+      const result = await OrderService.getAll();
+      expect(result).toHaveLength(2);
+      expect(result[0].number).toBe('ORD-001');
+    });
+
+    it('无订单时应返回空数组（happy path）', async () => {
+      mockDb.select.mockReturnValueOnce(createChainMock([]));
+
+      const result = await OrderService.getAll();
+      expect(result).toHaveLength(0);
+    });
+
+    it('应能按客户 ID 查询订单（getCustomerOrders）', async () => {
+      mockDb.select.mockReturnValueOnce(createChainMock([
+        { id: 1, number: 'ORD-001', status: 'pending', customerId: 5 },
+      ]));
+
+      const result = await OrderService.getCustomerOrders(5);
+      expect(result).toHaveLength(1);
+      expect(result[0].customerId).toBe(5);
+    });
+
+    it('客户无订单时应返回空数组（getCustomerOrders）', async () => {
+      mockDb.select.mockReturnValueOnce(createChainMock([]));
+
+      const result = await OrderService.getCustomerOrders(999);
+      expect(result).toHaveLength(0);
+    });
+  });
 });

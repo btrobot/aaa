@@ -1,5 +1,5 @@
 import { db } from '@/lib/db/db';
-import { pages, pageDescriptions } from '@/lib/db/schema';
+import { pages, pageDescriptions, pageCategories, pageCategoryDescriptions } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { NotFoundError, BusinessRuleError } from './errors';
@@ -187,6 +187,28 @@ export class PageService {
     await db.delete(pageDescriptions).where(eq(pageDescriptions.pageId, id));
     await db.delete(pages).where(eq(pages.id, id));
     return true;
+  }
+
+  // ─── Page Categories ─────────────────────────────────────────────
+
+  async listCategories(locale: string = 'zh_cn') {
+    const rows = await db.select()
+      .from(pageCategories)
+      .leftJoin(pageCategoryDescriptions, and(
+        eq(pageCategories.id, pageCategoryDescriptions.pageCategoryId),
+        eq(pageCategoryDescriptions.locale, locale),
+      ))
+      .orderBy(pageCategories.sortOrder);
+
+    return rows.map((row) => ({
+      id: row.page_categories.id,
+      parentId: row.page_categories.parentId,
+      image: row.page_categories.image,
+      sortOrder: row.page_categories.sortOrder,
+      status: row.page_categories.status,
+      name: row.page_category_descriptions?.name || null,
+      description: row.page_category_descriptions?.description || null,
+    }));
   }
 }
 

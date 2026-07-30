@@ -225,4 +225,58 @@ describe('PageService', () => {
         .rejects.toThrow(NotFoundError);
     });
   });
+
+  // ===========================================================================
+  // listCategories
+  // ===========================================================================
+  describe('listCategories', () => {
+    const catRow = (overrides: Record<string, unknown> = {}) => ({
+      page_categories: {
+        id: 1, parentId: null, image: null,
+        sortOrder: 0, status: true,
+        ...overrides,
+      },
+      page_category_descriptions: {
+        id: 1, pageCategoryId: 1, locale: 'zh_cn',
+        name: '新闻', description: '新闻分类',
+      },
+    });
+
+    it('应返回文章分类列表（happy path）', async () => {
+      mockSelect([catRow(), catRow({ id: 2 })]);
+
+      const result = await svc.listCategories('zh_cn');
+      expect(result).toHaveLength(2);
+      expect(result[0]).toHaveProperty('name', '新闻');
+      expect(result[0]).toHaveProperty('description', '新闻分类');
+      expect(mockDb.select).toHaveBeenCalled();
+    });
+
+    it('无分类时应返回空数组（happy path）', async () => {
+      mockSelect([]);
+
+      const result = await svc.listCategories();
+      expect(result).toHaveLength(0);
+    });
+
+    it('应支持指定 locale', async () => {
+      const enRow = catRow();
+      enRow.page_category_descriptions = {
+        ...enRow.page_category_descriptions,
+        locale: 'en', name: 'News', description: 'News category',
+      };
+      mockSelect([enRow]);
+
+      const result = await svc.listCategories('en');
+      expect(result[0]).toHaveProperty('name', 'News');
+    });
+
+    it('应按 sortOrder 排序', async () => {
+      mockSelect([catRow({ id: 1, sortOrder: 10 }), catRow({ id: 2, sortOrder: 5 })]);
+
+      const result = await svc.listCategories();
+      expect(result).toHaveLength(2);
+      expect(mockDb.select).toHaveBeenCalled();
+    });
+  });
 });

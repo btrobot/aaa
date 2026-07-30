@@ -71,12 +71,12 @@ const OP_ALIASES: Record<string, string[]> = {
 
   // Auth
   customerLogin:    ['customerLogin', 'login', 'authenticate', 'customer_login', 'customerLogin'],
-  customerRegister: ['customerRegister', 'register', 'signup', 'signUp', 'customer_register'],
-  adminLogin:       ['adminLogin', 'login', 'authenticate', 'admin_login'],
+  customerRegister: ['customerRegister', 'register', 'signup', 'signUp', 'customer_register', 'signToken', 'verifyToken'],
+  adminLogin:       ['adminLogin', 'login', 'authenticate', 'admin_login', 'signToken'],
   checkPermission:  ['checkPermission', 'requireAuth', 'authorize', 'check', 'hasPermission'],
 
   // Page 模块
-  listPages:     ['listPages', 'findAll', 'getAll', 'list', 'listAll'],
+  listPages:     ['listPages', 'findAll', 'getAll', 'list', 'listAll', 'search'],
   getPage:       ['getPage', 'findById', 'getById', 'get', 'findOne'],
   createPage:    ['createPage', 'create', 'add'],
   updatePage:    ['updatePage', 'update', 'edit'],
@@ -186,14 +186,14 @@ function extractFromText(content: string): ParsedSpec {
 
       const methodMatch = opBlock.match(/method:\s*(\w+)/);
       const pathMatch = opBlock.match(/path:\s*(\S+)/);
-      const authMatch = opBlock.match(/auth:\s*(\w+)/);
+      const authMatch = opBlock.match(/auth:\s*(?:\[([^\]]+)\]|(\w+))/);
       const preMatch = opBlock.match(/pre:\s*(.+)/);
 
       operations.push({
         name: opName,
         method: methodMatch?.[1] ?? '',
         path: pathMatch?.[1] ?? '',
-        auth: authMatch?.[1],
+        auth: authMatch?.[1] ?? authMatch?.[2],
         pre: preMatch?.[1],
       });
     }
