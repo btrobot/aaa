@@ -34,8 +34,8 @@ export default function AdminEditProduct() {
   const [descEn, setDescEn] = useState('');
 
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<unknown[]>([]);
+  const [categories, setCategories] = useState<unknown[]>([]);
 
   useEffect(() => {
     if (!id || isNaN(id)) {
@@ -63,15 +63,15 @@ export default function AdminEditProduct() {
       setStatus(product.status);
       setBrandId(product.brandId ?? '');
 
-      const zhDesc = product.descriptions?.find((d: any) => d.locale === 'zh_cn');
-      const enDesc = product.descriptions?.find((d: any) => d.locale === 'en');
+      const zhDesc = product.descriptions?.find((d: Record<string, unknown>) => d.locale === 'zh_cn');
+      const enDesc = product.descriptions?.find((d: Record<string, unknown>) => d.locale === 'en');
       if (zhDesc) { setNameZh(zhDesc.name); setDescZh(zhDesc.description || ''); }
       if (enDesc) { setNameEn(enDesc.name); setDescEn(enDesc.description || ''); }
 
       setCategoryIds(product.categoryIds || []);
       setBrands(Array.isArray(brandsList) ? brandsList : []);
       setCategories(Array.isArray(categoriesTree) ? categoriesTree : []);
-    } catch (err) {
+    } catch (_err) {
       setError(err instanceof Error ? err.message : '加载产品失败');
     } finally {
       setLoading(false);
@@ -84,8 +84,8 @@ export default function AdminEditProduct() {
     );
   }
 
-  function renderCategoryOptions(cats: any[], depth = 0): React.ReactNode[] {
-    return cats.flatMap((cat: any) => [
+  function renderCategoryOptions(cats: unknown[], depth = 0): React.ReactNode[] {
+    return cats.flatMap((cat: Record<string, unknown>) => [
       <label key={cat.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded cursor-pointer">
         <input
           type="checkbox"
@@ -121,7 +121,7 @@ export default function AdminEditProduct() {
         categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       });
       router.push(`/${params.locale}/admin/products`);
-    } catch (err) {
+    } catch (_err) {
       setError(err instanceof Error ? err.message : '保存失败');
     } finally {
       setSaving(false);
@@ -240,7 +240,7 @@ export default function AdminEditProduct() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">无品牌</option>
-                  {brands.map((b: any) => (
+                  {brands.map((b: Record<string, unknown>) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>

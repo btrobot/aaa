@@ -8,7 +8,7 @@ import { Building2, ChevronRight, Globe } from 'lucide-react';
 
 export default function BrandsPage() {
   const { locale, t } = useTranslations();
-  const [brands, setBrands] = useState<any[]>([]);
+  const [brands, setBrands] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function BrandsPage() {
       try {
         const data = await api.brands.list();
         setBrands(data);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load brands:', err);
       } finally {
         setLoading(false);

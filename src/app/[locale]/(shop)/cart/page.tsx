@@ -15,7 +15,7 @@ function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; 
 export default function CartPage() {
   const { locale, t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

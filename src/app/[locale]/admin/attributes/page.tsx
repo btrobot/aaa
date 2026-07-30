@@ -60,7 +60,7 @@ export default function AdminAttributesPage() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [modalAction, setModalAction] = useState<ModalAction>('create');
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<unknown>(null);
   const [parentGroupId, setParentGroupId] = useState<number | null>(null);
   const [parentAttrId, setParentAttrId] = useState<number | null>(null);
   const [formName, setFormName] = useState('');
@@ -72,7 +72,7 @@ export default function AdminAttributesPage() {
       const data = await api.attributes.list(apiLocale);
       setGroups(data as GroupItem[]);
       setError(null);
-    } catch (err) {
+    } catch (_err) {
       setError('加载属性失败');
     } finally {
       setLoading(false);
@@ -113,7 +113,7 @@ export default function AdminAttributesPage() {
     setParentAttrId(attrId); setEditingItem(null); setFormName(''); setShowModal(true);
   };
 
-  const openEdit = (item: any, mode: ModalMode) => {
+  const openEdit = (item: Record<string, unknown>, mode: ModalMode) => {
     setModalMode(mode); setModalAction('edit');
     setEditingItem(item); setFormName(item.name || ''); setShowModal(true);
   };
@@ -153,7 +153,7 @@ export default function AdminAttributesPage() {
 
       setShowModal(false);
       await loadData();
-    } catch (err) {
+    } catch (_err) {
       console.error('Save failed:', err);
     } finally {
       setSaving(false);
@@ -165,7 +165,7 @@ export default function AdminAttributesPage() {
     try {
       await api.attributes.delete(type, id);
       await loadData();
-    } catch (err) {
+    } catch (_err) {
       console.error('Delete failed:', err);
     }
   };

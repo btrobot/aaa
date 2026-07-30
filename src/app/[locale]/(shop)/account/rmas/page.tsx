@@ -36,11 +36,11 @@ const sidebarLinks = [
 
 export default function CustomerRmasPage({ params }: { params: { locale: string } }) {
   const { locale, t } = useTranslations();
-  const [rmas, setRmas] = useState<any[]>([]);
+  const [rmas, setRmas] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
-  const [customer, setCustomer] = useState<any>(null);
+  const [customer, setCustomer] = useState<unknown>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<unknown[]>([]);
   const [form, setForm] = useState({
     orderId: '',
     orderProductId: '',
@@ -87,7 +87,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
       setForm({ orderId: '', orderProductId: '', type: 'refund', reason: '', quantity: '1', comment: '' });
       const data = await fetch(`/api/rmas?customerId=${customer.id}`).then(r => r.json());
       setRmas(data.items || []);
-    } catch (e: any) {
+    } catch (e: Record<string, unknown>) {
       alert('提交失败: ' + e.message);
     } finally {
       setSubmitting(false);
@@ -142,7 +142,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
                         <SelectValue placeholder="选择订单" />
                       </SelectTrigger>
                       <SelectContent>
-                        {orders.filter((o: any) => o.status === 'completed' || o.status === 'shipped').map((o: any) => (
+                        {orders.filter((o: Record<string, unknown>) => o.status === 'completed' || o.status === 'shipped').map((o: Record<string, unknown>) => (
                           <SelectItem key={o.id} value={String(o.id)}>
                             订单 #{o.id} - ¥{o.total}
                           </SelectItem>
@@ -152,7 +152,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">类型</label>
-                    <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as any }))}>
+                    <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as unknown }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -218,7 +218,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
             </Card>
           ) : (
             <div className="space-y-3">
-              {rmas.map((rma: any) => (
+              {rmas.map((rma: Record<string, unknown>) => (
                 <Card key={rma.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">

@@ -36,7 +36,7 @@ export default function AdminSettingsPage() {
       setLoading(true);
       const data = await api.settings.getAll(settingsLang === 'zh_cn' ? undefined : settingsLang);
       setSettings(data || {});
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load settings:', err);
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
       });
       setMessage({ type: 'success', text: '设置已保存' });
       setTimeout(() => setMessage(null), 3000);
-    } catch (err) {
+    } catch (_err) {
       setMessage({ type: 'error', text: '保存失败，请重试' });
     } finally {
       setSaving(false);

@@ -7,7 +7,7 @@ import { Search, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function AdminCustomers() {
   const { t } = useTranslations();
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -16,7 +16,7 @@ export default function AdminCustomers() {
       try {
         const data = await api.customers.getAll();
         setCustomers(data);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load customers:', err);
       } finally {
         setLoading(false);

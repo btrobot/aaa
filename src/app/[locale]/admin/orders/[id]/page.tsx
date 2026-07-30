@@ -45,7 +45,7 @@ const validTransitions: Record<string, string[]> = {
 
 export default function AdminOrderDetailPage() {
   const params = useParams();
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Record<string, unknown>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
@@ -62,7 +62,7 @@ export default function AdminOrderDetailPage() {
       setLoading(true);
       const data = await api.orders.getById(id);
       setOrder(data);
-    } catch (err) {
+    } catch (_err) {
       setError('获取订单失败');
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ export default function AdminOrderDetailPage() {
       setUpdating(true);
       await api.orders.updateStatus(order.id, newStatus);
       await fetchOrder(order.id);
-    } catch (err) {
+    } catch (_err) {
       setError('更新状态失败');
     } finally {
       setUpdating(false);
@@ -181,7 +181,7 @@ export default function AdminOrderDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {order.items.map((item: any, i: number) => (
+                {order.items.map((item: Record<string, unknown>, i: number) => (
                   <tr key={i} className="border-b last:border-0">
                     <td className="py-3">{item.name}</td>
                     <td className="py-3 text-gray-500">{item.sku || '-'}</td>

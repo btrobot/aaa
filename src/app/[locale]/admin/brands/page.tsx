@@ -37,7 +37,7 @@ export default function AdminBrandsPage() {
       const data = await api.brands.list();
       setBrands(data as Brand[]);
       setError(null);
-    } catch (err) {
+    } catch (_err) {
       setError('加载品牌失败');
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ export default function AdminBrandsPage() {
       }
       setShowModal(false);
       await loadBrands();
-    } catch (err) {
+    } catch (_err) {
       setError(editingBrand ? '更新品牌失败' : '创建品牌失败');
     } finally {
       setSaving(false);
@@ -94,7 +94,7 @@ export default function AdminBrandsPage() {
     try {
       await api.brands.delete(id);
       await loadBrands();
-    } catch (err) {
+    } catch (_err) {
       setError('删除品牌失败');
     }
   };

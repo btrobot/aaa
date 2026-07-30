@@ -12,7 +12,7 @@ function toApiLocale(locale: string) {
 
 export default function CategoriesPage() {
   const { locale, t } = useTranslations();
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function CategoriesPage() {
       try {
         const cats = await api.categories.list(toApiLocale(locale));
         setCategories(cats);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load categories:', err);
       } finally {
         setLoading(false);

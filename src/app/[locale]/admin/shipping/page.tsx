@@ -44,7 +44,7 @@ export default function AdminShippingPage() {
     try {
       const data = await api.shipping.list();
       setMethods(data);
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load shipping methods:', err);
     } finally {
       setLoading(false);
@@ -110,7 +110,7 @@ export default function AdminShippingPage() {
       setShowForm(false);
       setEditingId(null);
       await loadMethods();
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to save shipping method:', err);
       alert('保存失败');
     }
@@ -121,7 +121,7 @@ export default function AdminShippingPage() {
     try {
       await request(`/api/shipping-methods/${id}`, { method: 'DELETE' });
       await loadMethods();
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to delete:', err);
       alert('删除失败');
     }

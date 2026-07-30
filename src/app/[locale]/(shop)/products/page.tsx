@@ -22,7 +22,7 @@ function toApiLocale(locale: string) {
 export default function ProductsPage() {
   const { locale, t } = useTranslations();
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -42,7 +42,7 @@ export default function ProductsPage() {
         ]);
         setProducts(prods);
         setCategories(cats);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load products:', err);
       } finally {
         setLoading(false);

@@ -34,7 +34,7 @@ export default function ThemePage() {
         primary: data.theme_primary || '#2563eb',
         radius: data.theme_radius || '0.5',
       });
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load theme settings:', err);
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ export default function ThemePage() {
         },
       });
       setMessage({ type: 'success', text: '主题设置已保存' });
-    } catch (err) {
+    } catch (_err) {
       setMessage({ type: 'error', text: '保存失败，请重试' });
     } finally {
       setSaving(false);

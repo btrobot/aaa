@@ -67,7 +67,7 @@ export default function ProductDetailPage({
           category: String(prod.categoryIds[0] || ''),
         });
         setRelated(all.filter((p) => p.id !== prod.id).slice(0, 4));
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load product:', err);
       } finally {
         setLoading(false);
@@ -85,7 +85,7 @@ export default function ProductDetailPage({
     try {
       await api.cart.add(Number(id), quantity);
       alert(t('products.addedToCart'));
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to add to cart:', err);
       alert('添加失败，请先登录');
     } finally {

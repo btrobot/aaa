@@ -68,7 +68,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       ]);
       setReviews(reviewsData.items || []);
       setStats(statsData);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(e.message);
     } finally {
       setSubmitting(false);

@@ -32,7 +32,7 @@ export default function NewsDetailPage() {
       setError(null);
       const data = await api.pages.getById(id);
       setPage(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || '加载失败');
     } finally {
       setLoading(false);

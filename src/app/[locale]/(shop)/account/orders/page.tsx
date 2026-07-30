@@ -21,7 +21,7 @@ const statusColors: Record<string, string> = {
 export default function OrdersPage() {
   const { locale, t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function OrdersPage() {
       try {
         const data = await api.orders.list();
         setOrders(data);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load orders:', err);
       } finally {
         setLoading(false);

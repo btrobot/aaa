@@ -5,7 +5,7 @@ import { renderWithProviders } from './test-utils';
 
 // Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => (
+  default: ({ children, href, ...props }: Record<string, unknown>) => (
     <a href={href} {...props}>
       {children}
     </a>

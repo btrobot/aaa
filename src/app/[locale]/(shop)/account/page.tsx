@@ -42,7 +42,7 @@ function statusText(status: string) {
 export default function AccountPage() {
   const { locale, t } = useTranslations();
   const { user, loading: authLoading, logout } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function AccountPage() {
       try {
         const orderData = await api.orders.list();
         setOrders(orderData.slice(0, 3));
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load account:', err);
       } finally {
         setLoading(false);

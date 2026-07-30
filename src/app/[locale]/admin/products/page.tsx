@@ -13,7 +13,7 @@ export default function AdminProducts() {
   const { t } = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -22,7 +22,7 @@ export default function AdminProducts() {
       try {
         const data = await api.products.list({ locale: toApiLocale(locale), pageSize: 100 });
         setProducts(data);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load products:', err);
       } finally {
         setLoading(false);
@@ -31,7 +31,7 @@ export default function AdminProducts() {
     load();
   }, [locale]);
 
-  const filtered = products.filter((p: any) =>
+  const filtered = products.filter((p: Record<string, unknown>) =>
     (p.description?.name || '').toLowerCase().includes(search.toLowerCase()) ||
     p.sku.toLowerCase().includes(search.toLowerCase())
   );
@@ -72,7 +72,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((product: any) => (
+              {filtered.map((product: Record<string, unknown>) => (
                 <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

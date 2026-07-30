@@ -85,8 +85,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         applyTheme(preset);
       }
     };
-    window.addEventListener('theme-change' as any, handler as any);
-    return () => window.removeEventListener('theme-change' as any, handler as any);
+    window.addEventListener('theme-change', handler as EventListener);
+    return () => window.removeEventListener('theme-change', handler as EventListener);
   }, [applyTheme]);
 
   return (

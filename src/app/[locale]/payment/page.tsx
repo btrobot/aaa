@@ -46,7 +46,7 @@ function PaymentContent() {
           });
           setResult('failed');
         }
-      } catch (err) {
+      } catch (_err) {
         setResult('failed');
       } finally {
         setProcessing(false);

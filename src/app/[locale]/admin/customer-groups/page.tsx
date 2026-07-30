@@ -30,7 +30,7 @@ export default function CustomerGroupsPage() {
       const res = await fetch('/api/customer-groups');
       const data = await res.json();
       setGroups(data.items ?? []);
-    } catch (err) {
+    } catch (_err) {
       toast.error('加载客户分组失败');
     } finally {
       setLoading(false);
@@ -95,7 +95,7 @@ export default function CustomerGroupsPage() {
       }
       toast.success('分组已删除');
       fetchGroups();
-    } catch (err) {
+    } catch (_err) {
       toast.error(err instanceof Error ? err.message : '删除失败');
     }
   };

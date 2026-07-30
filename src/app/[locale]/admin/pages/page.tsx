@@ -12,11 +12,11 @@ export default function AdminPages() {
   const { t } = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
-  const [pages, setPages] = useState<any[]>([]);
+  const [pages, setPages] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<any>(null);
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [formData, setFormData] = useState({
     title: '', content: '', summary: '', status: true,
     titleEn: '', contentEn: '', summaryEn: '',
@@ -31,7 +31,7 @@ export default function AdminPages() {
     try {
       const data = await api.pages.list({ locale: toApiLocale(locale) });
       setPages(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load pages:', err);
       setPages([]);
     } finally {
@@ -45,7 +45,7 @@ export default function AdminPages() {
     setShowModal(true);
   }
 
-  function openEdit(page: any) {
+  function openEdit(page: Record<string, unknown>) {
     setEditing(page);
     setFormData({
       title: page.title || '',
@@ -63,7 +63,7 @@ export default function AdminPages() {
     if (!formData.title.trim()) return;
     setSaving(true);
     try {
-      const descriptions: Record<string, any> = {
+      const descriptions: Record<string, unknown> = {
         zh_cn: { title: formData.title, content: formData.content || undefined, metaTitle: formData.title, metaDescription: formData.summary || undefined },
       };
       if (formData.titleEn.trim()) {
@@ -76,7 +76,7 @@ export default function AdminPages() {
       }
       setShowModal(false);
       loadPages();
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to save page:', err);
     } finally {
       setSaving(false);
@@ -88,21 +88,21 @@ export default function AdminPages() {
     try {
       await api.pages.delete(id);
       loadPages();
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to delete page:', err);
     }
   }
 
-  async function toggleStatus(page: any) {
+  async function toggleStatus(page: Record<string, unknown>) {
     try {
       await api.pages.update(page.id, { status: !page.status });
       loadPages();
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to toggle status:', err);
     }
   }
 
-  const filtered = pages.filter((p: any) =>
+  const filtered = pages.filter((p: Record<string, unknown>) =>
     (p.title || '').toLowerCase().includes(search.toLowerCase())
   );
 
@@ -140,7 +140,7 @@ export default function AdminPages() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((page: any) => (
+              {filtered.map((page: Record<string, unknown>) => (
                 <tr key={page.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">

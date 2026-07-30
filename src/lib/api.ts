@@ -121,12 +121,12 @@ export const api = {
       return request<Product[]>(`/api/products?${qs.toString()}`);
     },
     get: (id: number) => request<Product>(`/api/products/${id}`),
-    create: (data: any) =>
+    create: (data: Record<string, unknown>) =>
       request<Product>('/api/products', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: (id: number, data: any) =>
+    update: (id: number, data: Record<string, unknown>) =>
       request<Product>(`/api/products/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -139,15 +139,15 @@ export const api = {
   categories: {
     list: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<any[]>(`/api/categories${qs}`);
+      return request<unknown[]>(`/api/categories${qs}`);
     },
-    create: (data: any) =>
-      request<any>('/api/categories', {
+    create: (data: Record<string, unknown>) =>
+      request<unknown>('/api/categories', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: (id: number, data: any) =>
-      request<any>(`/api/categories/${id}`, {
+    update: (id: number, data: Record<string, unknown>) =>
+      request<unknown>(`/api/categories/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -157,14 +157,14 @@ export const api = {
 
   // 品牌
   brands: {
-    list: () => request<any[]>('/api/brands'),
-    create: (data: any) =>
-      request<any>('/api/brands', {
+    list: () => request<unknown[]>('/api/brands'),
+    create: (data: Record<string, unknown>) =>
+      request<unknown>('/api/brands', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: (id: number, data: any) =>
-      request<any>(`/api/brands/${id}`, {
+    update: (id: number, data: Record<string, unknown>) =>
+      request<unknown>(`/api/brands/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -176,39 +176,39 @@ export const api = {
   cart: {
     get: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<any[]>(`/api/cart${qs}`);
+      return request<unknown[]>(`/api/cart${qs}`);
     },
     add: (productId: number, quantity: number) =>
-      request<any>('/api/cart', {
+      request<unknown>('/api/cart', {
         method: 'POST',
         body: JSON.stringify({ productId, quantity }),
       }),
     update: (id: number, quantity: number) =>
-      request<any>('/api/cart', {
+      request<unknown>('/api/cart', {
         method: 'PUT',
         body: JSON.stringify({ id, quantity }),
       }),
     remove: (id: number) =>
-      request<any>(`/api/cart?id=${id}`, { method: 'DELETE' }),
+      request<unknown>(`/api/cart?id=${id}`, { method: 'DELETE' }),
   },
 
   // 订单
   orders: {
     list: () =>
-      request<any[]>('/api/orders'),
+      request<unknown[]>('/api/orders'),
     getAll: () =>
-      request<any[]>('/api/orders?admin=true'),
+      request<unknown[]>('/api/orders?admin=true'),
     getById: (id: number) =>
-      request<any>(`/api/orders/${id}`),
+      request<unknown>(`/api/orders/${id}`),
     get: (number: string) =>
-      request<any>(`/api/orders?number=${number}`),
-    create: (data?: any) =>
-      request<any>('/api/orders', {
+      request<unknown>(`/api/orders?number=${number}`),
+    create: (data?: Record<string, unknown>) =>
+      request<unknown>('/api/orders', {
         method: 'POST',
         body: JSON.stringify(data || {}),
       }),
     updateStatus: (id: number, status: string) =>
-      request<any>(`/api/orders/${id}`, {
+      request<unknown>(`/api/orders/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ status }),
       }),
@@ -217,26 +217,26 @@ export const api = {
   // 认证
   auth: {
     login: (data: { email: string; password: string }) =>
-      request<any>('/api/auth', {
+      request<unknown>('/api/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'login', ...data }),
       }),
     register: (data: { email: string; password: string; name: string; locale?: string }) =>
-      request<any>('/api/auth', {
+      request<unknown>('/api/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'register', ...data }),
       }),
-    me: () => request<any>('/api/auth/me'),
+    me: () => request<unknown>('/api/auth/me'),
   },
 
   // 客户
   customers: {
-    get: () => request<any>('/api/customers'),
-    getAll: () => request<any[]>('/api/customers?admin=true'),
-    wishlist: () => request<any[]>('/api/customers/wishlist'),
-    removeWishlist: (productId: number) => request<any>(`/api/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
-    update: (data: any) =>
-      request<any>('/api/customers', {
+    get: () => request<unknown>('/api/customers'),
+    getAll: () => request<unknown[]>('/api/customers?admin=true'),
+    wishlist: () => request<unknown[]>('/api/customers/wishlist'),
+    removeWishlist: (productId: number) => request<unknown>(`/api/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
+    update: (data: Record<string, unknown>) =>
+      request<unknown>('/api/customers', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -246,7 +246,7 @@ export const api = {
   shipping: {
     list: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<any[]>(`/api/shipping-methods${qs}`);
+      return request<unknown[]>(`/api/shipping-methods${qs}`);
     },
   },
 
@@ -260,9 +260,9 @@ export const api = {
     },
     getById: (id: number) =>
       request<Page>(`/api/pages/${id}`),
-    create: (data: any) =>
+    create: (data: Record<string, unknown>) =>
       request<Page>('/api/pages', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: any) =>
+    update: (id: number, data: Record<string, unknown>) =>
       request<Page>(`/api/pages/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -285,19 +285,19 @@ export const api = {
   },
   attributes: {
     list: (locale: string) =>
-      request<any[]>(`/api/attributes?locale=${locale}`),
-    create: (type: string, data: any) =>
-      request<any>('/api/attributes', {
+      request<unknown[]>(`/api/attributes?locale=${locale}`),
+    create: (type: string, data: Record<string, unknown>) =>
+      request<unknown>('/api/attributes', {
         method: 'POST',
         body: JSON.stringify({ type, data }),
       }),
-    update: (type: string, id: number, data: any) =>
-      request<any>('/api/attributes', {
+    update: (type: string, id: number, data: Record<string, unknown>) =>
+      request<unknown>('/api/attributes', {
         method: 'PUT',
         body: JSON.stringify({ type, id, data }),
       }),
     delete: (type: string, id: number) =>
-      request<any>(`/api/attributes?type=${type}&id=${id}`, {
+      request<unknown>(`/api/attributes?type=${type}&id=${id}`, {
         method: 'DELETE',
       }),
   },

@@ -16,7 +16,7 @@ function toApiLocale(locale: string) {
 
 export default function WishlistPage() {
   const { locale, t } = useTranslations();
-  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [wishlist, setWishlist] = useState<unknown[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +26,7 @@ export default function WishlistPage() {
         if (!user) { setLoading(false); return; }
         const data = await api.customers.wishlist();
         setWishlist(data || []);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load wishlist:', err);
       } finally {
         setLoading(false);
@@ -40,7 +40,7 @@ export default function WishlistPage() {
       if (!user) { setLoading(false); return; }
       await api.customers.removeWishlist( productId);
       setWishlist(wishlist.filter((p) => p.id !== productId));
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to remove:', err);
     }
   };

@@ -36,7 +36,7 @@ export default function AdminCategoriesPage() {
       const data = await api.categories.list();
       setCategories(data as Category[]);
       setError(null);
-    } catch (err) {
+    } catch (_err) {
       setError('加载分类失败');
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export default function AdminCategoriesPage() {
       }
       setShowModal(false);
       await loadCategories();
-    } catch (err) {
+    } catch (_err) {
       setError(editingCategory ? '更新分类失败' : '创建分类失败');
     } finally {
       setSaving(false);
@@ -90,7 +90,7 @@ export default function AdminCategoriesPage() {
     try {
       await api.categories.delete(id);
       await loadCategories();
-    } catch (err) {
+    } catch (_err) {
       setError('删除分类失败');
     }
   };

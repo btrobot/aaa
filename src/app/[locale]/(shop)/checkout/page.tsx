@@ -69,7 +69,7 @@ export default function CheckoutPage() {
         if (methods.length > 0) {
           setSelectedShippingId(methods[0].id);
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load checkout data:', err);
       } finally {
         setLoading(false);
@@ -113,7 +113,7 @@ export default function CheckoutPage() {
       const payData = await payResult.json();
       // 模拟支付成功跳转（实际项目中跳转到 Stripe/PayPal Checkout URL）
       router.push(`/${locale}/payment?orderNumber=${order.orderNumber || order.number}&paymentId=${payData.paymentId}&status=success`);
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to create order:', err);
       alert('提交订单失败，请重试');
     } finally {

@@ -28,8 +28,8 @@ export default function AdminNewProduct() {
   const [descEn, setDescEn] = useState('');
 
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<unknown[]>([]);
+  const [categories, setCategories] = useState<unknown[]>([]);
 
   useEffect(() => {
     loadOptions();
@@ -43,7 +43,7 @@ export default function AdminNewProduct() {
       ]);
       setBrands(Array.isArray(brandsList) ? brandsList : []);
       setCategories(Array.isArray(categoriesTree) ? categoriesTree : []);
-    } catch (err) {
+    } catch (_err) {
       console.error('加载选项失败:', err);
     }
   }
@@ -54,8 +54,8 @@ export default function AdminNewProduct() {
     );
   }
 
-  function renderCategoryOptions(cats: any[], depth = 0): React.ReactNode[] {
-    return cats.flatMap((cat: any) => [
+  function renderCategoryOptions(cats: Record<string, unknown>[], depth = 0): React.ReactNode[] {
+    return cats.flatMap((cat: Record<string, unknown>) => [
       <label key={cat.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded cursor-pointer">
         <input
           type="checkbox"
@@ -77,7 +77,7 @@ export default function AdminNewProduct() {
     setSaving(true);
     setError('');
 
-    const descriptions: Record<string, any> = {};
+    const descriptions: Record<string, unknown> = {};
     if (nameZh) descriptions.zh_cn = { name: nameZh, description: descZh || undefined };
     if (nameEn) descriptions.en = { name: nameEn, description: descEn || undefined };
 
@@ -92,7 +92,7 @@ export default function AdminNewProduct() {
         categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       });
       router.push(`/${params.locale}/admin/products`);
-    } catch (err) {
+    } catch (_err) {
       setError(err instanceof Error ? err.message : '创建失败');
     } finally {
       setSaving(false);
@@ -169,7 +169,7 @@ export default function AdminNewProduct() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">无品牌</option>
-                  {brands.map((b: any) => (
+                  {brands.map((b: Record<string, unknown>) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>

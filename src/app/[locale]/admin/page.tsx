@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
   const [stats, setStats] = useState({ orders: 0, revenue: 0, customers: 0, products: 0 });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,10 +32,10 @@ export default function AdminDashboard() {
           api.customers.getAll().catch(() => []),
           api.products.list({ locale: locale === 'en' ? 'en' : 'zh_cn', pageSize: 100 }).catch(() => []),
         ]);
-        const totalRevenue = orders.reduce((sum: number, o: any) => sum + Number(o.total), 0);
+        const totalRevenue = orders.reduce((sum: number, o: Record<string, unknown>) => sum + Number(o.total), 0);
         setStats({ orders: orders.length, revenue: totalRevenue, customers: customers.length || 0, products: Array.isArray(products) ? products.length : 0 });
         setRecentOrders(orders.slice(0, 5));
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load dashboard:', err);
       } finally {
         setLoading(false);

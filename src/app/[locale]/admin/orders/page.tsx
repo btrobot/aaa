@@ -21,7 +21,7 @@ const statusLabels: Record<string, string> = {
 
 export default function AdminOrders() {
   const { t, locale } = useTranslations();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -31,7 +31,7 @@ export default function AdminOrders() {
       try {
         const data = await api.orders.getAll();
         setOrders(data);
-      } catch (err) {
+      } catch (_err) {
         console.error('Failed to load orders:', err);
       } finally {
         setLoading(false);
