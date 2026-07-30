@@ -35,6 +35,7 @@ export default function ProductDetailPage({
   const [productName, setProductName] = useState('');
   const [productDesc, setProductDesc] = useState('');
   const [addingToCart, setAddingToCart] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function load() {
@@ -76,8 +77,10 @@ export default function ProductDetailPage({
   }, [id, locale]);
 
   const handleAddToCart = async () => {
-    // In a real app, get customerId from auth context
-    const { user } = useAuth();
+    if (!user) {
+      alert(t('products.loginFirst') || '请先登录');
+      return;
+    }
     setAddingToCart(true);
     try {
       await api.cart.add(Number(id), quantity);

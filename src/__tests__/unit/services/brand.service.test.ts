@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 function createChainMock(resolvedValue: unknown) {
-  const buildChain = (endValue: unknown): any =>
+  const buildChain = (endValue: unknown): Record<string, unknown> =>
     new Proxy(() => Promise.resolve(endValue), {
       get(_, prop) {
         if (prop === 'then') return (resolve: Function) => resolve(endValue);

@@ -47,6 +47,10 @@ const eslintConfig = defineConfig([
     'dist/**',
     // Script files (CommonJS):
     'scripts/**/*.js',
+    // Tool/skill directories:
+    '.codex/**',
+    '.superpowers/**',
+    '.omx/**',
   ]),
 ]);
 
