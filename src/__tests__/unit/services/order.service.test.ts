@@ -110,4 +110,34 @@ describe('OrderService', () => {
       expect(machine.canTransition('shipped', 'completed')).toBe(true);
     });
   });
+
+  describe('getNextStatuses', () => {
+    it('pending 状态的下一步应为 confirmed 和 cancelled', async () => {
+      const { OrderStateMachine } = await import('@/lib/services/order.service');
+      const machine = new OrderStateMachine();
+      const next = machine.getNextStatuses('pending');
+      expect(next).toContain('confirmed');
+      expect(next).toContain('cancelled');
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('应能更新订单状态', async () => {
+      mockDb.update = vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: vi.fn(() => Promise.resolve([{ id: 1, status: 'confirmed' }])),
+          })),
+        })),
+      }));
+
+      const result = await OrderService.updateStatus(1, 'confirmed');
+      expect(result).toHaveProperty('status', 'confirmed');
+    });
+
+    it('非法状态流转应抛出错误', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ id: 1, status: 'pending' }]));
+      await expect(OrderService.updateStatus(1, 'shipped')).rejects.toThrow();
+    });
+  });
 });

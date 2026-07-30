@@ -71,4 +71,34 @@ describe('CartService', () => {
       expect(mockDb.delete).toHaveBeenCalled();
     });
   });
+
+  describe('updateQuantity', () => {
+    it('应能更新购物车商品数量', async () => {
+      mockDb.update = vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: vi.fn(() => Promise.resolve([{ id: 1, quantity: 5, selected: true }])),
+          })),
+        })),
+      }));
+
+      const result = await CartService.updateQuantity(1, 5);
+      expect(result).toHaveProperty('quantity', 5);
+    });
+  });
+
+  describe('toggleSelect', () => {
+    it('应能切换商品选中状态', async () => {
+      mockDb.update = vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: vi.fn(() => Promise.resolve([{ id: 1, selected: false }])),
+          })),
+        })),
+      }));
+
+      const result = await CartService.toggleSelect(1, false);
+      expect(result).toHaveProperty('selected', false);
+    });
+  });
 });

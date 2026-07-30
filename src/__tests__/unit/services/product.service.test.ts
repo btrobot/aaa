@@ -194,4 +194,35 @@ describe('ProductService', () => {
       expect(result).toHaveLength(8);
     });
   });
+
+  describe('update', () => {
+    it('应能更新产品信息', async () => {
+      mockDb.update = vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: vi.fn(() => Promise.resolve([{ id: 1, sku: 'TEST-001', price: '199.99' }])),
+          })),
+        })),
+      }));
+
+      const result = await ProductService.update(1, { price: '199.99' });
+      expect(result).toHaveProperty('id', 1);
+    });
+  });
+
+  describe('findById', () => {
+    it('应能通过 ID 获取产品', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ products: { id: 1, sku: 'TEST-001', price: '99.99' }, product_descriptions: null, brands: null }]));
+
+      const result = await ProductService.findById(1);
+      expect(result).toHaveProperty('id', 1);
+    });
+
+    it('产品不存在时应返回 null', async () => {
+      mockDb.select.mockReturnValue(createChainMock([]));
+
+      const result = await ProductService.findById(999);
+      expect(result).toBeNull();
+    });
+  });
 });

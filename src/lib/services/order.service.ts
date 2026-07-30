@@ -58,6 +58,13 @@ export interface CreateOrderInput {
 }
 
 export const OrderService = {
+  getNextStatuses(status: OrderStatus): OrderStatus[] {
+    const stateMachine = new OrderStateMachine();
+    return stateMachine.getTransitions()
+      .filter(t => t.from === status)
+      .map(t => t.to);
+  },
+
   async create(input: CreateOrderInput) {
     // 获取购物车商品
     const cartItems = await db.select()

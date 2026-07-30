@@ -57,4 +57,56 @@ describe('CategoryService', () => {
       expect(Array.isArray(tree)).toBe(true);
     });
   });
+
+  describe('findById', () => {
+    it('应能通过ID查找分类', async () => {
+      mockDb.select.mockReturnValue(createChainMock([
+        { categories: { id: 1, parentId: null, status: true }, category_descriptions: { name: '户外大型', locale: 'zh_cn' } },
+      ]));
+
+      const result = await CategoryService.findById(1);
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('categories.id', 1);
+    });
+  });
+
+  describe('update', () => {
+    it('应能更新分类', async () => {
+      mockDb.update = vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: vi.fn(() => Promise.resolve([{ id: 1, status: false }])),
+          })),
+        })),
+      }));
+
+      (mockDb.select as any) = vi.fn(() => ({
+        from: vi.fn(() => ({
+          leftJoin: vi.fn(() => ({
+            where: vi.fn(() => Promise.resolve([{ id: 1, status: false, name: 'Test' }])),
+          })),
+        })),
+      }));
+
+      const result = await CategoryService.update(1, { status: false });
+      expect(result).toHaveProperty('id', 1);
+      expect(mockDb.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('delete', () => {
+    it('应能删除分类', async () => {
+      mockDb.select.mockReturnValue(createChainMock([])); // 没有子分类
+      const result = await CategoryService.delete(1);
+      expect(result).toBe(true);
+      expect(mockDb.update).toHaveBeenCalled();
+    });
+
+    it('有子分类时设为不可用', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ id: 2 }]));
+      const result = await CategoryService.delete(1);
+      expect(result).toBe(true);
+      expect(mockDb.update).toHaveBeenCalled();
+    });
+  });
 });

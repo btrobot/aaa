@@ -116,6 +116,16 @@ describe('BrandService', () => {
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('name', 'Brand 1');
     });
+
+    it('should filter brands by status', async () => {
+      const mockBrands = [{ id: 1, name: 'Active Brand', status: true }];
+      mockDb.select.mockReturnValue(createChainMock(mockBrands));
+
+      const result = await BrandService.findAll({ page: 1, limit: 10, status: true });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toBe(true);
+    });
   });
 
   describe('update', () => {

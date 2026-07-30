@@ -229,5 +229,20 @@ describe('CustomerService', () => {
 
       expect(mockDb.delete).toHaveBeenCalledWith(customerWishlists);
     });
+
+    it('should get wishlist', async () => {
+      mockDb.select.mockReturnValue(createChainMock([
+        { customer_wishlists: { id: 1, customerId: 1, productId: 10 }, products: { id: 10, sku: 'TEST-001' } },
+      ]));
+      const result = await CustomerService.getWishlist(1);
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('addresses', () => {
+    it('should delete an address', async () => {
+      await CustomerService.deleteAddress(1, 1);
+      expect(mockDb.delete).toHaveBeenCalled();
+    });
   });
 });
