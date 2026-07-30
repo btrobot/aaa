@@ -92,6 +92,7 @@ export const OrderService = {
       orderProductsData.push({
         productId: item.carts.productId,
         skuId: item.carts.skuId,
+        sku: item.products?.sku || '',
         name: item.product_descriptions?.name || '',
         quantity: qty,
         price: item.products?.price || '0',

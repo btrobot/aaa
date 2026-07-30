@@ -9,6 +9,7 @@
     "lint": "eslint",
     "lint:build": "eslint . --quiet",
     "lint:style": "stylelint \"src/**/*.css\"",
+    "seed": "npx tsx scripts/seed.ts",
     "start": "bash ./scripts/start.sh",
     "test": "vitest run",
     "test:watch": "vitest",

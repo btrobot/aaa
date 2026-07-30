@@ -44,13 +44,16 @@ export const CartService = {
     }
 
     // 新增购物车项
-    const [item] = await db.insert(carts).values({
+    const values: any = {
       customerId: input.customerId,
       productId: input.productId,
-      skuId: input.skuId || null,
       quantity: input.quantity,
       selected: true,
-    }).returning();
+    };
+    if (input.skuId !== undefined) {
+      values.skuId = input.skuId;
+    }
+    const [item] = await db.insert(carts).values(values).returning();
 
     return item;
   },

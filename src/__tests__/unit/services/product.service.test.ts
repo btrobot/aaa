@@ -132,7 +132,7 @@ describe('ProductService', () => {
 
       mockDb.select.mockReturnValue(createChainMock(mockProducts));
 
-      const result = await ProductService.search({ keyword: '旋转木马', locale: 'zh_cn', page: 1, pageSize: 20, sortBy: 'sort_order', sortOrder: 'desc' });
+      const result = await ProductService.search({ keyword: '旋转木马', locale: 'zh_cn', page: 1, pageSize: 20, sortBy: 'sortOrder', sortOrder: 'desc' });
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(2);
     });
@@ -145,7 +145,7 @@ describe('ProductService', () => {
       mockDb.select.mockReturnValueOnce(createChainMock([]))
         .mockReturnValueOnce(createChainMock(mockProducts));
 
-      const result = await ProductService.search({ categoryId: 1, locale: 'zh_cn', page: 1, pageSize: 20, sortBy: 'sort_order', sortOrder: 'desc' });
+      const result = await ProductService.search({ categoryId: 1, locale: 'zh_cn', page: 1, pageSize: 20, sortBy: 'sortOrder', sortOrder: 'desc' });
       expect(Array.isArray(result)).toBe(true);
     });
   });

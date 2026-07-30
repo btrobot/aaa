@@ -44,7 +44,7 @@ export const ProductSearchSchema = z.object({
   locale: z.string().default('zh_cn'),
   page: z.number().int().positive().default(1),
   pageSize: z.number().int().positive().default(20),
-  sortBy: z.enum(['price', 'sales', 'created_at', 'sort_order']).default('sort_order'),
+  sortBy: z.enum(['price', 'sales', 'createdAt', 'sortOrder']).default('sortOrder'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),

@@ -24,7 +24,7 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     rules: {
-      'import/no-cycle': ['error', { ignoreExternal: true }],
+      // 'import/no-cycle' 规则依赖的插件未安装，暂时禁用
       'react-hooks/set-state-in-effect': 'off',
       'no-restricted-syntax': ['error', ...syntaxRules],
     },
