@@ -1,6 +1,7 @@
 import { I18nProvider } from '@/i18n/I18nProvider';
 import { CurrencyProvider } from '@/i18n/CurrencyProvider';
 import { CartProvider } from '@/lib/cart-context';
+import { ThemeProvider } from '@/lib/theme/ThemeProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -29,6 +30,7 @@ export default async function LocaleLayout({
     <CurrencyProvider>
       <CartProvider>
         <I18nProvider>
+          <ThemeProvider>
           {/* JSON-LD 结构化数据 */}
           <script
             type="application/ld+json"
@@ -39,6 +41,7 @@ export default async function LocaleLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          </ThemeProvider>
         </I18nProvider>
       </CartProvider>
     </CurrencyProvider>

@@ -14,6 +14,7 @@ import {
   Settings,
   Truck,
   ListTree,
+  Palette,
   ChevronDown,
   LogOut,
   Menu,
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/admin/attributes', label: 'nav.attributes', icon: ListTree },
   { href: '/admin/pages', label: 'admin.pages', icon: Newspaper },
   { href: '/admin/shipping', label: 'admin.shipping', icon: Truck },
+  { href: '/admin/theme', label: 'nav.theme', icon: Palette },
   { href: '/admin/settings', label: 'nav.settings', icon: Settings },
 ];
 
