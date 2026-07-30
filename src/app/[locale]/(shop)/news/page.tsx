@@ -29,8 +29,8 @@ export default function NewsPage() {
       setError(null);
       const data = await api.pages.list({ status: true, locale: toApiLocale(locale) });
       setPages(data);
-    } catch (err: any) {
-      setError(err.message || '加载失败');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '加载失败');
     } finally {
       setLoading(false);
     }

@@ -58,7 +58,7 @@ export default function AdminRmasPage() {
       const res = await fetch(`/api/rmas?${params}`);
       const data = await res.json();
       setRmas(data.items || []);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('加载退换货单失败');
     } finally {
       setLoading(false);
@@ -84,7 +84,7 @@ export default function AdminRmasPage() {
       });
       setDialogOpen(false);
       loadRmas();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('更新失败');
     }
   };

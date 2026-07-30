@@ -68,8 +68,8 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       ]);
       setReviews(reviewsData.items || []);
       setStats(statsData);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : '未知错误');
     } finally {
       setSubmitting(false);
     }

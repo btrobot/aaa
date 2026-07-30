@@ -32,7 +32,7 @@ export default function AdminReviewsPage() {
       const res = await fetch('/api/reviews?pageSize=100');
       const data = await res.json();
       setReviews(data.items || []);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('加载评价失败');
     } finally {
       setLoading(false);
@@ -49,7 +49,7 @@ export default function AdminReviewsPage() {
         body: JSON.stringify({ status: !current }),
       });
       setReviews(reviews.map(r => r.id === id ? { ...r, status: !current } : r));
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('操作失败');
     }
   };
@@ -59,7 +59,7 @@ export default function AdminReviewsPage() {
     try {
       await fetch(`/api/reviews/${id}`, { method: 'DELETE' });
       setReviews(reviews.filter(r => r.id !== id));
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('删除失败');
     }
   };

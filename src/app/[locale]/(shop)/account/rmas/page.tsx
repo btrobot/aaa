@@ -87,8 +87,8 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
       setForm({ orderId: '', orderProductId: '', type: 'refund', reason: '', quantity: '1', comment: '' });
       const data = await fetch(`/api/rmas?customerId=${customer.id}`).then(r => r.json());
       setRmas(data.items || []);
-    } catch (e: any) {
-      alert('提交失败: ' + e.message);
+    } catch (e: unknown) {
+      alert('提交失败: ' + (e instanceof Error ? e.message : '未知错误'));
     } finally {
       setSubmitting(false);
     }
