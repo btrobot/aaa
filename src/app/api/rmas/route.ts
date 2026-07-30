@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { RmaService } from '@/lib/services/rma.service';
-import { withAuth, withMiddleware } from '@/lib/api-middleware';
+import { withMiddleware } from '@/lib/api-middleware';
 
 /**
  * GET /api/rmas
@@ -15,9 +15,8 @@ export const GET = withMiddleware(async (request, { user }) => {
 
   // 普通用户只能查看自己的
   if (!user || user.role !== 'admin') {
-    const userId = user?.id;
-    if (!userId) return NextResponse.json({ error: '请先登录' }, { status: 401 });
-    const items = await RmaService.getByCustomerId(userId, status);
+    if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    const items = await RmaService.getByCustomerId(user.id, status);
     return NextResponse.json({ items, total: items.length });
   }
 
@@ -29,8 +28,9 @@ export const GET = withMiddleware(async (request, { user }) => {
 /**
  * POST /api/rmas — 登录用户可创建退换货申请
  */
-export const POST = withAuth(async (request, { user }) => {
+export const POST = withMiddleware(async (request, { user }) => {
+  if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
   const body = await request.json();
-  const rma = await RmaService.create({ ...body, customerId: user.id });
+  const rma = await RmaService.create(user.id, body);
   return NextResponse.json(rma, { status: 201 });
-});
+}, { auth: true });

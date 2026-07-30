@@ -11,7 +11,6 @@ export const GET = withAuth(async (
 ) => {
   const { id } = await params;
   const rma = await RmaService.findById(parseInt(id));
-  if (!rma) return NextResponse.json({ error: '退换货单不存在' }, { status: 404 });
   // 非管理员只能查看自己的
   if (user.role !== 'admin' && rma.customerId !== user.id) {
     return NextResponse.json({ error: '权限不足' }, { status: 403 });
@@ -28,6 +27,6 @@ export const PUT = withAdmin(async (
 ) => {
   const { id } = await params;
   const body = await request.json();
-  const result = await RmaService.update(parseInt(id), body);
+  const result = await RmaService.updateStatus(parseInt(id), body);
   return NextResponse.json(result);
 });
