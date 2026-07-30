@@ -95,6 +95,11 @@ export class CustomerService {
       throw new BusinessRuleError('邮箱或密码错误');
     }
 
+    // pre: 账户状态正常
+    if (!customer.status) {
+      throw new BusinessRuleError('账户已被禁用');
+    }
+
     // pre: 密码正确
     const isValid = await bcrypt.compare(validated.password, customer.password);
     if (!isValid) {
