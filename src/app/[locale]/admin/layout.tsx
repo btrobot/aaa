@@ -17,6 +17,7 @@ import {
   Palette,
   Star,
   RotateCcw,
+  Bell,
   ChevronDown,
   LogOut,
   Menu,
@@ -37,6 +38,8 @@ const navItems = [
   { href: '/admin/pages', label: 'admin.pages', icon: Newspaper },
   { href: '/admin/shipping', label: 'admin.shipping', icon: Truck },
   { href: '/admin/theme', label: 'nav.theme', icon: Palette },
+  { href: '/admin/customer-groups', label: '客户分组', icon: Users },
+  { href: '/admin/notifications', label: '通知管理', icon: Bell },
   { href: '/admin/settings', label: 'nav.settings', icon: Settings },
 ];
 
