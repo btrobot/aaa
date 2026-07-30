@@ -22,10 +22,10 @@ echo "Installing dependencies..."
 pnpm install --prefer-frozen-lockfile --prefer-offline --loglevel debug --reporter=append-only
 
 echo "Running database migration..."
-PGPASSWORD="${PGPASSWORD:-postgres}" PGDATABASE_URL="" npx drizzle-kit push --force 2>&1 || echo "⚠️ Database migration skipped"
+PGPASSWORD="${PGPASSWORD:-postgres}" PGDATABASE_URL="" pnpm drizzle-kit push --force 2>&1 || echo "⚠️ Database migration skipped"
 
 echo "Seeding database..."
-PGDATABASE_URL="" npx tsx scripts/seed.ts 2>&1 || echo "⚠️ Database seeding skipped"
+PGDATABASE_URL="" pnpm tsx scripts/seed.ts 2>&1 || echo "⚠️ Database seeding skipped"
 
 echo "Building the Next.js project..."
 pnpm next build

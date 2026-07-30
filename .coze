@@ -3,7 +3,7 @@ requires = [ "nodejs-24" ]
 project_type = "web"
 template = "nextjs"
 version = "0.0.32"
-appliedPatches = [ ]
+appliedPatches = [ "nextjs/replace-npx-with-pnpm@0.0.13" ]
 
 [dev]
 build = [ "bash", "./scripts/prepare.sh" ]
