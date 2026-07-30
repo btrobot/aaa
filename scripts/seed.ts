@@ -22,11 +22,21 @@ import {
   settings,
   pages,
   pageDescriptions,
+  shippingMethods,
+  shippingMethodDescriptions,
 } from '../src/lib/db/schema';
 import bcrypt from 'bcryptjs';
 
 async function seed() {
   console.log('🌱 开始填充种子数据...\n');
+
+  // 检查是否已有数据，避免重复插入
+  const existingLanguages = await db.select({ id: languages.id }).from(languages).limit(1);
+  if (existingLanguages.length > 0) {
+    console.log('✅ 数据库已有数据，跳过种子填充');
+    await closeDb();
+    return;
+  }
 
   // ============================================================
   // 1. 系统基础数据
@@ -511,9 +521,47 @@ This honor belongs to the entire NodeCoda R&D team, and we thank our global cust
     },
   ]);
 
+  console.log('\n🚚 创建配送方式...');
+
+  const [standardShipping] = await db.insert(shippingMethods).values({
+    code: 'standard',
+    baseFee: '30.00',
+    freeShippingThreshold: '500.00',
+    estimatedDays: '5-7',
+    sortOrder: 1,
+    status: true,
+  }).returning();
+
+  const [expressShipping] = await db.insert(shippingMethods).values({
+    code: 'express',
+    baseFee: '80.00',
+    freeShippingThreshold: '1000.00',
+    estimatedDays: '2-3',
+    sortOrder: 2,
+    status: true,
+  }).returning();
+
+  const [economyShipping] = await db.insert(shippingMethods).values({
+    code: 'economy',
+    baseFee: '15.00',
+    freeShippingThreshold: '300.00',
+    estimatedDays: '7-14',
+    sortOrder: 3,
+    status: true,
+  }).returning();
+
+  await db.insert(shippingMethodDescriptions).values([
+    { shippingMethodId: standardShipping.id, locale: 'zh_cn', name: '标准配送', description: '5-7 个工作日送达，满 ¥500 免运费' },
+    { shippingMethodId: standardShipping.id, locale: 'en', name: 'Standard Shipping', description: '5-7 business days, free shipping over ¥500' },
+    { shippingMethodId: expressShipping.id, locale: 'zh_cn', name: '快递配送', description: '2-3 个工作日加急送达，满 ¥1000 免运费' },
+    { shippingMethodId: expressShipping.id, locale: 'en', name: 'Express Shipping', description: '2-3 business days express, free shipping over ¥1000' },
+    { shippingMethodId: economyShipping.id, locale: 'zh_cn', name: '经济配送', description: '7-14 个工作日送达，满 ¥300 免运费' },
+    { shippingMethodId: economyShipping.id, locale: 'en', name: 'Economy Shipping', description: '7-14 business days, free shipping over ¥300' },
+  ]);
+
   console.log('📋 管理员账号: admin@nodecoda.com / admin123');
   console.log('📋 客户账号: customer@nodecoda.com / test123456');
-  console.log(`📦 共创建: ${productData.length} 个产品, ${brandData.length} 个品牌, 6 个分类, 3 篇文章`);
+  console.log(`📦 共创建: ${productData.length} 个产品, ${brandData.length} 个品牌, 6 个分类, 3 篇文章, 3 种配送方式`);
 
   await closeDb();
 }
