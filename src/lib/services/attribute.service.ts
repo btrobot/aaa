@@ -5,6 +5,7 @@ import {
   attributeValues, attributeValueDescriptions,
 } from '@/lib/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 // ── 类型 ──
 export interface AttributeGroupResponse {
@@ -58,7 +59,6 @@ export async function getAttributeGroups(locale: string): Promise<AttributeGroup
     attributes: [],
   }));
 
-  // 加载每个组的属性
   for (const group of groups) {
     const attrRows = await db
       .select({
@@ -74,9 +74,7 @@ export async function getAttributeGroups(locale: string): Promise<AttributeGroup
         attributeDescriptions,
         eq(attributeDescriptions.attributeId, attributes.id)
       )
-      .where(
-        eq(attributeDescriptions.locale, locale)
-      )
+      .where(eq(attributeDescriptions.locale, locale))
       .orderBy(asc(attributes.sortOrder));
 
     group.attributes = attrRows.map((a) => ({
@@ -88,7 +86,6 @@ export async function getAttributeGroups(locale: string): Promise<AttributeGroup
       values: [],
     }));
 
-    // 加载每个属性的值
     for (const attr of group.attributes) {
       const valRows = await db
         .select({
@@ -104,9 +101,7 @@ export async function getAttributeGroups(locale: string): Promise<AttributeGroup
           attributeValueDescriptions,
           eq(attributeValueDescriptions.attributeValueId, attributeValues.id)
         )
-        .where(
-          eq(attributeValueDescriptions.locale, locale)
-        )
+        .where(eq(attributeValueDescriptions.locale, locale))
         .orderBy(asc(attributeValues.sortOrder));
 
       attr.values = valRows.map((v) => ({
@@ -124,6 +119,10 @@ export async function getAttributeGroups(locale: string): Promise<AttributeGroup
 
 // ── 属性组 CRUD ──
 export async function createGroup(data: { sortOrder?: number; descriptions: Record<string, { name: string }> }) {
+  if (!data.descriptions || Object.keys(data.descriptions).length === 0) {
+    throw new BusinessRuleError('至少需要一种语言的描述');
+  }
+
   const [group] = await db.insert(attributeGroups).values({
     sortOrder: data.sortOrder ?? 0,
   }).returning();
@@ -139,30 +138,31 @@ export async function createGroup(data: { sortOrder?: number; descriptions: Reco
 }
 
 export async function updateGroup(id: number, data: { sortOrder?: number; descriptions: Record<string, { name: string }> }) {
+  // pre: 属性组存在
+  const [existing] = await db.select({ id: attributeGroups.id })
+    .from(attributeGroups).where(eq(attributeGroups.id, id)).limit(1);
+  if (!existing) throw new NotFoundError('属性组', id);
+
   await db.update(attributeGroups).set({
     sortOrder: data.sortOrder,
   }).where(eq(attributeGroups.id, id));
 
   for (const [locale, desc] of Object.entries(data.descriptions)) {
-    const existing = await db
+    const [existingDesc] = await db
       .select()
       .from(attributeGroupDescriptions)
-      .where(
-        and(
-          eq(attributeGroupDescriptions.attributeGroupId, id),
-          eq(attributeGroupDescriptions.locale, locale)
-        )
-      )
+      .where(and(
+        eq(attributeGroupDescriptions.attributeGroupId, id),
+        eq(attributeGroupDescriptions.locale, locale)
+      ))
       .limit(1);
 
-    if (existing.length > 0) {
+    if (existingDesc) {
       await db.update(attributeGroupDescriptions).set({ name: desc.name })
-        .where(
-          and(
-            eq(attributeGroupDescriptions.attributeGroupId, id),
-            eq(attributeGroupDescriptions.locale, locale)
-          )
-        );
+        .where(and(
+          eq(attributeGroupDescriptions.attributeGroupId, id),
+          eq(attributeGroupDescriptions.locale, locale)
+        ));
     } else {
       await db.insert(attributeGroupDescriptions).values({
         attributeGroupId: id, locale, name: desc.name,
@@ -172,11 +172,29 @@ export async function updateGroup(id: number, data: { sortOrder?: number; descri
 }
 
 export async function deleteGroup(id: number) {
+  // pre: 属性组存在
+  const [existing] = await db.select({ id: attributeGroups.id })
+    .from(attributeGroups).where(eq(attributeGroups.id, id)).limit(1);
+  if (!existing) throw new NotFoundError('属性组', id);
+
+  // pre: 无关联属性
+  const [linkedAttr] = await db.select({ id: attributes.id })
+    .from(attributes).where(eq(attributes.attributeGroupId, id)).limit(1);
+  if (linkedAttr) {
+    throw new BusinessRuleError('该属性组下有属性，无法删除');
+  }
+
   await db.delete(attributeGroups).where(eq(attributeGroups.id, id));
+  return true;
 }
 
 // ── 属性 CRUD ──
 export async function createAttribute(data: { attributeGroupId: number; sortOrder?: number; descriptions: Record<string, { name: string }> }) {
+  // pre: 属性组存在
+  const [group] = await db.select({ id: attributeGroups.id })
+    .from(attributeGroups).where(eq(attributeGroups.id, data.attributeGroupId)).limit(1);
+  if (!group) throw new NotFoundError('属性组', data.attributeGroupId);
+
   const [attr] = await db.insert(attributes).values({
     attributeGroupId: data.attributeGroupId,
     sortOrder: data.sortOrder ?? 0,
@@ -191,28 +209,29 @@ export async function createAttribute(data: { attributeGroupId: number; sortOrde
 }
 
 export async function updateAttribute(id: number, data: { sortOrder?: number; descriptions: Record<string, { name: string }> }) {
+  // pre: 属性存在
+  const [existing] = await db.select({ id: attributes.id })
+    .from(attributes).where(eq(attributes.id, id)).limit(1);
+  if (!existing) throw new NotFoundError('属性', id);
+
   await db.update(attributes).set({ sortOrder: data.sortOrder }).where(eq(attributes.id, id));
 
   for (const [locale, desc] of Object.entries(data.descriptions)) {
-    const existing = await db
+    const [existingDesc] = await db
       .select()
       .from(attributeDescriptions)
-      .where(
-        and(
-          eq(attributeDescriptions.attributeId, id),
-          eq(attributeDescriptions.locale, locale)
-        )
-      )
+      .where(and(
+        eq(attributeDescriptions.attributeId, id),
+        eq(attributeDescriptions.locale, locale)
+      ))
       .limit(1);
 
-    if (existing.length > 0) {
+    if (existingDesc) {
       await db.update(attributeDescriptions).set({ name: desc.name })
-        .where(
-          and(
-            eq(attributeDescriptions.attributeId, id),
-            eq(attributeDescriptions.locale, locale)
-          )
-        );
+        .where(and(
+          eq(attributeDescriptions.attributeId, id),
+          eq(attributeDescriptions.locale, locale)
+        ));
     } else {
       await db.insert(attributeDescriptions).values({
         attributeId: id, locale, name: desc.name,
@@ -222,11 +241,22 @@ export async function updateAttribute(id: number, data: { sortOrder?: number; de
 }
 
 export async function deleteAttribute(id: number) {
+  // pre: 属性存在
+  const [existing] = await db.select({ id: attributes.id })
+    .from(attributes).where(eq(attributes.id, id)).limit(1);
+  if (!existing) throw new NotFoundError('属性', id);
+
   await db.delete(attributes).where(eq(attributes.id, id));
+  return true;
 }
 
 // ── 属性值 CRUD ──
 export async function createValue(data: { attributeId: number; sortOrder?: number; descriptions: Record<string, { name: string }> }) {
+  // pre: 属性存在
+  const [attr] = await db.select({ id: attributes.id })
+    .from(attributes).where(eq(attributes.id, data.attributeId)).limit(1);
+  if (!attr) throw new NotFoundError('属性', data.attributeId);
+
   const [val] = await db.insert(attributeValues).values({
     attributeId: data.attributeId,
     sortOrder: data.sortOrder ?? 0,
@@ -241,28 +271,29 @@ export async function createValue(data: { attributeId: number; sortOrder?: numbe
 }
 
 export async function updateValue(id: number, data: { sortOrder?: number; descriptions: Record<string, { name: string }> }) {
+  // pre: 属性值存在
+  const [existing] = await db.select({ id: attributeValues.id })
+    .from(attributeValues).where(eq(attributeValues.id, id)).limit(1);
+  if (!existing) throw new NotFoundError('属性值', id);
+
   await db.update(attributeValues).set({ sortOrder: data.sortOrder }).where(eq(attributeValues.id, id));
 
   for (const [locale, desc] of Object.entries(data.descriptions)) {
-    const existing = await db
+    const [existingDesc] = await db
       .select()
       .from(attributeValueDescriptions)
-      .where(
-        and(
-          eq(attributeValueDescriptions.attributeValueId, id),
-          eq(attributeValueDescriptions.locale, locale)
-        )
-      )
+      .where(and(
+        eq(attributeValueDescriptions.attributeValueId, id),
+        eq(attributeValueDescriptions.locale, locale)
+      ))
       .limit(1);
 
-    if (existing.length > 0) {
+    if (existingDesc) {
       await db.update(attributeValueDescriptions).set({ name: desc.name })
-        .where(
-          and(
-            eq(attributeValueDescriptions.attributeValueId, id),
-            eq(attributeValueDescriptions.locale, locale)
-          )
-        );
+        .where(and(
+          eq(attributeValueDescriptions.attributeValueId, id),
+          eq(attributeValueDescriptions.locale, locale)
+        ));
     } else {
       await db.insert(attributeValueDescriptions).values({
         attributeValueId: id, locale, name: desc.name,
@@ -272,5 +303,11 @@ export async function updateValue(id: number, data: { sortOrder?: number; descri
 }
 
 export async function deleteValue(id: number) {
+  // pre: 属性值存在
+  const [existing] = await db.select({ id: attributeValues.id })
+    .from(attributeValues).where(eq(attributeValues.id, id)).limit(1);
+  if (!existing) throw new NotFoundError('属性值', id);
+
   await db.delete(attributeValues).where(eq(attributeValues.id, id));
+  return true;
 }
