@@ -1,7 +1,17 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 
+// ─── JWT Secret ────────────────────────────────────────────────
+// 生产环境必须配置 JWT_SECRET 环境变量，否则拒绝启动
+const JWT_SECRET_VALUE = process.env.JWT_SECRET;
+
+if (!JWT_SECRET_VALUE && process.env.NODE_ENV === 'production') {
+  throw new Error(
+    '[FATAL] JWT_SECRET 环境变量未配置。生产环境禁止使用默认密钥，请设置一个强随机字符串。'
+  );
+}
+
 const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nodecoda-jwt-secret-change-in-production'
+  JWT_SECRET_VALUE || 'nodecoda-dev-only-jwt-secret-not-for-production'
 );
 
 export const TOKEN_NAME = 'nodecoda_token';

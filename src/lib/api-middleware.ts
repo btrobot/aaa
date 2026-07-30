@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { authenticate, requireAuth, type AuthPayload, AuthError } from './auth';
 import { rateLimitMiddleware } from './rate-limit';
 
-type Handler = (
-  request: Request,
-  context: { params: Promise<Record<string, string>>; user: AuthPayload | null }
-) => Promise<NextResponse>;
+// ─── Handler Types ─────────────────────────────────────────────
+
+/** Admin handler: user is always non-null */
+type AdminHandler<TParams extends Record<string, string> = Record<string, string>> = (
+  request: NextRequest,
+  context: { params: Promise<TParams>; user: AuthPayload }
+) => Promise<NextResponse | Response>;
+
+/** Mixed handler: user may be null (public access) or non-null (authenticated) */
+type MixedHandler<TParams extends Record<string, string> = Record<string, string>> = (
+  request: NextRequest,
+  context: { params: Promise<TParams>; user: AuthPayload | null }
+) => Promise<NextResponse | Response>;
 
 interface MiddlewareConfig {
   /** 是否需要登录 */
@@ -16,6 +26,8 @@ interface MiddlewareConfig {
   rateLimit?: { maxRequests: number; windowMs: number };
 }
 
+// ─── Error Handling ────────────────────────────────────────────
+
 function getErrorResponse(error: unknown): NextResponse {
   if (error instanceof AuthError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
@@ -24,16 +36,18 @@ function getErrorResponse(error: unknown): NextResponse {
   return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
 }
 
+// ─── Core Middleware ───────────────────────────────────────────
+
 /**
  * 高阶函数：为 API 路由添加统一的鉴权 + 速率限制
  *
  * 用法:
- *   export const GET = withMiddleware(handler, { auth: true, roles: ['admin'], rateLimit: { maxRequests: 30, windowMs: 60000 } });
+ *   export const GET = withMiddleware(handler, { auth: true, roles: ['admin'] });
  */
-export function withMiddleware(
-  handler: Handler,
+export function withMiddleware<TParams extends Record<string, string> = Record<string, string>>(
+  handler: MixedHandler<TParams>,
   config: MiddlewareConfig = {}
-): (request: Request, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
+): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<NextResponse | Response> {
   return async (request, context) => {
     try {
       // 1. 速率限制
@@ -67,16 +81,54 @@ export function withMiddleware(
   };
 }
 
+// ─── Convenience Wrappers ──────────────────────────────────────
+
 /**
- * 简化版：仅用于需要登录的 API
+ * 需要登录（customer 或 admin 均可）
+ *
+ * 用法:
+ *   export const GET = withAuth(handler);
+ *   // handler 签名: (req, { params, user }) => NextResponse
+ *   // user 保证非 null
  */
-export function withAuth(handler: Handler, roles?: ('customer' | 'admin')[]) {
-  return withMiddleware(handler, { auth: true, roles });
+export function withAuth<TParams extends Record<string, string> = Record<string, string>>(
+  handler: AdminHandler<TParams>
+): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<NextResponse | Response> {
+  return withMiddleware(
+    handler as MixedHandler<TParams>,
+    { auth: true }
+  );
 }
 
 /**
- * 简化版：带速率限制的公开 API
+ * 需要管理员权限
+ *
+ * 用法:
+ *   export const POST = withAdmin(handler);
+ *   // handler 签名: (req, { params, user }) => NextResponse
+ *   // user 保证非 null 且 role === 'admin'
  */
-export function withRateLimit(handler: Handler, config: { maxRequests: number; windowMs: number }) {
+export function withAdmin<TParams extends Record<string, string> = Record<string, string>>(
+  handler: AdminHandler<TParams>
+): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<NextResponse | Response> {
+  return withMiddleware(
+    handler as MixedHandler<TParams>,
+    { auth: true, roles: ['admin'] }
+  );
+}
+
+/**
+ * 带速率限制的公开 API（无需登录）
+ *
+ * 用法:
+ *   export const GET = withRateLimit(handler, { maxRequests: 30, windowMs: 60000 });
+ */
+export function withRateLimit<TParams extends Record<string, string> = Record<string, string>>(
+  handler: MixedHandler<TParams>,
+  config: { maxRequests: number; windowMs: number }
+): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<NextResponse | Response> {
   return withMiddleware(handler, { rateLimit: config });
 }
+
+// Re-export cache utility for convenience
+export { cacheResponse } from './utils';

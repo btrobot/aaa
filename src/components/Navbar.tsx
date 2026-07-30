@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
+import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { useCurrency } from '@/i18n/CurrencyProvider';
 import { locales, localeNames } from '@/i18n/config';

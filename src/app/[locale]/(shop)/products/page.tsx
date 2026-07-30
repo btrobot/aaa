@@ -217,7 +217,7 @@ export default function ProductsPage() {
                       <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
                         <Card className="overflow-hidden hover:shadow-lg transition-all">
                           <div className="flex gap-4 p-4">
-                            <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative">
+                            <div style={{ position: "relative" }} className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                               {product.images && product.images.length > 0 ? (
                                 <Image
                                   src={product.images[0].image}
@@ -252,7 +252,7 @@ export default function ProductsPage() {
                   return (
                     <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
                       <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
-                        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                        <div style={{ position: "relative" }} className="aspect-square bg-gray-100 overflow-hidden">
                           {product.images && product.images.length > 0 ? (
                             <Image
                               src={product.images[0].image}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package, ChevronRight } from 'lucide-react';
@@ -19,16 +20,15 @@ const statusColors: Record<string, string> = {
 
 export default function OrdersPage() {
   const { locale, t } = useTranslations();
+  const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
+      if (!user) { setLoading(false); return; }
       try {
-        const stored = localStorage.getItem('customer');
-        if (!stored) { setLoading(false); return; }
-        const c = JSON.parse(stored);
-        const data = await api.orders.list(c.id);
+        const data = await api.orders.list();
         setOrders(data);
       } catch (err) {
         console.error('Failed to load orders:', err);

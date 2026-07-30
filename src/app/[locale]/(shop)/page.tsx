@@ -177,7 +177,7 @@ export default function HomePage() {
                 return (
                   <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
                     <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
-                      <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                      <div style={{ position: "relative" }} className="aspect-square bg-gray-100 overflow-hidden">
                         {product.images && product.images.length > 0 ? (
                           <Image
                             src={product.images[0].image}

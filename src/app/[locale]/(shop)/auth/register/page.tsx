@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
-import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Cookie, Lock, Mail, User } from 'lucide-react';
 export default function RegisterPage() {
   const { locale, t } = useTranslations();
   const router = useRouter();
+  const { register } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,10 +28,10 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.auth.register({ email: form.email, password: form.password, name: form.name, locale });
+      await register({ email: form.email, password: form.password, name: form.name });
       router.push(`/${locale}/account`);
-    } catch (err: any) {
-      setError(err.message || t('auth.registerFailed'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }

@@ -1,51 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { notificationService } from '@/lib/services/notification.service';
+import { withAuth } from '@/lib/api-middleware';
 
-export async function GET(
+export const GET = withAuth(async (
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params;
-    const notification = await notificationService.getById(Number(id));
-    if (!notification) {
-      return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
-    }
-    return NextResponse.json(notification);
-  } catch (error) {
-    console.error('Failed to fetch notification:', error);
-    return NextResponse.json({ error: 'Failed to fetch notification' }, { status: 500 });
+  { params, user }
+) => {
+  const { id } = await params;
+  const notification = await notificationService.getById(Number(id));
+  if (!notification) {
+    return NextResponse.json({ error: '通知不存在' }, { status: 404 });
   }
-}
+  // 验证通知所有权
+  if (notification.notifiableId !== user.id) {
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
+  }
+  return NextResponse.json(notification);
+});
 
-export async function PUT(
+export const PUT = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    if (body.action === 'mark_read') {
-      const notification = await notificationService.markAsRead(Number(id));
-      return NextResponse.json(notification);
-    }
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (error) {
-    console.error('Failed to update notification:', error);
-    return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 });
+  { params, user }
+) => {
+  const { id } = await params;
+  const body = await request.json();
+  // 先验证所有权
+  const notification = await notificationService.getById(Number(id));
+  if (!notification || notification.notifiableId !== user.id) {
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
-}
+  const updated = await notificationService.markAsRead(Number(id));
+  return NextResponse.json(updated);
+});
 
-export async function DELETE(
+export const DELETE = withAuth(async (
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params;
-    await notificationService.delete(Number(id));
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to delete notification:', error);
-    return NextResponse.json({ error: 'Failed to delete notification' }, { status: 500 });
+  { params, user }
+) => {
+  const { id } = await params;
+  // 先验证所有权
+  const notification = await notificationService.getById(Number(id));
+  if (!notification || notification.notifiableId !== user.id) {
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
-}
+  await notificationService.delete(Number(id));
+  return NextResponse.json({ success: true });
+});

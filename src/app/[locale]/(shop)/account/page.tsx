@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,18 +41,15 @@ function statusText(status: string) {
 
 export default function AccountPage() {
   const { locale, t } = useTranslations();
-  const [customer, setCustomer] = useState<any>(null);
+  const { user, loading: authLoading, logout } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
+      if (!user) { setLoading(false); return; }
       try {
-        const stored = localStorage.getItem('customer');
-        if (!stored) { setLoading(false); return; }
-        const c = JSON.parse(stored);
-        setCustomer(c);
-        const orderData = await api.orders.list(c.id);
+        const orderData = await api.orders.list();
         setOrders(orderData.slice(0, 3));
       } catch (err) {
         console.error('Failed to load account:', err);
@@ -62,13 +60,13 @@ export default function AccountPage() {
     load();
   }, []);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50"><div className="max-w-7xl mx-auto px-4 py-6"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-100 rounded w-1/3" /><div className="h-40 bg-gray-100 rounded" /></div></div></div>
     );
   }
 
-  if (!customer) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center"><User className="w-16 h-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500 mb-4">请先登录</p><Link href={`/${locale}/auth/login`}><Button className="bg-blue-600 hover:bg-blue-700">登录</Button></Link></div>
@@ -93,8 +91,8 @@ export default function AccountPage() {
                   <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
                     <User className="w-8 h-8 text-blue-600" />
                   </div>
-                  <p className="font-medium text-gray-900">{customer.name}</p>
-                  <p className="text-sm text-gray-500">{customer.email}</p>
+                  <p className="font-medium text-gray-900">{user.name}</p>
+                  <p className="text-sm text-gray-500">{user.email}</p>
                 </div>
                 <nav className="space-y-1">
                   {sidebarLinks.map((link) => (
@@ -104,7 +102,7 @@ export default function AccountPage() {
                     </Link>
                   ))}
                   <button
-                    onClick={() => { localStorage.removeItem('customer'); window.location.href = `/${locale}`; }}
+                    onClick={() => { logout(); window.location.href = `/${locale}`; }}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors w-full"
                   >
                     <LogOut className="w-4 h-4" />

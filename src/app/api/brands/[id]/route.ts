@@ -1,48 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BrandService } from '@/lib/services/brand.service';
+import { withMiddleware, withAdmin, cacheResponse } from '@/lib/api-middleware';
 
-export async function GET(
+export const GET = withMiddleware(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const brand = await BrandService.findById(Number(id));
-    if (!brand) {
-      return NextResponse.json({ error: '品牌不存在' }, { status: 404 });
-    }
-    return NextResponse.json(brand);
-  } catch (error) {
-    console.error('获取品牌失败:', error);
-    return NextResponse.json({ error: '获取品牌失败' }, { status: 500 });
+) => {
+  const { id } = await params;
+  const brand = await BrandService.findById(Number(id));
+  if (!brand) {
+    return NextResponse.json({ error: '品牌不存在' }, { status: 404 });
   }
-}
+  return cacheResponse(NextResponse.json(brand), { maxAge: 60 });
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
-export async function PUT(
+export const PUT = withAdmin(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const result = await BrandService.update(Number(id), body);
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('更新品牌失败:', error);
-    return NextResponse.json({ error: '更新品牌失败' }, { status: 500 });
-  }
-}
+) => {
+  const { id } = await params;
+  const body = await request.json();
+  const result = await BrandService.update(Number(id), body);
+  return NextResponse.json(result);
+});
 
-export async function DELETE(
+export const DELETE = withAdmin(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    await BrandService.delete(Number(id));
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('删除品牌失败:', error);
-    return NextResponse.json({ error: '删除品牌失败' }, { status: 500 });
-  }
-}
+) => {
+  const { id } = await params;
+  await BrandService.delete(Number(id));
+  return NextResponse.json({ success: true });
+});

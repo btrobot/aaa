@@ -1,85 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ProductService } from '@/lib/services/product.service';
+import { withMiddleware, withAdmin, cacheResponse } from '@/lib/api-middleware';
 
-/**
- * GET /api/products/[id]
- * 产品详情
- */
-export async function GET(
+
+
+export const GET = withMiddleware(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const productId = Number(id);
-    if (isNaN(productId)) {
-      return NextResponse.json({ error: '无效的产品ID' }, { status: 400 });
-    }
-
-    const product = await ProductService.findById(productId);
-    if (!product) {
-      return NextResponse.json({ error: '产品不存在' }, { status: 404 });
-    }
-
-    return NextResponse.json(product);
-  } catch (error) {
-    console.error('GET /api/products/[id] error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '获取产品详情失败' },
-      { status: 500 }
-    );
+) => {
+  const { id } = await params;
+  const product = await ProductService.findById(Number(id));
+  if (!product) {
+    return NextResponse.json({ error: '产品不存在' }, { status: 404 });
   }
-}
+  return cacheResponse(NextResponse.json(product), { maxAge: 60 });
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
-/**
- * PUT /api/products/[id]
- * 更新产品
- */
-export async function PUT(
+export const PUT = withAdmin(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const productId = Number(id);
-    if (isNaN(productId)) {
-      return NextResponse.json({ error: '无效的产品ID' }, { status: 400 });
-    }
+) => {
+  const { id } = await params;
+  const body = await request.json();
+  const product = await ProductService.update(Number(id), body);
+  return NextResponse.json(product);
+});
 
-    const body = await request.json();
-    const product = await ProductService.update(productId, body);
-    return NextResponse.json(product);
-  } catch (error) {
-    console.error('PUT /api/products/[id] error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '更新产品失败' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * DELETE /api/products/[id]
- * 删除产品
- */
-export async function DELETE(
+export const DELETE = withAdmin(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const productId = Number(id);
-    if (isNaN(productId)) {
-      return NextResponse.json({ error: '无效的产品ID' }, { status: 400 });
-    }
-
-    const result = await ProductService.delete(productId);
-    return NextResponse.json({ success: true, data: result });
-  } catch (error) {
-    console.error('DELETE /api/products/[id] error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '删除产品失败' },
-      { status: 500 }
-    );
-  }
-}
+) => {
+  const { id } = await params;
+  await ProductService.delete(Number(id));
+  return NextResponse.json({ success: true });
+});

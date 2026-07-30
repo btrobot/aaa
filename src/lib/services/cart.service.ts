@@ -91,10 +91,10 @@ export const CartService = {
     return Array.from(cartMap.values());
   },
 
-  async updateQuantity(id: number, quantity: number) {
+  async updateQuantity(id: number, quantity: number, customerId?: number) {
     const [updated] = await db.update(carts)
       .set({ quantity })
-      .where(eq(carts.id, id))
+      .where(customerId ? and(eq(carts.id, id), eq(carts.customerId, customerId)) : eq(carts.id, id))
       .returning();
     return updated;
   },

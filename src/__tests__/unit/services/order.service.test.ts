@@ -21,6 +21,7 @@ const mockDb = {
   select: vi.fn(() => createChainMock([])),
   update: vi.fn(() => ({ set: vi.fn(() => ({ where: vi.fn(() => ({ returning: vi.fn(() => Promise.resolve([{ id: 1 }])) })) })) })),
   delete: vi.fn(() => ({ where: vi.fn(() => Promise.resolve({ rowCount: 1 })) })),
+  transaction: vi.fn(async (cb: Function) => cb(mockDb)),
 };
 
 vi.mock('@/lib/db/db', () => ({ db: mockDb }));

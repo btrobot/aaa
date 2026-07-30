@@ -1,65 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OrderService } from '@/lib/services/order.service';
+import { withAuth, withAdmin, withMiddleware, cacheResponse } from '@/lib/api-middleware';
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId') ? Number(searchParams.get('customerId')) : undefined;
-    const number = searchParams.get('number') || undefined;
+/**
+ * GET /api/orders
+ * - 普通用户：只能查看自己的订单
+ * - 管理员：可查看所有订单 (?admin=true)
+ */
+export const GET = withMiddleware(async (request, { user }) => {
+  const { searchParams } = new URL(request.url);
+  const number = searchParams.get('number') || undefined;
 
-    if (number) {
-      const order = await OrderService.findByNumber(number);
-      if (!order) {
-        return NextResponse.json({ error: '订单不存在' }, { status: 404 });
-      }
-      return NextResponse.json(order);
-    }
-
-    if (searchParams.get('admin') === 'true') {
-      const orders = await OrderService.getAll();
-      return NextResponse.json(orders);
-    }
-
-    if (customerId) {
-      const orders = await OrderService.getCustomerOrders(customerId);
-      return NextResponse.json(orders);
-    }
-
-    return NextResponse.json({ error: '请提供 customerId 或 number 参数' }, { status: 400 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '获取订单失败' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const order = await OrderService.create(body);
-    return NextResponse.json(order, { status: 201 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '创建订单失败' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { id, status } = body;
-    if (!id || !status) {
-      return NextResponse.json({ error: '请提供 id 和 status' }, { status: 400 });
-    }
-    const order = await OrderService.updateStatus(id, status);
+  if (number) {
+    const order = await OrderService.findByNumber(number);
+    if (!order) return NextResponse.json({ error: '订单不存在' }, { status: 404 });
     return NextResponse.json(order);
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : '更新订单状态失败' },
-      { status: 500 }
-    );
   }
-}
+
+  // 管理员查看所有订单
+  if (searchParams.get('admin') === 'true') {
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
+    const orders = await OrderService.getAll();
+    return cacheResponse(NextResponse.json(orders), { maxAge: 10 });
+  }
+
+  // 普通用户查看自己的订单
+  if (!user) {
+    return NextResponse.json({ error: '请先登录' }, { status: 401 });
+  }
+  const orders = await OrderService.getCustomerOrders(user.id);
+  return NextResponse.json(orders);
+}, { auth: true });
+
+/**
+ * POST /api/orders — 登录用户可创建订单
+ */
+export const POST = withAuth(async (request, { user }) => {
+  const body = await request.json();
+  const order = await OrderService.create({ ...body, customerId: user.id });
+  return NextResponse.json(order, { status: 201 });
+});
+
+/**
+ * PUT /api/orders — 仅管理员可更新订单状态
+ */
+export const PUT = withAdmin(async (request) => {
+  const body = await request.json();
+  const { id, status } = body;
+  if (!id || !status) {
+    return NextResponse.json({ error: '请提供 id 和 status' }, { status: 400 });
+  }
+  const order = await OrderService.updateStatus(id, status);
+  return NextResponse.json(order);
+});

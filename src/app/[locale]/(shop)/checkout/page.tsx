@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -53,13 +54,13 @@ export default function CheckoutPage() {
     note: '', paymentMethod: 'alipay',
   });
 
-  const customerId = 1;
+  const { user } = useAuth();
 
   useEffect(() => {
     async function load() {
       try {
         const [items, methods] = await Promise.all([
-          api.cart.get(customerId, toApiLocale(locale)),
+          api.cart.get(toApiLocale(locale)),
           api.shipping.list(toApiLocale(locale)),
         ]);
         setCartItems(items);
@@ -95,7 +96,7 @@ export default function CheckoutPage() {
     if (!selectedMethod) return;
     setSubmitting(true);
     try {
-      const order = await api.orders.create(customerId, {
+      const order = await api.orders.create({
         shippingAddress: formData,
         shippingMethod: selectedMethod.code,
         shippingFee: shippingFee.toFixed(2),

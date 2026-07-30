@@ -1,6 +1,7 @@
 import { I18nProvider } from '@/i18n/I18nProvider';
 import { CurrencyProvider } from '@/i18n/CurrencyProvider';
 import { CartProvider } from '@/lib/cart-context';
+import { AuthProvider } from '@/lib/auth-context';
 import { ThemeProvider } from '@/lib/theme/ThemeProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,15 +10,17 @@ const SITE_URL = process.env.COZE_PROJECT_DOMAIN_DEFAULT || 'https://nodecoda.co
 
 function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
-    <CurrencyProvider>
-      <CartProvider>
-        <I18nProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
-        </I18nProvider>
-      </CartProvider>
-    </CurrencyProvider>
+    <AuthProvider>
+      <CurrencyProvider>
+        <CartProvider>
+          <I18nProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </I18nProvider>
+        </CartProvider>
+      </CurrencyProvider>
+    </AuthProvider>
   );
 }
 

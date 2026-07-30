@@ -1,53 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CustomerService } from '@/lib/services/customer.service';
+import { withAuth } from '@/lib/api-middleware';
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId') || searchParams.get('id');
-    if (!customerId) return NextResponse.json({ error: '请提供客户ID' }, { status: 400 });
+/**
+ * GET /api/customers/wishlist — 获取当前用户的收藏夹
+ */
+export const GET = withAuth(async (request, { user }) => {
+  
+  const items = await CustomerService.getWishlist(user.id);
+  return NextResponse.json(items);
+});
 
-    const items = await CustomerService.getWishlist(Number(customerId));
-    const products = items.map((item: any) => ({
-      id: item.productId,
-      name: item.product?.name || `Product #${item.productId}`,
-      price: item.product?.price || 0,
-      image: item.product?.image || null,
-    }));
-    return NextResponse.json(products);
-  } catch (error) {
-    console.error('Failed to get wishlist:', error);
-    return NextResponse.json({ error: '获取收藏夹失败' }, { status: 500 });
+/**
+ * POST /api/customers/wishlist — 添加到收藏夹
+ */
+export const POST = withAuth(async (request, { user }) => {
+  const body = await request.json();
+  const item = await CustomerService.addToWishlist(user.id, body.productId);
+  return NextResponse.json(item, { status: 201 });
+});
+
+/**
+ * DELETE /api/customers/wishlist — 从收藏夹移除
+ */
+export const DELETE = withAuth(async (request, { user }) => {
+  const productId = Number(request.nextUrl.searchParams.get('productId'));
+  if (!productId) {
+    return NextResponse.json({ error: '请提供 productId' }, { status: 400 });
   }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { customerId, productId } = body;
-    if (!customerId || !productId) {
-      return NextResponse.json({ error: '请提供 customerId 和 productId' }, { status: 400 });
-    }
-    const item = await CustomerService.addToWishlist(customerId, productId);
-    return NextResponse.json(item, { status: 201 });
-  } catch (error) {
-    console.error('Failed to add wishlist:', error);
-    return NextResponse.json({ error: '添加收藏失败' }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId');
-    const productId = searchParams.get('productId');
-    if (!customerId || !productId) {
-      return NextResponse.json({ error: '请提供 customerId 和 productId' }, { status: 400 });
-    }
-    const success = await CustomerService.removeFromWishlist(Number(customerId), Number(productId));
-    return NextResponse.json({ success });
-  } catch (error) {
-    console.error('Failed to remove wishlist:', error);
-    return NextResponse.json({ error: '移除收藏失败' }, { status: 500 });
-  }
-}
+  await CustomerService.removeFromWishlist(user.id, productId);
+  return NextResponse.json({ success: true });
+});

@@ -1,48 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CategoryService } from '@/lib/services/category.service';
+import { withMiddleware, withAdmin, cacheResponse } from '@/lib/api-middleware';
 
-export async function GET(
+
+
+export const GET = withMiddleware(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const category = await CategoryService.findById(Number(id));
-    if (!category) {
-      return NextResponse.json({ error: '分类不存在' }, { status: 404 });
-    }
-    return NextResponse.json(category);
-  } catch (error) {
-    console.error('获取分类失败:', error);
-    return NextResponse.json({ error: '获取分类失败' }, { status: 500 });
+) => {
+  const { id } = await params;
+  const category = await CategoryService.findById(Number(id));
+  if (!category) {
+    return NextResponse.json({ error: '分类不存在' }, { status: 404 });
   }
-}
+  return cacheResponse(NextResponse.json(category), { maxAge: 60 });
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
-export async function PUT(
+export const PUT = withAdmin(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const result = await CategoryService.update(Number(id), body);
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('更新分类失败:', error);
-    return NextResponse.json({ error: '更新分类失败' }, { status: 500 });
-  }
-}
+) => {
+  const { id } = await params;
+  const body = await request.json();
+  const category = await CategoryService.update(Number(id), body);
+  return NextResponse.json(category);
+});
 
-export async function DELETE(
+export const DELETE = withAdmin(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    await CategoryService.delete(Number(id));
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('删除分类失败:', error);
-    return NextResponse.json({ error: '删除分类失败' }, { status: 500 });
-  }
-}
+) => {
+  const { id } = await params;
+  await CategoryService.delete(Number(id));
+  return NextResponse.json({ success: true });
+});

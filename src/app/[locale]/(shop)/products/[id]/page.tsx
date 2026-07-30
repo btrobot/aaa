@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import type { Product } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -75,10 +76,10 @@ export default function ProductDetailPage({
 
   const handleAddToCart = async () => {
     // In a real app, get customerId from auth context
-    const customerId = 1;
+    const { user } = useAuth();
     setAddingToCart(true);
     try {
-      await api.cart.add(customerId, Number(id), quantity);
+      await api.cart.add(Number(id), quantity);
       alert(t('products.addedToCart'));
     } catch (err) {
       console.error('Failed to add to cart:', err);
@@ -163,7 +164,7 @@ export default function ProductDetailPage({
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Images */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-2xl overflow-hidden border relative">
+            <div style={{ position: "relative" }} className="aspect-square bg-white rounded-2xl overflow-hidden border">
               {images[0].image ? (
                 <Image
                   src={images[selectedImage]?.image || images[0].image}
@@ -184,6 +185,7 @@ export default function ProductDetailPage({
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
+                    style={{ position: "relative" }}
                     className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
                       selectedImage === i ? 'border-blue-500' : 'border-transparent'
                     }`}
@@ -301,7 +303,7 @@ export default function ProductDetailPage({
                 return (
                   <Link key={rp.id} href={`/${locale}/products/${rp.id}`} className="group">
                     <Card className="overflow-hidden hover:shadow-lg transition-all">
-                      <div className="aspect-square bg-gray-100 overflow-hidden relative">
+                      <div style={{ position: "relative" }} className="aspect-square bg-gray-100 overflow-hidden">
                         {rp.images && rp.images.length > 0 ? (
                           <Image
                             src={rp.images[0].image}

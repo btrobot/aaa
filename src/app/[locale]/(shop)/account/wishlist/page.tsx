@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
@@ -16,15 +17,14 @@ function toApiLocale(locale: string) {
 export default function WishlistPage() {
   const { locale, t } = useTranslations();
   const [wishlist, setWishlist] = useState<any[]>([]);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const stored = localStorage.getItem('customer');
-        if (!stored) { setLoading(false); return; }
-        const c = JSON.parse(stored);
-        const data = await api.customers.wishlist(c.id, toApiLocale(locale));
+        if (!user) { setLoading(false); return; }
+        const data = await api.customers.wishlist();
         setWishlist(data || []);
       } catch (err) {
         console.error('Failed to load wishlist:', err);
@@ -37,10 +37,8 @@ export default function WishlistPage() {
 
   const handleRemove = async (productId: number) => {
     try {
-      const stored = localStorage.getItem('customer');
-      if (!stored) return;
-      const c = JSON.parse(stored);
-      await api.customers.removeWishlist(c.id, productId);
+      if (!user) { setLoading(false); return; }
+      await api.customers.removeWishlist( productId);
       setWishlist(wishlist.filter((p) => p.id !== productId));
     } catch (err) {
       console.error('Failed to remove:', err);
@@ -81,7 +79,7 @@ export default function WishlistPage() {
             {wishlist.map((product) => (
               <Card key={product.id} className="border-0 shadow-sm group">
                 <Link href={`/${locale}/products/${product.id}`}>
-                  <div className="relative aspect-square bg-gray-100 overflow-hidden rounded-t-xl">
+                  <div style={{ position: "relative" }} className="aspect-square bg-gray-100 overflow-hidden rounded-t-xl">
                     {product.image ? (
                       <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform" />
                     ) : (

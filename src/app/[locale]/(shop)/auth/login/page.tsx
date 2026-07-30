@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
-import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Cookie, Lock, Mail } from 'lucide-react';
 export default function LoginPage() {
   const { locale, t } = useTranslations();
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,12 +24,10 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.auth.login({ email: form.email, password: form.password });
-      // 保存 session（简化版，直接保存到 localStorage）
-      localStorage.setItem('customer', JSON.stringify(res));
+      await login(form.email, form.password);
       router.push(`/${locale}/account`);
-    } catch (err: any) {
-      setError(err.message || t('auth.loginFailed'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }

@@ -174,43 +174,38 @@ export const api = {
 
   // 购物车
   cart: {
-    get: (customerId: number, locale?: string) => {
-      const qs = locale ? `?customerId=${customerId}&locale=${locale}` : `?customerId=${customerId}`;
+    get: (locale?: string) => {
+      const qs = locale ? `?locale=${locale}` : '';
       return request<any[]>(`/api/cart${qs}`);
     },
-    add: (customerId: number, productId: number, quantity: number) =>
+    add: (productId: number, quantity: number) =>
       request<any>('/api/cart', {
         method: 'POST',
-        body: JSON.stringify({ customerId, productId, quantity }),
+        body: JSON.stringify({ productId, quantity }),
       }),
     update: (id: number, quantity: number) =>
-      request<any>(`/api/cart/${id}`, {
+      request<any>('/api/cart', {
         method: 'PUT',
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ id, quantity }),
       }),
     remove: (id: number) =>
-      request<void>(`/api/cart/${id}`, { method: 'DELETE' }),
-    clear: (customerId: number) =>
-      request<void>('/api/cart/clear', {
-        method: 'POST',
-        body: JSON.stringify({ customerId }),
-      }),
+      request<any>(`/api/cart?id=${id}`, { method: 'DELETE' }),
   },
 
   // 订单
   orders: {
-    list: (customerId: number) =>
-      request<any[]>(`/api/orders?customerId=${customerId}`),
+    list: () =>
+      request<any[]>('/api/orders'),
     getAll: () =>
       request<any[]>('/api/orders?admin=true'),
     getById: (id: number) =>
       request<any>(`/api/orders/${id}`),
     get: (number: string) =>
       request<any>(`/api/orders?number=${number}`),
-    create: (customerId: number, data?: any) =>
+    create: (data?: any) =>
       request<any>('/api/orders', {
         method: 'POST',
-        body: JSON.stringify({ customerId, ...data }),
+        body: JSON.stringify(data || {}),
       }),
     updateStatus: (id: number, status: string) =>
       request<any>(`/api/orders/${id}`, {
@@ -221,26 +216,27 @@ export const api = {
 
   // 认证
   auth: {
-    register: (data: { email: string; password: string; name: string; locale?: string }) =>
-      request<any>('/api/auth', {
-        method: 'POST',
-        body: JSON.stringify({ action: 'register', ...data }),
-      }),
     login: (data: { email: string; password: string }) =>
       request<any>('/api/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'login', ...data }),
       }),
+    register: (data: { email: string; password: string; name: string; locale?: string }) =>
+      request<any>('/api/auth', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'register', ...data }),
+      }),
+    me: () => request<any>('/api/auth/me'),
   },
 
   // 客户
   customers: {
-    get: (id: number) => request<any>(`/api/customers?id=${id}`),
+    get: () => request<any>('/api/customers'),
     getAll: () => request<any[]>('/api/customers?admin=true'),
-    wishlist: (id: number, locale?: string) => request<any[]>(`/api/customers/wishlist?id=${id}${locale ? `&locale=${locale}` : ''}`),
-    removeWishlist: (customerId: number, productId: number) => request<any>(`/api/customers/wishlist?customerId=${customerId}&productId=${productId}`, { method: 'DELETE' }),
-    update: (id: number, data: any) =>
-      request<any>(`/api/customers/${id}`, {
+    wishlist: () => request<any[]>('/api/customers/wishlist'),
+    removeWishlist: (productId: number) => request<any>(`/api/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
+    update: (data: any) =>
+      request<any>('/api/customers', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),

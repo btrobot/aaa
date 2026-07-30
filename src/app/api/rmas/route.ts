@@ -1,36 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RmaService } from '@/lib/services/rma.service';
+import { withAuth, withMiddleware } from '@/lib/api-middleware';
 
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const customerId = searchParams.get('customerId');
-    const status = searchParams.get('status');
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = parseInt(searchParams.get('pageSize') || '20');
+/**
+ * GET /api/rmas
+ * - 普通用户：查看自己的退换货
+ * - 管理员：查看所有退换货
+ */
+export const GET = withMiddleware(async (request, { user }) => {
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status') || undefined;
+  const page = parseInt(searchParams.get('page') || '1');
+  const pageSize = parseInt(searchParams.get('pageSize') || '20');
 
-    if (customerId) {
-      const items = await RmaService.getByCustomerId(parseInt(customerId), status || undefined);
-      return NextResponse.json({ items, total: items.length });
-    }
-
-    const result = await RmaService.getAll({
-      status: status || undefined,
-      page,
-      pageSize,
-    });
-    return NextResponse.json(result);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || '获取退换货列表失败' }, { status: 500 });
+  // 普通用户只能查看自己的
+  if (!user || user.role !== 'admin') {
+    const userId = user?.id;
+    if (!userId) return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    const items = await RmaService.getByCustomerId(userId, status);
+    return NextResponse.json({ items, total: items.length });
   }
-}
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const rma = await RmaService.create(body);
-    return NextResponse.json(rma, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || '创建退换货申请失败' }, { status: 500 });
-  }
-}
+  // 管理员查看所有
+  const result = await RmaService.getAll({ status, page, pageSize });
+  return NextResponse.json(result);
+}, { auth: true });
+
+/**
+ * POST /api/rmas — 登录用户可创建退换货申请
+ */
+export const POST = withAuth(async (request, { user }) => {
+  const body = await request.json();
+  const rma = await RmaService.create({ ...body, customerId: user.id });
+  return NextResponse.json(rma, { status: 201 });
+});
