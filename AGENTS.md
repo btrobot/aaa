@@ -7,6 +7,36 @@
 - **Language**: TypeScript 5
 - **UI 组件**: shadcn/ui (基于 Radix UI)
 - **Styling**: Tailwind CSS 4
+- **测试框架**: Vitest (单元/集成) + Playwright (E2E)
+- **数据库**: PostgreSQL + Drizzle ORM
+- **国际化**: next-intl
+
+## 构建与测试命令
+
+| 命令 | 说明 |
+|------|------|
+| `pnpm dev` | 启动开发服务器 |
+| `pnpm build` | 生产构建 |
+| `pnpm start` | 启动生产服务器 |
+| `pnpm test` | 运行所有单元测试 (watch模式) |
+| `pnpm test:run` | 运行所有单元测试 (单次) |
+| `pnpm test:coverage` | 运行测试并生成覆盖率报告 |
+| `pnpm test:integration` | 运行集成测试 |
+| `pnpm test:e2e` | 运行 E2E 测试 (Playwright) |
+| `pnpm test:e2e:ui` | 运行 E2E 测试 (UI模式) |
+| `pnpm test:all` | 运行完整测试套件 |
+| `pnpm lint` | ESLint 检查 |
+| `pnpm ts-check` | TypeScript 类型检查 |
+| `pnpm lint:build` | 构建前检查 (lint + ts-check) |
+
+## 测试策略
+
+详见 `TEST_PLAN.md`，核心原则：
+
+- **测试金字塔**: 70% 单元测试 / 20% 集成测试 / 10% E2E 测试
+- **覆盖率目标**: 服务层 statements ≥ 75%, branches ≥ 55%, functions ≥ 75%
+- **TDD 流程**: Red → Green → Refactor
+- **质量门禁**: 测试通过 + 覆盖率达标 + TS 无错误 + Lint 无错误
 
 ## 目录结构
 
