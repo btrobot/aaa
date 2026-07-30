@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BrandService } from '@/lib/services/brand.service';
+import { cacheResponse } from '@/lib/utils';
 
 /**
  * GET /api/brands
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
       status: undefined,
     });
 
-    return NextResponse.json(result);
+    return cacheResponse(NextResponse.json(result), { maxAge: 120 });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '获取品牌列表失败' },

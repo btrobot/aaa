@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ProductService } from '@/lib/services/product.service';
+import { cacheResponse } from '@/lib/utils';
 
 /**
  * GET /api/products
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
       maxPrice,
     });
 
-    return NextResponse.json(result);
+    return cacheResponse(NextResponse.json(result), { maxAge: 30 });
   } catch (error) {
     console.error('GET /api/products error:', error);
     return NextResponse.json(

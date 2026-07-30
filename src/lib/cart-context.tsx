@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 export interface CartItem {
   id: string;
@@ -60,12 +60,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalItems = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items]);
+
+  const contextValue = useMemo(
+    () => ({ items, addItem, removeItem, updateQuantity, clearCart, totalItems }),
+    [items, addItem, removeItem, updateQuantity, clearCart, totalItems]
+  );
 
   return (
-    <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

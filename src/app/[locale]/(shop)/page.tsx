@@ -8,6 +8,7 @@ import type { Product } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 import { ChevronRight, Shield, Truck, Gift, HeadphonesIcon, Star, Ruler, Cog } from 'lucide-react';
 
 function toApiLocale(locale: string) {
@@ -178,11 +179,12 @@ export default function HomePage() {
                     <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
                       <div className="relative aspect-square bg-gray-100 overflow-hidden">
                         {product.images && product.images.length > 0 ? (
-                          <img
+                          <Image
                             src={product.images[0].image}
                             alt={name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300">

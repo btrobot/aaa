@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode, useEffect } from 'react';
 
 export type Currency = 'CNY' | 'USD' | 'EUR' | 'JPY' | 'KRW' | 'GBP' | 'AUD' | 'HKD' | 'THB' | 'SGD' | 'MYR';
 
@@ -100,10 +100,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     [convertPrice, currency]
   );
 
+  const contextValue = useMemo(
+    () => ({ currency, setCurrency, formatPrice, convertPrice, currencySymbol: currencySymbols[currency] }),
+    [currency, setCurrency, formatPrice, convertPrice]
+  );
+
   return (
-    <CurrencyContext.Provider
-      value={{ currency, setCurrency, formatPrice, convertPrice, currencySymbol: currencySymbols[currency] }}
-    >
+    <CurrencyContext.Provider value={contextValue}>
       {children}
     </CurrencyContext.Provider>
   );

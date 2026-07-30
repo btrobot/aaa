@@ -7,6 +7,20 @@ import Footer from '@/components/Footer';
 
 const SITE_URL = process.env.COZE_PROJECT_DOMAIN_DEFAULT || 'https://nodecoda.com';
 
+function ClientProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <CurrencyProvider>
+      <CartProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </I18nProvider>
+      </CartProvider>
+    </CurrencyProvider>
+  );
+}
+
 export default async function LocaleLayout({
   children,
 }: {
@@ -27,23 +41,16 @@ export default async function LocaleLayout({
   };
 
   return (
-    <CurrencyProvider>
-      <CartProvider>
-        <I18nProvider>
-          <ThemeProvider>
-          {/* JSON-LD 结构化数据 */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(organizationJsonLd),
-            }}
-          />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          </ThemeProvider>
-        </I18nProvider>
-      </CartProvider>
-    </CurrencyProvider>
+    <ClientProviders>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationJsonLd),
+        }}
+      />
+      <Navbar />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </ClientProviders>
   );
 }

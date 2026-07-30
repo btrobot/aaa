@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
 import { ShoppingCart, Heart, Minus, Plus, Cog, ChevronRight } from 'lucide-react';
 import { ProductReviews } from '@/components/ProductReviews';
 
@@ -162,12 +163,14 @@ export default function ProductDetailPage({
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Images */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-2xl overflow-hidden border">
+            <div className="aspect-square bg-white rounded-2xl overflow-hidden border relative">
               {images[0].image ? (
-                <img
+                <Image
                   src={images[selectedImage]?.image || images[0].image}
                   alt={name}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-200">
@@ -185,7 +188,7 @@ export default function ProductDetailPage({
                       selectedImage === i ? 'border-blue-500' : 'border-transparent'
                     }`}
                   >
-                    <img src={img.image} alt="" className="w-full h-full object-cover" />
+                    <Image src={img.image} alt="" fill sizes="64px" className="object-cover" />
                   </button>
                 ))}
               </div>
@@ -298,12 +301,14 @@ export default function ProductDetailPage({
                 return (
                   <Link key={rp.id} href={`/${locale}/products/${rp.id}`} className="group">
                     <Card className="overflow-hidden hover:shadow-lg transition-all">
-                      <div className="aspect-square bg-gray-100 overflow-hidden">
+                      <div className="aspect-square bg-gray-100 overflow-hidden relative">
                         {rp.images && rp.images.length > 0 ? (
-                          <img
+                          <Image
                             src={rp.images[0].image}
                             alt={rpName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            fill
+                            sizes="128px"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300">

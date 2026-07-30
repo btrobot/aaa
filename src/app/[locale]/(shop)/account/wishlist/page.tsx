@@ -6,6 +6,7 @@ import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 
 function toApiLocale(locale: string) {
@@ -82,7 +83,7 @@ export default function WishlistPage() {
                 <Link href={`/${locale}/products/${product.id}`}>
                   <div className="relative aspect-square bg-gray-100 overflow-hidden rounded-t-xl">
                     {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                      <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300">
                         <Heart className="w-12 h-12" />

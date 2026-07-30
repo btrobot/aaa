@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Image from 'next/image';
 import { Search, SlidersHorizontal, Grid3X3, List, ChevronDown, Cog } from 'lucide-react';
 
 function toApiLocale(locale: string) {
@@ -216,12 +217,14 @@ export default function ProductsPage() {
                       <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
                         <Card className="overflow-hidden hover:shadow-lg transition-all">
                           <div className="flex gap-4 p-4">
-                            <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                            <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative">
                               {product.images && product.images.length > 0 ? (
-                                <img
+                                <Image
                                   src={product.images[0].image}
                                   alt={name}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  fill
+                                  sizes="128px"
+                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -251,11 +254,12 @@ export default function ProductsPage() {
                       <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
                         <div className="relative aspect-square bg-gray-100 overflow-hidden">
                           {product.images && product.images.length > 0 ? (
-                            <img
+                            <Image
                               src={product.images[0].image}
                               alt={name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              loading="lazy"
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-300">

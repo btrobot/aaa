@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CategoryService } from '@/lib/services/category.service';
+import { cacheResponse } from '@/lib/utils';
 
 /**
  * GET /api/categories
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     const tree = await CategoryService.getTree(locale);
-    return NextResponse.json(tree);
+    return cacheResponse(NextResponse.json(tree), { maxAge: 120 });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '获取分类失败' },

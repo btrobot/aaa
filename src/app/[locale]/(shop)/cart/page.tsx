@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import Image from 'next/image';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, ShoppingCart } from 'lucide-react';
 
 function toApiLocale(locale: string) {
@@ -135,9 +136,9 @@ export default function CartPage() {
               {cartItems.map((item) => (
                 <Card key={item.id} className="overflow-hidden">
                   <div className="flex gap-4 p-4">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative">
                       {item.image ? (
-                        <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />
+                        <Image src={item.image} alt={item.productName} fill sizes="80px" className="object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
                           No Image
