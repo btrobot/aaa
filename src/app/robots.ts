@@ -1,11 +1,14 @@
 import { MetadataRoute } from 'next';
 
+const BASE_URL = process.env.COZE_PROJECT_DOMAIN_DEFAULT || 'https://nodecoda.com';
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/_next/', '/static/'],
+      disallow: ['/api/', '/_next/', '/static/', '/admin/'],
     },
+    sitemap: `${BASE_URL}/sitemap.xml`,
   };
 }

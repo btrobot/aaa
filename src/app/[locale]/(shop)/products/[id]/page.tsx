@@ -28,6 +28,8 @@ export default function ProductDetailPage({
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [productName, setProductName] = useState('');
+  const [productDesc, setProductDesc] = useState('');
   const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
@@ -36,6 +38,23 @@ export default function ProductDetailPage({
       try {
         const prod = await api.products.get(Number(id));
         setProduct(prod);
+
+        // 更新页面标题和 JSON-LD 结构化数据
+        if (prod) {
+          const name = prod.descriptions?.[0]?.name || '';
+          const desc = prod.descriptions?.[0]?.description || '';
+          const image = prod.images?.[0]?.image || '';
+          setProductName(name);
+          setProductDesc(desc);
+          document.title = `${name} | NodeCoda`;
+          // 设置 Open Graph 标签
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          const ogDesc = document.querySelector('meta[property="og:description"]');
+          const ogImage = document.querySelector('meta[property="og:image"]');
+          if (ogTitle) ogTitle.setAttribute('content', `${name} | NodeCoda`);
+          if (ogDesc) ogDesc.setAttribute('content', desc);
+          if (ogImage && image) ogImage.setAttribute('content', image);
+        }
         // Load related products from same category
         const all = await api.products.list({
           locale: toApiLocale(locale),
@@ -105,7 +124,29 @@ export default function ProductDetailPage({
   const images = product.images && product.images.length > 0 ? product.images : [{ image: '', sortOrder: 0 }];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      {/* Product JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: productName,
+            description: productDesc,
+            sku: product.sku,
+            image: images[0]?.image || undefined,
+            brand: product.brand?.name ? { '@type': 'Brand', name: product.brand.name } : undefined,
+            offers: {
+              '@type': 'Offer',
+              price: product.price,
+              priceCurrency: 'CNY',
+              availability: 'https://schema.org/InStock',
+            },
+          }),
+        }}
+      />
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
@@ -278,5 +319,6 @@ export default function ProductDetailPage({
         )}
       </div>
     </div>
+    </>
   );
 }
