@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/db';
 import { notifications } from '@/lib/db/schema';
 import { eq, desc, and, isNull, lt } from 'drizzle-orm';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 export interface CreateNotificationInput {
   type: string;
@@ -32,7 +33,6 @@ export class NotificationService {
       ? await query.where(and(...conditions))
       : await query;
 
-    // Count unread
     const allUnread = await db
       .select({ id: notifications.id })
       .from(notifications)
@@ -57,10 +57,18 @@ export class NotificationService {
       .from(notifications)
       .where(eq(notifications.id, id))
       .limit(1);
-    return notification || null;
+    if (!notification) throw new NotFoundError('通知', id);
+    return notification;
   }
 
   async create(input: CreateNotificationInput) {
+    if (!input.type || input.type.trim() === '') {
+      throw new BusinessRuleError('通知类型不能为空');
+    }
+    if (!input.data || !input.data.summary) {
+      throw new BusinessRuleError('通知 data 必须包含 summary 字段');
+    }
+
     const [notification] = await db
       .insert(notifications)
       .values({
@@ -73,13 +81,23 @@ export class NotificationService {
     return notification;
   }
 
-  async markAsRead(id: number) {
-    const [notification] = await db
+  async markAsRead(id: number, userId?: number, userType?: string) {
+    // pre: 通知存在
+    const notification = await this.getById(id);
+
+    // pre: 属于当前用户（如指定）
+    if (userId !== undefined && userType !== undefined) {
+      if (notification.notifiableId !== userId || notification.notifiableType !== userType) {
+        throw new BusinessRuleError('无权操作此通知');
+      }
+    }
+
+    const [updated] = await db
       .update(notifications)
       .set({ readAt: new Date() })
       .where(eq(notifications.id, id))
       .returning();
-    return notification;
+    return updated;
   }
 
   async markAllAsRead(notifiableId?: number, notifiableType?: string) {
@@ -98,8 +116,19 @@ export class NotificationService {
       .where(and(...conditions));
   }
 
-  async delete(id: number) {
+  async delete(id: number, userId?: number, userType?: string) {
+    // pre: 通知存在
+    const notification = await this.getById(id);
+
+    // pre: 属于当前用户（如指定）
+    if (userId !== undefined && userType !== undefined) {
+      if (notification.notifiableId !== userId || notification.notifiableType !== userType) {
+        throw new BusinessRuleError('无权删除此通知');
+      }
+    }
+
     await db.delete(notifications).where(eq(notifications.id, id));
+    return true;
   }
 
   async deleteOld(days: number = 30) {
@@ -107,11 +136,7 @@ export class NotificationService {
     cutoff.setDate(cutoff.getDate() - days);
     await db
       .delete(notifications)
-      .where(
-        and(
-          ...(notifications.createdAt ? [lt(notifications.createdAt, cutoff)] : []),
-        ),
-      );
+      .where(and(lt(notifications.createdAt, cutoff)));
   }
 }
 
