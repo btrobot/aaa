@@ -17,7 +17,7 @@ describe('Navbar', () => {
     renderWithProviders(<Navbar />);
     expect(screen.getByText('NodeCoda')).toBeDefined();
     // Logo letter B
-    const logo = screen.getByText('B');
+    const logo = screen.getByText('N');
     expect(logo).toBeDefined();
   });
 

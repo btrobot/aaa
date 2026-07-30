@@ -66,8 +66,8 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href={`/${locale}`} className="flex items-center gap-2 shrink-0">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">B</span>
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">N</span>
             </div>
             <span className="text-lg font-bold text-gray-900 hidden sm:block">{t('site.title')}</span>
           </Link>

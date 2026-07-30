@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import { ShoppingCart, Heart, Minus, Plus, Cog, ChevronRight } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import { ProductReviews } from '@/components/ProductReviews';
 
 function toApiLocale(locale: string) {
@@ -151,13 +152,10 @@ export default function ProductDetailPage({
       />
       <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href={`/${locale}`} className="hover:text-blue-600">{t('home.title')}</Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link href={`/${locale}/products`} className="hover:text-blue-600">{t('products.title')}</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-gray-900">{name}</span>
+        <Breadcrumb items={[
+          { label: t('nav.products'), href: `/${locale}/products` },
+          { label: name },
+        ]} />
         </nav>
 
         {/* Product Main */}

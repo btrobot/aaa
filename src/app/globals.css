@@ -137,3 +137,63 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+/* ─── P1-6: Focus Styles (Accessibility) ───────────────────────── */
+
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+/* ─── P1-7: Cursor Pointer ──────────────────────────────────────── */
+
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+select,
+input[type="checkbox"],
+input[type="radio"],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* ─── P2-10: Micro-interactions ──────────────────────────────────── */
+
+.btn-press:active {
+  transform: scale(0.97);
+  transition: transform 0.1s;
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ─── P2-12: Reduced Motion ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

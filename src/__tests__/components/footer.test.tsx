@@ -16,7 +16,7 @@ describe('Footer', () => {
   it('should render company logo and name', () => {
     renderWithProviders(<Footer />);
     expect(screen.getByText('NodeCoda')).toBeDefined();
-    expect(screen.getByText('B')).toBeDefined(); // Logo letter
+    expect(screen.getByText('N')).toBeDefined(); // Logo letter
   });
 
   it('should render company description', () => {
@@ -53,10 +53,10 @@ describe('Footer', () => {
   it('should render social media links', () => {
     renderWithProviders(<Footer />);
     // Social media icons use first letter: F, T, I, Y
-    expect(screen.getByText('F')).toBeDefined();
-    expect(screen.getByText('T')).toBeDefined();
-    expect(screen.getByText('I')).toBeDefined();
-    expect(screen.getByText('Y')).toBeDefined();
+    expect(screen.getByLabelText('Facebook')).toBeDefined();
+    expect(screen.getByLabelText('Twitter')).toBeDefined();
+    expect(screen.getByLabelText('Instagram')).toBeDefined();
+    expect(screen.getByLabelText('YouTube')).toBeDefined();
   });
 
   it('should render copyright and legal links', () => {
