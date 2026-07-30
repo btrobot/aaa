@@ -4,29 +4,24 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: '星乐游乐设备 | StarJoy Amusement Rides',
-    template: '%s | 星乐游乐设备',
+    default: 'BeikeShop | 开源跨境电商平台',
+    template: '%s | BeikeShop',
   },
   description:
-    '全球领先的游乐设施制造商，专业从事游乐设施设计、研发、生产、销售与服务的综合性企业。Global leading amusement ride manufacturer.',
+    'BeikeShop - 开源跨境电商平台，支持多语言、多货币、多支付方式。Open-source cross-border e-commerce platform.',
   keywords: [
-    '游乐设施',
-    '旋转木马',
-    '过山车',
-    '摩天轮',
-    '碰碰车',
-    '游乐设备',
-    'amusement rides',
-    'carousel',
-    'roller coaster',
-    'ferris wheel',
-    'theme park equipment',
+    '电商平台',
+    '跨境电商',
+    'BeikeShop',
+    'e-commerce',
+    'cross-border',
+    'online store',
   ],
-  authors: [{ name: 'StarJoy Amusement Rides' }],
+  authors: [{ name: 'BeikeShop' }],
   openGraph: {
-    title: '星乐游乐设备 | 全球领先的游乐设施制造商',
+    title: 'BeikeShop | 开源跨境电商平台',
     description:
-      '专业设计、研发、生产各类游乐设施，为全球客户提供安全、创新、高品质的游乐体验',
+      'BeikeShop - 开源跨境电商平台，支持多语言、多货币、多支付方式。',
     locale: 'zh_CN',
     type: 'website',
   },

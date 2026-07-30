@@ -17,7 +17,10 @@
     "wishlist": "收藏夹",
     "addresses": "收货地址",
     "language": "语言",
-    "search": "搜索商品..."
+    "search": "搜索商品...",
+    "dashboard": "控制台",
+    "backToShop": "返回前台",
+    "viewSite": "查看网站"
   },
   "home": {
     "heroTitle": "发现品质好物",
@@ -224,5 +227,51 @@
     "submit": "提交",
     "close": "关闭",
     "back": "返回"
+  },
+  "admin": {
+    "dashboard": "控制台",
+    "products": "商品管理",
+    "orders": "订单管理",
+    "customers": "客户管理",
+    "categories": "分类管理",
+    "brands": "品牌管理",
+    "settings": "系统设置",
+    "totalOrders": "总订单数",
+    "totalRevenue": "总营收",
+    "totalCustomers": "总客户数",
+    "totalProducts": "商品总数",
+    "recentOrders": "最近订单",
+    "viewAll": "查看全部",
+    "add": "新增",
+    "edit": "编辑",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "search": "搜索",
+    "export": "导出",
+    "status": "状态",
+    "actions": "操作",
+    "name": "名称",
+    "price": "价格",
+    "stock": "库存",
+    "sales": "销量",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间",
+    "orderId": "订单号",
+    "customer": "客户",
+    "total": "金额",
+    "orderStatus": {
+      "pending": "待付款",
+      "confirmed": "已确认",
+      "shipped": "已发货",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "returned": "已退货"
+    },
+    "productStatus": {
+      "active": "上架",
+      "inactive": "下架"
+    }
   }
 }

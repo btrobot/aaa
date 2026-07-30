@@ -17,7 +17,10 @@
     "wishlist": "Wishlist",
     "addresses": "Addresses",
     "language": "Language",
-    "search": "Search products..."
+    "search": "Search products...",
+    "dashboard": "Dashboard",
+    "backToShop": "Back to Shop",
+    "viewSite": "View Site"
   },
   "home": {
     "heroTitle": "Discover Quality Products",
@@ -224,5 +227,51 @@
     "submit": "Submit",
     "close": "Close",
     "back": "Back"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "orders": "Orders",
+    "customers": "Customers",
+    "categories": "Categories",
+    "brands": "Brands",
+    "settings": "Settings",
+    "totalOrders": "Total Orders",
+    "totalRevenue": "Total Revenue",
+    "totalCustomers": "Total Customers",
+    "totalProducts": "Total Products",
+    "recentOrders": "Recent Orders",
+    "viewAll": "View All",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "search": "Search",
+    "export": "Export",
+    "status": "Status",
+    "actions": "Actions",
+    "name": "Name",
+    "price": "Price",
+    "stock": "Stock",
+    "sales": "Sales",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "orderId": "Order ID",
+    "customer": "Customer",
+    "total": "Total",
+    "orderStatus": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "shipped": "Shipped",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "returned": "Returned"
+    },
+    "productStatus": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   }
 }
