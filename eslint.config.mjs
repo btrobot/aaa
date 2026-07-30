@@ -27,6 +27,11 @@ const eslintConfig = defineConfig([
       // 'import/no-cycle' 规则依赖的插件未安装，暂时禁用
       'react-hooks/set-state-in-effect': 'off',
       'no-restricted-syntax': ['error', ...syntaxRules],
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      }],
     },
   },
   {
@@ -47,6 +52,9 @@ const eslintConfig = defineConfig([
     'dist/**',
     // Script files (CommonJS):
     'scripts/**/*.js',
+    '.codex/**',
+    '.superpowers/**',
+    '.omx/**',
   ]),
 ]);
 
