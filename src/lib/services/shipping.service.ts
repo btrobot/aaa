@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/db';
 import { shippingMethods, shippingMethodDescriptions, orders } from '@/lib/db/schema';
-import { eq, and, gte, isNull } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 export interface ShippingMethodResponse {
   id: number;
@@ -19,6 +20,17 @@ export interface ShippingMethodResponse {
 // 查询条件类型
 interface ShippingMethodListParams {
   locale?: string;
+  status?: boolean;
+}
+
+// 更新数据类型（消除 Record<string, any>）
+interface ShippingMethodUpdateData {
+  code?: string;
+  baseFee?: string;
+  icon?: string | null;
+  freeShippingThreshold?: string | null;
+  estimatedDays?: string | null;
+  sortOrder?: number;
   status?: boolean;
 }
 
@@ -73,6 +85,7 @@ export const ShippingService = {
 
   /**
    * 更新订单配送方式
+   * pre: 订单存在
    */
   async updateOrderShipping(orderId: number, shippingMethod: string, shippingFee: string) {
     const [updated] = await db.update(orders)
@@ -83,11 +96,17 @@ export const ShippingService = {
       })
       .where(eq(orders.id, orderId))
       .returning();
+
+    if (!updated) {
+      throw new NotFoundError('订单', orderId);
+    }
+
     return updated;
   },
 
   /**
    * 创建配送方式
+   * pre: code 唯一
    */
   async create(data: {
     code: string;
@@ -98,6 +117,16 @@ export const ShippingService = {
     sortOrder?: number;
     descriptions: Record<string, { name: string; description?: string }>;
   }) {
+    // pre: code 唯一
+    const existingByCode = await db.select()
+      .from(shippingMethods)
+      .where(eq(shippingMethods.code, data.code))
+      .limit(1);
+
+    if (existingByCode.length > 0) {
+      throw new BusinessRuleError(`配送方式代码 "${data.code}" 已存在`);
+    }
+
     const [method] = await db.insert(shippingMethods).values({
       code: data.code,
       icon: data.icon || null,
@@ -121,6 +150,7 @@ export const ShippingService = {
 
   /**
    * 更新配送方式
+   * pre: 配送方式存在
    */
   async update(id: number, data: {
     code?: string;
@@ -132,7 +162,17 @@ export const ShippingService = {
     status?: boolean;
     descriptions?: Record<string, { name: string; description?: string }>;
   }) {
-    const updateData: Record<string, any> = {};
+    // pre: 配送方式存在
+    const existing = await db.select()
+      .from(shippingMethods)
+      .where(eq(shippingMethods.id, id))
+      .limit(1);
+
+    if (existing.length === 0) {
+      throw new NotFoundError('配送方式', id);
+    }
+
+    const updateData: ShippingMethodUpdateData = {};
     if (data.code !== undefined) updateData.code = data.code;
     if (data.baseFee !== undefined) updateData.baseFee = data.baseFee;
     if (data.icon !== undefined) updateData.icon = data.icon;
@@ -149,7 +189,7 @@ export const ShippingService = {
 
     if (data.descriptions) {
       for (const [locale, desc] of Object.entries(data.descriptions)) {
-        const existing = await db.select()
+        const existingDesc = await db.select()
           .from(shippingMethodDescriptions)
           .where(
             and(
@@ -159,7 +199,7 @@ export const ShippingService = {
           )
           .limit(1);
 
-        if (existing.length > 0) {
+        if (existingDesc.length > 0) {
           await db.update(shippingMethodDescriptions)
             .set({ name: desc.name, description: desc.description || null })
             .where(
@@ -184,8 +224,32 @@ export const ShippingService = {
 
   /**
    * 删除配送方式
+   * pre: 无关联订单
    */
   async delete(id: number) {
+    // pre: 配送方式存在
+    const existing = await db.select()
+      .from(shippingMethods)
+      .where(eq(shippingMethods.id, id))
+      .limit(1);
+
+    if (existing.length === 0) {
+      throw new NotFoundError('配送方式', id);
+    }
+
+    // pre: 无关联订单
+    const relatedOrders = await db.select()
+      .from(orders)
+      .where(eq(orders.shippingMethod, existing[0].code))
+      .limit(1);
+
+    if (relatedOrders.length > 0) {
+      throw new BusinessRuleError('有关联订单的配送方式不可删除');
+    }
+
+    await db.delete(shippingMethodDescriptions)
+      .where(eq(shippingMethodDescriptions.shippingMethodId, id));
+
     await db.delete(shippingMethods).where(eq(shippingMethods.id, id));
   },
 };
