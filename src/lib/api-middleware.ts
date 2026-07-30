@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { authenticate, requireAuth, type AuthPayload, AuthError } from './auth';
+import { ServiceError } from './services/errors';
 import { rateLimitMiddleware } from './rate-limit';
 
 // ─── Handler Types ─────────────────────────────────────────────
@@ -31,6 +32,9 @@ interface MiddlewareConfig {
 function getErrorResponse(error: unknown): NextResponse {
   if (error instanceof AuthError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
+  }
+  if (error instanceof ServiceError) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
   }
   console.error('[API Error]', error);
   return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
@@ -85,11 +89,6 @@ export function withMiddleware<TParams extends Record<string, string> = Record<s
 
 /**
  * 需要登录（customer 或 admin 均可）
- *
- * 用法:
- *   export const GET = withAuth(handler);
- *   // handler 签名: (req, { params, user }) => NextResponse
- *   // user 保证非 null
  */
 export function withAuth<TParams extends Record<string, string> = Record<string, string>>(
   handler: AdminHandler<TParams>
@@ -102,11 +101,6 @@ export function withAuth<TParams extends Record<string, string> = Record<string,
 
 /**
  * 需要管理员权限
- *
- * 用法:
- *   export const POST = withAdmin(handler);
- *   // handler 签名: (req, { params, user }) => NextResponse
- *   // user 保证非 null 且 role === 'admin'
  */
 export function withAdmin<TParams extends Record<string, string> = Record<string, string>>(
   handler: AdminHandler<TParams>
@@ -119,9 +113,6 @@ export function withAdmin<TParams extends Record<string, string> = Record<string
 
 /**
  * 带速率限制的公开 API（无需登录）
- *
- * 用法:
- *   export const GET = withRateLimit(handler, { maxRequests: 30, windowMs: 60000 });
  */
 export function withRateLimit<TParams extends Record<string, string> = Record<string, string>>(
   handler: MixedHandler<TParams>,
