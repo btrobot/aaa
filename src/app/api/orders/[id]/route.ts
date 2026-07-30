@@ -11,9 +11,7 @@ export const GET = withAuth(async (
 ) => {
   const { id } = await params;
   const order = await OrderService.getById(Number(id));
-  if (!order) {
-    return NextResponse.json({ error: '订单不存在' }, { status: 404 });
-  }
+  // getById 已在 service 层抛出 NotFoundError，由 middleware 统一捕获
   // 非管理员只能查看自己的订单
   if (user.role !== 'admin' && order.customerId !== user.id) {
     return NextResponse.json({ error: '权限不足' }, { status: 403 });

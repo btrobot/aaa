@@ -2,8 +2,9 @@ import { db } from '@/lib/db/db';
 import { orders, orderProducts, carts, products, productDescriptions, customerAddresses } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
+import { NotFoundError, BusinessRuleError } from './errors';
 
-export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'completed' | 'cancelled' | 'returned';
+export type OrderStatus = 'pending' | 'confirmed' | 'paid' | 'shipped' | 'completed' | 'cancelled' | 'returned';
 
 interface Transition {
   from: OrderStatus;
@@ -14,11 +15,11 @@ export class OrderStateMachine {
   private static transitions: Transition[] = [
     { from: 'pending', to: 'confirmed' },
     { from: 'pending', to: 'cancelled' },
-    { from: 'confirmed', to: 'shipped' },
+    { from: 'confirmed', to: 'paid' },
     { from: 'confirmed', to: 'cancelled' },
+    { from: 'paid', to: 'shipped' },
+    { from: 'paid', to: 'cancelled' },
     { from: 'shipped', to: 'completed' },
-    { from: 'shipped', to: 'returned' },
-    { from: 'confirmed', to: 'returned' },
     { from: 'completed', to: 'returned' },
   ];
 
@@ -78,11 +79,11 @@ export const OrderService = {
   },
 
   /**
-   * 创建订单 — 使用事务保护，包含库存扣减 (P0-3 + P0-4)
+   * 创建订单 — 使用事务保护，包含库存扣减
    */
   async create(input: CreateOrderInput) {
     return db.transaction(async (tx) => {
-      // 1. 获取购物车商品（锁定商品行防止并发超卖）
+      // 1. 获取购物车商品
       const cartItems = await tx.select()
         .from(carts)
         .leftJoin(products, eq(carts.productId, products.id))
@@ -93,10 +94,10 @@ export const OrderService = {
         .where(eq(carts.customerId, input.customerId));
 
       if (cartItems.length === 0) {
-        throw new Error('购物车为空');
+        throw new BusinessRuleError('购物车为空');
       }
 
-      // 2. 检查库存并扣减（使用 SQL 原子操作防止超卖）
+      // 2. 检查库存并扣减（原子操作防止超卖）
       let total = 0;
       const orderProductsData: Array<{
         productId: number;
@@ -113,7 +114,6 @@ export const OrderService = {
         const qty = item.carts.quantity;
         const productId = item.carts.productId;
 
-        // 原子扣减库存：UPDATE products SET quantity = quantity - qty WHERE id = ? AND quantity >= qty
         const [updated] = await tx.update(products)
           .set({ quantity: sql`quantity - ${qty}` })
           .where(and(
@@ -123,7 +123,7 @@ export const OrderService = {
           .returning();
 
         if (!updated) {
-          throw new Error(`商品 (ID: ${productId}) 库存不足`);
+          throw new BusinessRuleError(`商品 (ID: ${productId}) 库存不足`);
         }
 
         total += price * qty;
@@ -195,7 +195,10 @@ export const OrderService = {
       .from(orders)
       .leftJoin(orderProducts, eq(orders.id, orderProducts.orderId))
       .where(eq(orders.number, number));
-    return row || null;
+    if (!row) {
+      throw new NotFoundError('订单', number);
+    }
+    return row;
   },
 
   async getAll() {
@@ -207,7 +210,9 @@ export const OrderService = {
 
   async getById(id: number) {
     const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
-    if (!order) return null;
+    if (!order) {
+      throw new NotFoundError('订单', id);
+    }
     const items = await db.select()
       .from(orderProducts)
       .where(eq(orderProducts.orderId, id));
@@ -224,11 +229,13 @@ export const OrderService = {
 
   async updateStatus(orderId: number, newStatus: OrderStatus) {
     const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-    if (!order) throw new Error('订单不存在');
+    if (!order) {
+      throw new NotFoundError('订单', orderId);
+    }
 
     const machine = new OrderStateMachine();
     if (!machine.canTransition(order.status as OrderStatus, newStatus)) {
-      throw new Error(`无法从 ${order.status} 转换到 ${newStatus}`);
+      throw new BusinessRuleError(`无法从 ${order.status} 转换到 ${newStatus}`);
     }
 
     const [updated] = await db.update(orders)
@@ -236,5 +243,44 @@ export const OrderService = {
       .where(eq(orders.id, orderId))
       .returning();
     return updated;
+  },
+
+  /**
+   * 取消订单 — 仅 pending / confirmed 可取消，恢复库存
+   */
+  async cancel(orderId: number, customerId: number) {
+    return db.transaction(async (tx) => {
+      const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+      if (!order) {
+        throw new NotFoundError('订单', orderId);
+      }
+      if (order.customerId !== customerId) {
+        throw new BusinessRuleError('无权操作此订单');
+      }
+
+      const currentStatus = order.status as OrderStatus;
+      if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
+        throw new BusinessRuleError(`订单状态为 ${currentStatus}，不可取消`);
+      }
+
+      // 恢复库存
+      const items = await tx.select()
+        .from(orderProducts)
+        .where(eq(orderProducts.orderId, orderId));
+
+      for (const item of items) {
+        await tx.update(products)
+          .set({ quantity: sql`quantity + ${item.quantity}` })
+          .where(eq(products.id, item.productId));
+      }
+
+      // 更新订单状态
+      const [updated] = await tx.update(orders)
+        .set({ status: 'cancelled' })
+        .where(eq(orders.id, orderId))
+        .returning();
+
+      return updated;
+    });
   },
 };
