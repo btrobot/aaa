@@ -15,6 +15,13 @@
       "when": 1785412145930,
       "tag": "0001_nervous_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785412502447,
+      "tag": "0002_eminent_lizard",
+      "breakpoints": true
     }
   ]
 }

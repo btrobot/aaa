@@ -7,11 +7,12 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Package, MapPin, Heart, Settings, LogOut, ChevronRight, Clock, CreditCard } from 'lucide-react';
+import { User, Package, MapPin, Heart, Settings, LogOut, ChevronRight, Clock, CreditCard, RotateCcw } from 'lucide-react';
 
 const sidebarLinks = [
   { icon: User, label: 'account.profile', href: '/account' },
   { icon: Package, label: 'account.orders', href: '/account/orders' },
+  { icon: RotateCcw, label: '退换货', href: '/account/rmas' },
   { icon: MapPin, label: 'account.addresses', href: '/account/addresses' },
   { icon: Heart, label: 'account.wishlist', href: '/account/wishlist' },
   { icon: Settings, label: 'account.settings', href: '#' },

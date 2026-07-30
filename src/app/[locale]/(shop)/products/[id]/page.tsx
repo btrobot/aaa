@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShoppingCart, Heart, Minus, Plus, Cog, ChevronRight } from 'lucide-react';
+import { ProductReviews } from '@/components/ProductReviews';
 
 function toApiLocale(locale: string) {
   return locale === 'en' ? 'en' : 'zh_cn';
@@ -272,11 +273,17 @@ export default function ProductDetailPage({
               <TabsTrigger value="description" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600">
                 {t('product.description')}
               </TabsTrigger>
+              <TabsTrigger value="reviews" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600">
+                {t('product.reviews')}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="description" className="p-6">
               <div className="prose max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
                 {desc.replace(/[*#`]/g, '') || t('product.noDescription')}
               </div>
+            </TabsContent>
+            <TabsContent value="reviews" className="p-6">
+              <ProductReviews productId={product.id} locale={locale} />
             </TabsContent>
           </Tabs>
         </Card>

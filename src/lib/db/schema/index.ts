@@ -528,12 +528,15 @@ export const reviews = pgTable('reviews', {
 // 退换货
 export const rmas = pgTable('rmas', {
   id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull(),
   orderProductId: integer('order_product_id').notNull(),
   customerId: integer('customer_id').notNull(),
-  quantity: integer('quantity').notNull().default(1),
+  type: varchar('type', { length: 50 }).notNull().default('refund'),
   reason: varchar('reason', { length: 500 }),
-  status: varchar('status', { length: 50 }).default('pending'),
+  quantity: integer('quantity').notNull().default(1),
   comment: text('comment'),
+  status: varchar('status', { length: 50 }).default('pending'),
+  adminNote: text('admin_note'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
