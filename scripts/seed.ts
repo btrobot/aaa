@@ -24,6 +24,12 @@ import {
   pageDescriptions,
   shippingMethods,
   shippingMethodDescriptions,
+  attributeGroups,
+  attributeGroupDescriptions,
+  attributes,
+  attributeDescriptions,
+  attributeValues,
+  attributeValueDescriptions,
 } from '../src/lib/db/schema';
 import bcrypt from 'bcryptjs';
 

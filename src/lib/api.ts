@@ -262,4 +262,22 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+  attributes: {
+    list: (locale: string) =>
+      request<any[]>(`/api/attributes?locale=${locale}`),
+    create: (type: string, data: any) =>
+      request<any>('/api/attributes', {
+        method: 'POST',
+        body: JSON.stringify({ type, data }),
+      }),
+    update: (type: string, id: number, data: any) =>
+      request<any>('/api/attributes', {
+        method: 'PUT',
+        body: JSON.stringify({ type, id, data }),
+      }),
+    delete: (type: string, id: number) =>
+      request<any>(`/api/attributes?type=${type}&id=${id}`, {
+        method: 'DELETE',
+      }),
+  },
 };
