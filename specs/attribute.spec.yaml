@@ -1,0 +1,122 @@
+# Attribute Module Specification
+# Layer: 2 (产品体系)
+# Dependencies: Product
+
+module: Attribute
+version: '1.0'
+
+entities:
+  AttributeGroup:
+    table: attribute_groups
+    fields:
+      id:        { type: serial, primary: true }
+      sortOrder: { type: integer, default: 0 }
+      createdAt: { type: timestamp, auto: true }
+      updatedAt: { type: timestamp, auto: true }
+    locale: true
+    localeFields: [name]
+
+  Attribute:
+    table: attributes
+    fields:
+      id:              { type: serial, primary: true }
+      attributeGroupId:{ type: integer, ref: attribute_groups.id, required: true }
+      sortOrder:       { type: integer, default: 0 }
+      createdAt:       { type: timestamp, auto: true }
+      updatedAt:       { type: timestamp, auto: true }
+    locale: true
+    localeFields: [name]
+
+  AttributeValue:
+    table: attribute_values
+    fields:
+      id:          { type: serial, primary: true }
+      attributeId: { type: integer, ref: attributes.id, required: true }
+      sortOrder:   { type: integer, default: 0 }
+      createdAt:   { type: timestamp, auto: true }
+      updatedAt:   { type: timestamp, auto: true }
+    locale: true
+    localeFields: [name]
+
+  ProductAttribute:
+    table: product_attributes
+    fields:
+      id:          { type: serial, primary: true }
+      productId:   { type: integer, ref: products.id, required: true }
+      attributeId: { type: integer, ref: attributes.id, required: true }
+      valueId:     { type: integer, ref: attribute_values.id, null: true }
+      textValue:   { type: text, null: true }
+
+relations:
+  AttributeGroup:
+    attributes: { type: has_many, entity: Attribute, via: attributeGroupId }
+
+  Attribute:
+    group:   { type: belongs_to, entity: AttributeGroup, via: attributeGroupId }
+    values:  { type: has_many, entity: AttributeValue, via: attributeId }
+    products:{ type: has_many, entity: ProductAttribute, via: attributeId }
+
+  AttributeValue:
+    attribute: { type: belongs_to, entity: Attribute, via: attributeId }
+
+operations:
+  listGroups:
+    method: GET
+    path: /api/attributes
+    auth: admin
+    input:  { locale: string }
+    output: { items: [AttributeGroup_with_attributes_with_values] }
+    post: "返回属性组 → 属性 → 属性值三级树"
+
+  createGroup:
+    method: POST
+    path: /api/attributes
+    auth: admin
+    input: { descriptions: { zh_cn: { name }, en: { name } }, sortOrder: integer }
+    post: "属性组创建, 含多语言描述"
+
+  updateGroup:
+    method: PUT
+    path: /api/attributes/:id
+    auth: admin
+    input: { descriptions: { locale: { name } }, sortOrder: integer }
+    pre: "属性组存在"
+    post: "属性组更新"
+
+  deleteGroup:
+    method: DELETE
+    path: /api/attributes/:id
+    auth: admin
+    pre: "属性组无关联属性"
+    post: "属性组删除, 含多语言描述"
+
+  createAttribute:
+    method: POST
+    path: /api/attributes/:groupId/attributes
+    auth: admin
+    input: { groupId: integer, descriptions: { locale: { name } }, sortOrder: integer }
+    pre: "属性组存在"
+    post: "属性创建, 无默认值"
+
+  addValue:
+    method: POST
+    path: /api/attributes/:attrId/values
+    auth: admin
+    input: { attrId: integer, descriptions: { locale: { name } }, sortOrder: integer }
+    pre: "属性存在"
+    post: "属性值创建"
+
+  linkProduct:
+    method: POST
+    path: /api/product-attributes
+    auth: admin
+    input: { productId: integer, attributeId: integer, valueId: integer, textValue: text }
+    pre: "产品和属性存在"
+    post: "产品属性关联创建"
+
+rules:
+  - "属性组包含多个属性, 属性包含多个属性值"
+  - "属性值可关联 textValue (自由文本)"
+  - "一个产品可关联多个属性"
+  - "删除属性组时级联删除下属属性和属性值"
+  - "属性组/属性/属性值都有多语言名称"

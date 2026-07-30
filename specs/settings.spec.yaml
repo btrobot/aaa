@@ -1,0 +1,121 @@
+# Settings Module Specification
+# Layer: 0 (独立基础)
+# Dependencies: (none)
+
+module: Settings
+version: '1.0'
+
+entities:
+  Setting:
+    table: settings
+    fields:
+      id:        { type: serial, primary: true }
+      key:       { type: varchar, length: 255, required: true, unique: true }
+      value:     { type: text, null: true }
+      locale:    { type: varchar, length: 10, null: true, default: null, note: "null 表示全局设置" }
+
+  Language:
+    table: languages
+    fields:
+      id:        { type: serial, primary: true }
+      code:      { type: varchar, length: 10, unique: true, required: true }
+      name:      { type: varchar, length: 50, required: true }
+      nativeName:{ type: varchar, length: 50, required: true }
+      status:    { type: boolean, default: true }
+      sortOrder: { type: integer, default: 0 }
+
+  Currency:
+    table: currencies
+    fields:
+      id:        { type: serial, primary: true }
+      code:      { type: varchar, length: 10, unique: true, required: true }
+      name:      { type: varchar, length: 50, required: true }
+      symbol:    { type: varchar, length: 10, required: true }
+      exchangeRate: { type: decimal, precision: 10, scale: 4, default: 1.0 }
+      status:    { type: boolean, default: true }
+      sortOrder: { type: integer, default: 0 }
+
+  Country:
+    table: countries
+    fields:
+      id:          { type: serial, primary: true }
+      name:        { type: varchar, length: 128, required: true }
+      isoCode2:    { type: varchar, length: 2 }
+      isoCode3:    { type: varchar, length: 3 }
+      status:      { type: boolean, default: true }
+
+  Zone:
+    table: zones
+    fields:
+      id:        { type: serial, primary: true }
+      countryId: { type: integer, ref: countries.id, required: true }
+      name:      { type: varchar, length: 128, required: true }
+      code:      { type: varchar, length: 32 }
+
+relations:
+  Zone:
+    country: { type: belongs_to, entity: Country, via: countryId }
+
+setting_groups:
+  store:
+    - key: store_name        { type: string, required: true, default: "NodeCoda" }
+    - key: store_description { type: text }
+    - key: store_logo        { type: string }
+    - key: store_email       { type: email }
+
+  orders:
+    - key: order_prefix      { type: string, default: "NC-" }
+    - key: auto_confirm      { type: boolean, default: true }
+    - key: auto_complete     { type: boolean, default: false }
+    - key: complete_days     { type: integer, default: 15, note: "发货后自动完成天数" }
+
+  checkout:
+    - key: min_order_amount  { type: decimal, default: 0 }
+    - key: guest_checkout    { type: boolean, default: false }
+    - key: tax_included      { type: boolean, default: false }
+
+  seo:
+    - key: meta_title        { type: string, max: 70 }
+    - key: meta_description  { type: string, max: 160 }
+    - key: google_analytics  { type: string, secret: true }
+
+  theme:
+    - key: active_theme      { type: string, default: "light" }
+    - key: primary_color     { type: string, default: "#2563eb" }
+
+operations:
+  getSettings:
+    method: GET
+    path: /api/settings
+    auth: public
+    input:  { locale: optional }
+    output: { groups: { store: [Setting], orders: [Setting], checkout: [Setting], seo: [Setting], theme: [Setting] } }
+    cache: 300
+
+  updateSettings:
+    method: PUT
+    path: /api/settings
+    auth: admin
+    input: { settings: { key: value } }
+    post: "批量更新设置, 按 key 逐条 upsert"
+
+  listLanguages:
+    method: GET
+    path: /api/languages
+    auth: public
+    output: { items: [Language] }
+    cache: 600
+
+  listCurrencies:
+    method: GET
+    path: /api/currencies
+    auth: public
+    output: { items: [Currency] }
+    cache: 600
+
+rules:
+  - "设置 key 唯一, 按 group 前缀组织: store_name, orders_*, seo_*"
+  - "语言 code 唯一, 格式: zh_cn, en, ja, ko..."
+  - "货币 code 唯一, 格式: CNY, USD, JPY..."
+  - "setting 支持 locale 字段, 多语言设置按 locale 隔离"
+  - "secret 标记的设置不返回给前端"

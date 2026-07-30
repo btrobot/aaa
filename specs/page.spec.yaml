@@ -1,0 +1,101 @@
+# Page (Article/News) Module Specification
+# Layer: 5 (内容体系)
+# Dependencies: (none)
+
+module: Page
+version: '1.0'
+
+entities:
+  Page:
+    table: pages
+    fields:
+      id:              { type: serial, primary: true }
+      slug:            { type: varchar, length: 255, unique: true, null: true }
+      status:          { type: boolean, default: true }
+      sortOrder:       { type: integer, default: 0 }
+      createdAt:       { type: timestamp, auto: true }
+      updatedAt:       { type: timestamp, auto: true }
+    locale: true
+    localeFields: [title, content, summary, metaTitle, metaDescription, metaKeywords]
+
+  PageCategory:
+    table: page_categories
+    fields:
+      id:              { type: serial, primary: true }
+      slug:            { type: varchar, length: 255, unique: true }
+      status:          { type: boolean, default: true }
+      sortOrder:       { type: integer, default: 0 }
+      createdAt:       { type: timestamp, auto: true }
+      updatedAt:       { type: timestamp, auto: true }
+    locale: true
+    localeFields: [name, description]
+
+  PageCategoryRelation:
+    table: page_categories_relations
+    fields:
+      pageId:     { type: integer, ref: pages.id, primary: true }
+      categoryId: { type: integer, ref: page_categories.id, primary: true }
+
+relations:
+  Page:
+    descriptions: { type: has_many, entity: PageDescription, via: pageId }
+    categories:   { type: many_to_many, entity: PageCategory, via: page_categories_relations, pivot: [pageId, categoryId] }
+  PageCategory:
+    descriptions: { type: has_many, entity: PageCategoryDescription, via: categoryId }
+    pages:        { type: many_to_many, entity: Page, via: page_categories_relations, pivot: [categoryId, pageId] }
+
+operations:
+  listPages:
+    method: GET
+    path: /api/pages
+    auth: public
+    input:  { locale: required, categoryId: optional, status: optional, page: optional, pageSize: optional }
+    output: { items: [Page_with_description], total: integer, page: integer }
+    cache: 300
+
+  getPage:
+    method: GET
+    path: /api/pages/:id
+    auth: public
+    input:  { id: integer, locale: required }
+    pre: "文章存在且 status = true"
+    output: Page_with_description_with_categories
+
+  createPage:
+    method: POST
+    path: /api/pages
+    auth: admin
+    input: {
+      slug: optional, status: optional, sortOrder: optional,
+      descriptions: { zh_cn: { title, content, ... }, en: { ... } },
+      categoryIds: optional
+    }
+    post: "文章 + 多语言描述 + 分类关联创建"
+
+  updatePage:
+    method: PUT
+    path: /api/pages/:id
+    auth: admin
+    pre: "文章存在"
+    post: "文章 + 描述更新"
+
+  deletePage:
+    method: DELETE
+    path: /api/pages/:id
+    auth: admin
+    pre: "文章存在"
+    post: "文章 + 描述 + 分类关联删除"
+
+  listCategories:
+    method: GET
+    path: /api/page-categories
+    auth: public
+    input:  { locale: required }
+    output: { items: [PageCategory_with_description] }
+    cache: 600
+
+rules:
+  - "slug 唯一"
+  - "前台只展示 status = true 的文章"
+  - "多语言描述: 至少 zh_cn 和 en"
+  - "删除文章时级联删除描述和分类关联"

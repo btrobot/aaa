@@ -1,0 +1,97 @@
+# Tax Module Specification
+# Layer: 1 (基础数据)
+# Dependencies: (none)
+
+module: Tax
+version: '1.0'
+
+entities:
+  TaxClass:
+    table: tax_classes
+    fields:
+      id:        { type: serial, primary: true }
+      title:     { type: varchar, length: 64, required: true }
+      description: { type: varchar, length: 255 }
+      status:    { type: boolean, default: true }
+      createdAt: { type: timestamp, auto: true }
+      updatedAt: { type: timestamp, auto: true }
+
+  TaxRate:
+    table: tax_rates
+    fields:
+      id:        { type: serial, primary: true }
+      taxClassId:{ type: integer, ref: tax_classes.id, required: true }
+      name:      { type: varchar, length: 64, required: true }
+      rate:      { type: decimal, precision: 7, scale: 4, required: true, note: "税率百分比, 如 0.13 = 13%" }
+      type:      { type: enum, values: [percentage, fixed], default: percentage }
+      status:    { type: boolean, default: true }
+      createdAt: { type: timestamp, auto: true }
+      updatedAt: { type: timestamp, auto: true }
+
+  TaxRule:
+    table: tax_rules
+    fields:
+      id:          { type: serial, primary: true }
+      taxClassId:  { type: integer, ref: tax_classes.id, required: true }
+      taxRateId:   { type: integer, ref: tax_rates.id, required: true }
+      basedOn:     { type: enum, values: [shipping_address, billing_address, store_address], default: store_address }
+      priority:    { type: integer, default: 1 }
+      customerGroupId: { type: integer, ref: customer_groups.id, null: true }
+      status:      { type: boolean, default: true }
+      createdAt:   { type: timestamp, auto: true }
+      updatedAt:   { type: timestamp, auto: true }
+
+relations:
+  TaxRate:
+    taxClass:  { type: belongs_to, entity: TaxClass, via: taxClassId }
+  TaxRule:
+    taxClass:  { type: belongs_to, entity: TaxClass, via: taxClassId }
+    taxRate:   { type: belongs_to, entity: TaxRate, via: taxRateId }
+    customerGroup: { type: belongs_to, entity: CustomerGroup, via: customerGroupId, optional: true }
+
+operations:
+  listTaxClasses:
+    method: GET
+    path: /api/tax-classes
+    auth: admin
+    output: { items: [TaxClass_with_rates] }
+
+  createTaxClass:
+    method: POST
+    path: /api/tax-classes
+    auth: admin
+    input: { title: required, description: optional, status: optional }
+    post: "税率类创建"
+
+  createTaxRate:
+    method: POST
+    path: /api/tax-rates
+    auth: admin
+    input: { taxClassId: required, name: required, rate: required, type: optional, status: optional }
+    pre:  "taxClassId 对应的税率类存在"
+    post: "税率创建"
+
+  createTaxRule:
+    method: POST
+    path: /api/tax-rules
+    auth: admin
+    input: { taxClassId: required, taxRateId: required, basedOn: optional, priority: optional, customerGroupId: optional }
+    pre:  "taxClassId 和 taxRateId 存在且属于同一类"
+    post: "税务规则创建"
+
+  calculateTax:
+    method: internal
+    logic: "根据订单地址 + 产品 taxClassId + 匹配的 TaxRule 计算税额"
+    input: { orderTotal, address, customerGroupId, lineItems: [{ productId, taxClassId, ... }] }
+    output: { taxAmount: decimal, breakdown: [{ taxRate, amount, ... }] }
+    rules:
+      - "按 priority 从低到高匹配 TaxRule"
+      - "如果 TaxRule 未指定 customerGroupId, 则对所有客户生效"
+      - "max(TaxRate.rate) 超过 100% 视为配置错误"
+
+rules:
+  - "删除 TaxClass 时检查是否被 TaxRate 引用"
+  - "删除 TaxRate 时检查是否被 TaxRule 引用"
+  - "TaxRule 的 taxClassId + taxRateId 必须属于同一 TaxClass"
+  - "同一 TaxClass 下, 按 priority 升序匹配 TaxRule"
+  - "客户群组匹配: 未指定 customerGroupId 的规则对所有客户生效"

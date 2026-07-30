@@ -1,0 +1,72 @@
+# Notification Module Specification
+# Layer: 5 (售后体系, 独立)
+# Dependencies: Customer (多态)
+
+module: Notification
+version: '1.0'
+
+entities:
+  Notification:
+    table: notifications
+    fields:
+      id:              { type: serial, primary: true }
+      type:            { type: varchar, length: 50, required: true, note: "通知类型: info/warning/success/order/rma/review" }
+      notifiableId:    { type: integer, null: true, index: true, note: "接收者 ID" }
+      notifiableType:  { type: varchar, length: 50, null: true, note: "接收者类型: customer/admin" }
+      data:            { type: jsonb, default: {}, note: "通知内容, 如 { summary, orderId, ... }" }
+      readAt:          { type: timestamp, null: true }
+      createdAt:       { type: timestamp, auto: true }
+
+relations:
+  Notification:
+    notifiable: { type: polymorphic, fields: [notifiableId, notifiableType] }
+
+operations:
+  list:
+    method: GET
+    path: /api/notifications
+    auth: [customer, admin]
+    input:  { unreadOnly: optional, page: optional, pageSize: optional }
+    output: { items: [Notification], total: integer, unreadCount: integer }
+    post: "按 notifiableId + notifiableType 过滤, 默认按时间倒序"
+
+  create:
+    method: POST
+    path: /api/notifications
+    auth: admin
+    input: { type: required, notifiableId: optional, notifiableType: optional, data: required }
+    post: "通知创建, readAt = null"
+
+  markAsRead:
+    method: PUT
+    path: /api/notifications/:id
+    auth: [customer, admin]
+    input: { id: integer }
+    pre: "通知存在且属于当前用户"
+    post: "readAt = now()"
+
+  markAllAsRead:
+    method: POST
+    path: /api/notifications/read-all
+    auth: [customer, admin]
+    post: "当前用户所有未读通知 readAt = now()"
+
+  delete:
+    method: DELETE
+    path: /api/notifications/:id
+    auth: [customer, admin]
+    pre: "通知存在且属于当前用户"
+    post: "通知删除"
+
+  cleanup:
+    method: internal
+    schedule: "每日凌晨"
+    logic: "删除创建时间超过 30 天的已读通知"
+    pre: "通知存在"
+    post: "过期通知删除"
+
+rules:
+  - "通知按 notifiableId + notifiableType 隔离, 用户只能看自己的"
+  - "readAt = null 表示未读"
+  - "超过 30 天的已读通知自动清理"
+  - "data 字段为 JSON, 至少包含 summary 字段"

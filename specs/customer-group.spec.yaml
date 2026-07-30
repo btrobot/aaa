@@ -1,0 +1,65 @@
+# Customer Group Module Specification
+# Layer: 0 (独立基础)
+# Dependencies: (none)
+
+module: CustomerGroup
+version: '1.0'
+
+entities:
+  CustomerGroup:
+    table: customer_groups
+    fields:
+      id:          { type: serial, primary: true }
+      name:        { type: varchar, required: true, length: 64 }
+      description: { type: text, null: true }
+      discount:    { type: decimal, precision: 5, scale: 2, default: 0, note: "折扣率 %, 0=无折扣" }
+      status:      { type: boolean, default: true }
+      createdAt:   { type: timestamp, auto: true }
+      updatedAt:   { type: timestamp, auto: true }
+
+relations:
+  CustomerGroup:
+    customers: { type: has_many, entity: Customer, via: groupId }
+
+operations:
+  list:
+    method: GET
+    path: /api/customer-groups
+    auth: admin
+    output: { items: [CustomerGroup] }
+
+  getById:
+    method: GET
+    path: /api/customer-groups/:id
+    auth: admin
+    pre: "分组存在"
+    output: CustomerGroup
+
+  create:
+    method: POST
+    path: /api/customer-groups
+    auth: admin
+    input: { name: required, description: optional, discount: optional, status: optional }
+    pre: "分组名唯一"
+    post: "客户分组创建"
+
+  update:
+    method: PUT
+    path: /api/customer-groups/:id
+    auth: admin
+    input: { name: optional, description: optional, discount: optional, status: optional }
+    pre: "分组存在"
+    post: "客户分组更新"
+
+  delete:
+    method: DELETE
+    path: /api/customer-groups/:id
+    auth: admin
+    pre: "分组无关联客户"
+    post: "客户分组删除"
+
+rules:
+  - "分组名唯一"
+  - "折扣率 0-100, 0 表示无折扣"
+  - "有客户的组不可删除"
+  - "客户 belongs_to 一个分组"

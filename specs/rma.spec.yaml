@@ -1,0 +1,88 @@
+# RMA (Return Merchandise Authorization) Module Specification
+# Layer: 5 (售后体系)
+# Dependencies: Customer, OrderProduct
+
+module: RMA
+version: '1.0'
+
+entities:
+  RMA:
+    table: rmas
+    fields:
+      id:             { type: serial, primary: true }
+      customerId:     { type: integer, ref: customers.id, required: true, index: true }
+      orderProductId: { type: integer, ref: order_products.id, required: true, unique: true }
+      type:           { type: enum, values: [refund, exchange, return], default: refund }
+      quantity:       { type: integer, required: true, min: 1 }
+      reason:         { type: text, required: true }
+      status:         { type: enum, values: [pending, approved, rejected, completed], default: pending }
+      adminNote:      { type: text, null: true }
+      comment:        { type: text, null: true, note: "客户补充说明" }
+      createdAt:      { type: timestamp, auto: true }
+      updatedAt:      { type: timestamp, auto: true }
+
+relations:
+  RMA:
+    customer:      { type: belongs_to, entity: Customer, via: customerId }
+    orderProduct:  { type: belongs_to, entity: OrderProduct, via: orderProductId }
+
+state_machine:
+  entity: RMA
+  field: status
+  initial: pending
+  transitions:
+    - { from: pending,  to: [approved, rejected] }
+    - { from: approved, to: [completed, rejected] }
+
+operations:
+  list:
+    method: GET
+    path: /api/rmas
+    auth: [customer, admin]
+    input:  { customerId: optional, orderId: optional, status: optional, page: optional }
+    output: { items: [RMA_with_customer_with_orderProduct], total: integer }
+    post: "客户只能看自己的, 管理员看全部"
+
+  getById:
+    method: GET
+    path: /api/rmas/:id
+    auth: [customer, admin]
+    pre: "RMA 存在"
+    output: RMA_with_details
+
+  create:
+    method: POST
+    path: /api/rmas
+    auth: customer
+    input: {
+      orderProductId: required, type: required, quantity: required,
+      reason: required, comment: optional
+    }
+    pre: |
+      - "订单产品已购买 (order.status = completed)"
+      - "该订单产品未申请过退货 (orderProductId 唯一)"
+      - "quantity <= 购买数量"
+    post: "RMA 创建, status = pending"
+    effects: "通知管理员有新退换货申请"
+
+  updateStatus:
+    method: PUT
+    path: /api/rmas/:id
+    auth: admin
+    input: { status: [approved, rejected, completed], adminNote: optional }
+    pre: |
+      - "RMA 存在"
+      - "状态转换合法 (state_machine)"
+    post: "RMA 状态更新 + adminNote 记录"
+    effects: |
+      if status == approved → 通知客户已通过
+      if status == rejected → 通知客户已拒绝
+      if status == completed → 通知客户已完成
+
+rules:
+  - "一个订单产品只能申请一次退换货"
+  - "订单状态必须为 completed 才能申请退换货"
+  - "退换货数量不能超过原购买数量"
+  - "状态转换必须遵循 state_machine"
+  - "管理员拒绝时必须填写 adminNote"
+  - "客户只能看到自己的退换货记录"

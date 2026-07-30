@@ -1,0 +1,103 @@
+# Theme Module Specification
+# Layer: 0 (独立基础)
+# Dependencies: Settings
+
+module: Theme
+version: '1.0'
+
+entities:
+  ThemePreset:
+    note: "内置于 presets.ts, 非数据库表"
+    fields:
+      name:    { type: string, required: true, enum: [light, dark, ocean, forest, sunset, midnight] }
+      label:   { type: string, required: true }
+      mode:    { type: enum, values: [light, dark] }
+      colors:
+        primary:       { type: oklch, required: true }
+        primaryForeground: { type: oklch, required: true }
+        secondary:     { type: oklch, required: true }
+        accent:        { type: oklch, required: true }
+        muted:         { type: oklch, required: true }
+        background:    { type: oklch, required: true }
+        foreground:    { type: oklch, required: true }
+        card:          { type: oklch, required: true }
+        border:        { type: oklch, required: true }
+      radius:  { type: string, default: "0.5rem" }
+
+  ThemeConfig:
+    note: "存储在 settings 表中, key=active_theme"
+    fields:
+      activePreset: { type: string, default: "light" }
+      customColors: { type: map, null: true, note: "覆盖预设的 CSS 变量" }
+      radius:       { type: string, default: "0.5rem" }
+      darkMode:     { type: boolean, default: false }
+
+operations:
+  listPresets:
+    method: GET
+    path: /api/theme/presets
+    auth: admin
+    output: { presets: [ThemePreset] }
+    note: "返回内置的 6 套预设, 不查数据库"
+
+  getCurrentTheme:
+    method: GET
+    path: /api/theme
+    auth: admin
+    output: { theme: ThemeConfig }
+    note: "从 settings 表读取 active_theme 及其他主题设置"
+
+  applyPreset:
+    method: PUT
+    path: /api/theme
+    auth: admin
+    input: { preset: enum, radius: optional, darkMode: optional }
+    pre:  "preset 必须是预设名称之一"
+    post: "更新 settings 中的主题配置"
+    effect: "前端通过 ThemeProvider 应用 CSS 变量到 <html>"
+
+  customizeTheme:
+    method: PUT
+    path: /api/theme/customize
+    auth: admin
+    input: { colors: { primary: oklch, ... }, radius: string }
+    post: "保存自定义颜色到 settings"
+    note: "自定义颜色覆盖预设的对应变量"
+
+presets:
+  Light:
+    mode: light
+    colors: { primary: "0.585 0.233 277", background: "0.97 0 0", foreground: "0.145 0 0" }
+    note: "明亮, 专业, 适合默认"
+
+  Dark:
+    mode: dark
+    colors: { primary: "0.7 0.2 277", background: "0.145 0 0", foreground: "0.97 0 0" }
+    note: "深色, 适合夜间"
+
+  Ocean:
+    mode: light
+    colors: { primary: "0.5 0.15 240", background: "0.97 0.01 240", foreground: "0.145 0 0" }
+    note: "海洋蓝, 适合度假/旅游相关"
+
+  Forest:
+    mode: light
+    colors: { primary: "0.5 0.15 160", background: "0.97 0.01 160", foreground: "0.145 0 0" }
+    note: "森林绿, 适合户外/自然"
+
+  Sunset:
+    mode: light
+    colors: { primary: "0.6 0.2 30", background: "0.97 0 0", foreground: "0.145 0 0" }
+    note: "暖色日落, 适合创意/艺术"
+
+  Midnight:
+    mode: dark
+    colors: { primary: "0.7 0.15 277", background: "0.1 0.02 260", foreground: "0.95 0 0" }
+    note: "深蓝午夜, 适合科技感"
+
+rules:
+  - "主题预设不可修改 (只读), 自定义通过覆盖实现"
+  - "radius 值范围: 0rem ~ 2rem, 步长 0.125rem"
+  - "切换深色模式时, 自动加载 dark 预设或当前预设的深色变体"
+  - "主题设置存储在 settings 表中, 不建独立表"
+  - "前端通过 CSS 变量 + ThemeProvider 实现主题切换"

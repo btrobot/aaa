@@ -1,0 +1,79 @@
+# Shipping Module Specification
+# Layer: 5 (售后体系 → 交易体系)
+# Dependencies: Order
+
+module: Shipping
+version: '1.0'
+
+entities:
+  ShippingMethod:
+    table: shipping_methods
+    fields:
+      id:                    { type: serial, primary: true }
+      code:                  { type: varchar, required: true, unique: true, length: 32 }
+      baseFee:               { type: decimal, precision: 10, scale: 2, default: 0 }
+      freeShippingThreshold: { type: decimal, precision: 10, scale: 2, null: true, note: "满额包邮, null=无" }
+      estimatedDays:         { type: varchar, length: 32, null: true }
+      status:                { type: boolean, default: true }
+      sortOrder:             { type: integer, default: 0 }
+      createdAt:             { type: timestamp, auto: true }
+      updatedAt:             { type: timestamp, auto: true }
+    locale: true
+    localeFields: [name, description]
+
+relations:
+  ShippingMethod:
+    descriptions: { type: has_many, entity: ShippingMethodDescription, via: shippingMethodId }
+    orders:       { type: has_many, entity: Order, via: shippingMethodId }
+
+operations:
+  list:
+    method: GET
+    path: /api/shipping-methods
+    auth: public
+    input:  { locale: string }
+    output: { items: [ShippingMethod_with_descriptions] }
+    cache: 300
+
+  create:
+    method: POST
+    path: /api/shipping-methods
+    auth: admin
+    input: {
+      code: required, baseFee: required, freeShippingThreshold: optional,
+      estimatedDays: optional, status: optional, sortOrder: optional,
+      descriptions: { zh_cn: { name, description }, en: { name, description } }
+    }
+    pre: "code 唯一"
+    post: "配送方式 + 多语言描述创建"
+
+  update:
+    method: PUT
+    path: /api/shipping-methods/:id
+    auth: admin
+    input: { code: optional, baseFee: optional, ... }
+    pre: "配送方式存在"
+    post: "配送方式 + 描述更新"
+
+  delete:
+    method: DELETE
+    path: /api/shipping-methods/:id
+    auth: admin
+    pre: "无关联订单"
+    post: "配送方式 + 描述删除"
+
+  calculateFee:
+    method: GET
+    path: /api/shipping-methods/:id/calculate
+    auth: public
+    input:  { shippingMethodId: integer, orderTotal: decimal }
+    output: { fee: decimal, freeShipping: boolean }
+    logic: |
+      if orderTotal >= freeShippingThreshold → free = true, fee = 0
+      else → free = false, fee = baseFee
+
+rules:
+  - "code 唯一"
+  - "freeShippingThreshold 为 null 表示不提供包邮"
+  - "有订单的配送方式不可删除"
+  - "前台按 sortOrder 排序, 只显示 status=true 的"

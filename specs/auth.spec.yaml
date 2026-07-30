@@ -1,0 +1,77 @@
+# Auth Module Specification
+# Layer: 0 (独立基础)
+# Dependencies: Customer
+
+module: Auth
+version: '1.0'
+
+entities:
+  AuthToken:
+    note: "无独立表, JWT 无状态令牌"
+    fields:
+      token:     { type: jwt, algorithm: HS256, expiration: "7d" }
+      payload:   { id: integer, email: string, role: "customer | admin" }
+
+operations:
+  customerLogin:
+    method: POST
+    path: /api/auth
+    auth: public
+    rateLimit: { max: 10, window: 60000 }
+    input:  { action: "login", email: required, password: required }
+    pre:    "客户存在且 status = true"
+    post:   "返回 JWT + 客户信息, 更新 lastLogin"
+    output: { customer: Customer, token: JWT }
+    error:
+      - { code: 401, condition: "email 不存在", message: "邮箱或密码错误" }
+      - { code: 401, condition: "密码错误", message: "邮箱或密码错误" }
+      - { code: 403, condition: "账户已禁用", message: "账户已被禁用" }
+
+  customerRegister:
+    method: POST
+    path: /api/auth
+    auth: public
+    rateLimit: { max: 5, window: 60000 }
+    input:  { action: "register", email: required, password: required, name: required }
+    pre:    "邮箱唯一"
+    post:   "客户创建 + 返回 JWT"
+    output: { customer: Customer, token: JWT }
+    error:
+      - { code: 409, condition: "邮箱已存在", message: "该邮箱已注册" }
+
+  adminLogin:
+    method: POST
+    path: /api/auth/admin
+    auth: public
+    rateLimit: { max: 5, window: 60000 }
+    input:  { email: required, password: required }
+    pre:    "管理员存在且 status = true"
+    post:   "返回 JWT + 管理员信息"
+    output: { admin: AdminUser, token: JWT }
+
+  getMe:
+    method: GET
+    path: /api/auth/me
+    auth: required
+    input:  { Authorization: Bearer JWT }
+    pre:    "JWT 有效且未过期"
+    post:   "返回当前用户信息"
+    output: { customer: Customer }
+    error:
+      - { code: 401, condition: "无 token", message: "请先登录" }
+      - { code: 401, condition: "token 过期", message: "登录已过期, 请重新登录" }
+      - { code: 401, condition: "token 无效", message: "无效的登录凭证" }
+
+  checkPermission:
+    method: internal
+    logic: "验证 JWT payload.role 是否满足操作要求"
+    input: { token: JWT, requiredRole: "customer | admin | both" }
+    output: { valid: boolean, user: AuthPayload | null }
+
+rules:
+  - "密码使用 bcrypt 哈希存储, 最小长度 6 位"
+  - "JWT 有效期 7 天, payload 包含 id, email, role"
+  - "登录失败 5 次后, 该 IP 锁定 15 分钟"
+  - "admin 和 customer 的 token 用相同的 JWT 密钥, 但 role 区分"
+  - "所有需要登录的 API 通过 Authorization: Bearer 头传递 token"
+  - "token 不在 cookie 中传递, 天然免疫 CSRF"
