@@ -1,0 +1,84 @@
+import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+
+const SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'nodecoda-jwt-secret-change-in-production'
+);
+
+export const TOKEN_NAME = 'nodecoda_token';
+
+export interface AuthPayload extends JWTPayload {
+  id: number;
+  email: string;
+  name: string;
+  role: 'customer' | 'admin';
+}
+
+export async function signToken(payload: Omit<AuthPayload, 'iat' | 'exp'>): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(SECRET);
+}
+
+export async function verifyToken(token: string): Promise<AuthPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, SECRET);
+    return payload as unknown as AuthPayload;
+  } catch {
+    return null;
+  }
+}
+
+export function getTokenFromRequest(request: Request): string | null {
+  // 1. Check Authorization header
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7);
+  }
+  // 2. Check cookie (for SSR/API routes from same domain)
+  const cookieHeader = request.headers.get('cookie');
+  if (cookieHeader) {
+    const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${TOKEN_NAME}=([^;]*)`));
+    if (match) return match[1];
+  }
+  return null;
+}
+
+export async function authenticate(request: Request): Promise<AuthPayload | null> {
+  const token = getTokenFromRequest(request);
+  if (!token) return null;
+  return verifyToken(token);
+}
+
+export function requireAuth(user: AuthPayload | null, allowedRoles?: ('customer' | 'admin')[]): void {
+  if (!user) {
+    throw new AuthError('请先登录', 401);
+  }
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    throw new AuthError('权限不足', 403);
+  }
+}
+
+export class AuthError extends Error {
+  status: number;
+  constructor(message: string, status: number = 401) {
+    super(message);
+    this.status = status;
+    this.name = 'AuthError';
+  }
+}
+
+// Client-side helpers
+export function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_NAME);
+}
+
+export function storeToken(token: string): void {
+  localStorage.setItem(TOKEN_NAME, token);
+}
+
+export function removeStoredToken(): void {
+  localStorage.removeItem(TOKEN_NAME);
+}

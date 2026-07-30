@@ -88,9 +88,11 @@ describe('认证 API 集成测试', () => {
       }),
     });
     expect(status).toBe(201);
-    expect(body).toHaveProperty('id');
-    expect(body.email).toBe(testEmail);
-    customerId = body.id;
+    expect(body).toHaveProperty('customer');
+    expect(body.customer).toHaveProperty('id');
+    expect(body.customer.email).toBe(testEmail);
+    expect(body).toHaveProperty('token');
+    customerId = body.customer.id;
   });
 
   it('POST /api/auth - 登录已注册用户', async () => {
@@ -103,8 +105,10 @@ describe('认证 API 集成测试', () => {
       }),
     });
     expect(status).toBe(200);
-    expect(body).toHaveProperty('id');
-    expect(body).not.toHaveProperty('password');
+    expect(body).toHaveProperty('customer');
+    expect(body.customer).toHaveProperty('id');
+    expect(body).toHaveProperty('token');
+    expect(body.customer).not.toHaveProperty('password');
   });
 
   describe('客户 API 集成测试', () => {
