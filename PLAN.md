@@ -1,4 +1,4 @@
-# BeikeShop 现代版 — 全栈电商平台重构计划
+# NodeCoda 现代版 — 全栈电商平台重构计划
 
 > 基于 Next.js 16 + TypeScript 5 + PostgreSQL + Tailwind CSS 4 + shadcn/ui
 > 采用 TDD（测试驱动开发）方法论

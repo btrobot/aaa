@@ -4,24 +4,24 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'BeikeShop | 开源跨境电商平台',
-    template: '%s | BeikeShop',
+    default: 'NodeCoda | 开源跨境电商平台',
+    template: '%s | NodeCoda',
   },
   description:
-    'BeikeShop - 开源跨境电商平台，支持多语言、多货币、多支付方式。Open-source cross-border e-commerce platform.',
+    'NodeCoda - 开源跨境电商平台，支持多语言、多货币、多支付方式。Open-source cross-border e-commerce platform.',
   keywords: [
     '电商平台',
     '跨境电商',
-    'BeikeShop',
+    'NodeCoda',
     'e-commerce',
     'cross-border',
     'online store',
   ],
-  authors: [{ name: 'BeikeShop' }],
+  authors: [{ name: 'NodeCoda' }],
   openGraph: {
-    title: 'BeikeShop | 开源跨境电商平台',
+    title: 'NodeCoda | 开源跨境电商平台',
     description:
-      'BeikeShop - 开源跨境电商平台，支持多语言、多货币、多支付方式。',
+      'NodeCoda - 开源跨境电商平台，支持多语言、多货币、多支付方式。',
     locale: 'zh_CN',
     type: 'website',
   },

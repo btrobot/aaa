@@ -1,6 +1,6 @@
 {
   "site": {
-    "title": "BeikeShop",
+    "title": "NodeCoda",
     "description": "开源跨境电商平台，助力全球卖家"
   },
   "nav": {
@@ -193,7 +193,7 @@
   },
   "footer": {
     "aboutUs": "关于我们",
-    "aboutDesc": "BeikeShop 是开源跨境电商平台，致力于为全球卖家提供安全、高效、便捷的在线销售解决方案。",
+    "aboutDesc": "NodeCoda 是开源跨境电商平台，致力于为全球卖家提供安全、高效、便捷的在线销售解决方案。",
     "customerService": "客户服务",
     "helpCenter": "帮助中心",
     "shippingInfo": "配送说明",
@@ -201,11 +201,11 @@
     "sizeGuide": "尺码指南",
     "quickLinks": "快速链接",
     "contactInfo": "联系方式",
-    "email": "service@beikeshop.com",
+    "email": "service@nodecoda.com",
     "phone": "+86 400-888-8888",
     "address": "中国广东省深圳市南山区科技园",
     "followUs": "关注我们",
-    "copyright": "© 2024 BeikeShop. All rights reserved.",
+    "copyright": "© 2024 NodeCoda. All rights reserved.",
     "privacy": "隐私政策",
     "terms": "服务条款"
   },

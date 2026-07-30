@@ -1,4 +1,4 @@
-# BeikeShop 现代版 — 测试策略规划
+# NodeCoda 现代版 — 测试策略规划
 
 > 版本: v1.0
 > 基于测试金字塔 + 质量门禁（Quality Gate）体系

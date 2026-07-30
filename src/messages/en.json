@@ -1,6 +1,6 @@
 {
   "site": {
-    "title": "BeikeShop",
+    "title": "NodeCoda",
     "description": "Open-source cross-border e-commerce platform"
   },
   "nav": {
@@ -193,7 +193,7 @@
   },
   "footer": {
     "aboutUs": "About Us",
-    "aboutDesc": "BeikeShop is an open-source cross-border e-commerce platform dedicated to providing secure, efficient and convenient online sales solutions for global sellers.",
+    "aboutDesc": "NodeCoda is an open-source cross-border e-commerce platform dedicated to providing secure, efficient and convenient online sales solutions for global sellers.",
     "customerService": "Customer Service",
     "helpCenter": "Help Center",
     "shippingInfo": "Shipping Info",
@@ -201,11 +201,11 @@
     "sizeGuide": "Size Guide",
     "quickLinks": "Quick Links",
     "contactInfo": "Contact Us",
-    "email": "service@beikeshop.com",
+    "email": "service@nodecoda.com",
     "phone": "+86 400-888-8888",
     "address": "Nanshan District, Shenzhen, Guangdong, China",
     "followUs": "Follow Us",
-    "copyright": "© 2024 BeikeShop. All rights reserved.",
+    "copyright": "© 2024 NodeCoda. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
   },

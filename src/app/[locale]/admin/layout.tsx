@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">B</span>
             </div>
-            <span className="font-semibold text-gray-900">BeikeShop</span>
+            <span className="font-semibold text-gray-900">NodeCoda</span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
             <X className="w-5 h-5 text-gray-500" />
