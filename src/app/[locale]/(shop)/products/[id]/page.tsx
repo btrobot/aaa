@@ -156,7 +156,6 @@ export default function ProductDetailPage({
           { label: t('nav.products'), href: `/${locale}/products` },
           { label: name },
         ]} />
-        </nav>
 
         {/* Product Main */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
