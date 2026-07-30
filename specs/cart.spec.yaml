@@ -1,0 +1,81 @@
+# Cart Module Specification
+# Layer: 4 (交易体系, 临时数据)
+# Dependencies: Customer, Product, ProductSku
+
+module: Cart
+version: '1.0'
+
+entities:
+  Cart:
+    table: carts
+    fields:
+      id:         { type: serial, primary: true }
+      customerId: { type: integer, ref: customers.id, required: true, unique: true, note: "一个客户一个购物车" }
+      productId:  { type: integer, ref: products.id, required: true }
+      skuId:      { type: integer, ref: product_skus.id, null: true }
+      quantity:   { type: integer, required: true, min: 1, default: 1 }
+      createdAt:  { type: timestamp, auto: true }
+      updatedAt:  { type: timestamp, auto: true }
+
+relations:
+  Cart:
+    customer: { type: belongs_to, entity: Customer, via: customerId }
+    product:  { type: belongs_to, entity: Product, via: productId }
+    sku:      { type: belongs_to, entity: ProductSku, via: skuId }
+
+operations:
+  list:
+    method: GET
+    path: /api/cart
+    auth: customer
+    pre: "客户存在"
+    output: { items: array, total: integer }
+    post: "返回购物车列表, 含产品信息"
+
+  addItem:
+    method: POST
+    path: /api/cart
+    auth: customer
+    input:
+      productId: { type: integer, required: true }
+      skuId:     { type: integer, optional: true }
+      quantity:  { type: integer, required: true, min: 1 }
+    pre:
+      - "产品存在且 status=true"
+      - "SKU 存在（如指定）"
+      - "库存 ≥ 请求数量"
+    post:
+      - "购物车项创建（如已存在则增加数量）"
+      - "返回购物车列表"
+
+  updateQuantity:
+    method: PUT
+    path: /api/cart/:id
+    auth: customer
+    input: { quantity: { type: integer, required: true, min: 1, max: 99 } }
+    pre:
+      - "购物车项存在"
+      - "库存 ≥ 新数量"
+    post: "购物车项数量更新"
+
+  removeItem:
+    method: DELETE
+    path: /api/cart/:id
+    auth: customer
+    pre: "购物车项存在"
+    post: "购物车项删除"
+
+  clear:
+    method: DELETE
+    path: /api/cart
+    auth: customer
+    pre: "客户存在"
+    post: "该客户所有购物车项删除"
+
+rules:
+  - "一个客户只有一个购物车（按客户ID分组）"
+  - "同一产品+SKU重复添加时增加数量，不创建新记录"
+  - "购物车数量上限 99"
+  - "产品下架或库存不足时，购物车项标记为不可用"
+  - "结账时校验购物车项库存"
+  - "结账成功后清空购物车"

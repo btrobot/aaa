@@ -1,0 +1,104 @@
+# Category Module Specification
+# Layer: 1 (基础数据)
+# Dependencies: 自引用 (Category.parentId)
+
+module: Category
+version: '1.0'
+
+entities:
+  Category:
+    table: categories
+    fields:
+      id:          { type: serial, primary: true }
+      parentId:    { type: integer, ref: categories.id, null: true, default: null, note: "父分类ID, null=顶级" }
+      slug:        { type: varchar(255), unique: true, note: "URL友好标识" }
+      image:       { type: varchar(255), default: "" }
+      sortOrder:   { type: integer, default: 0 }
+      status:      { type: boolean, default: true }
+      createdAt:   { type: timestamp, auto: true }
+      updatedAt:   { type: timestamp, auto: true }
+
+  CategoryDescription:
+    table: category_descriptions
+    fields:
+      id:          { type: serial, primary: true }
+      categoryId:  { type: integer, ref: categories.id, required: true, onDelete: cascade }
+      locale:      { type: varchar(10), required: true }
+      name:        { type: varchar(255), required: true }
+      description: { type: text, default: "" }
+      metaTitle:   { type: varchar(255), default: "" }
+      metaDesc:    { type: text, default: "" }
+    unique: [categoryId, locale]
+
+  CategoryPath:
+    table: category_paths
+    fields:
+      categoryId:  { type: integer, ref: categories.id, required: true, onDelete: cascade }
+      pathId:      { type: integer, ref: categories.id, required: true, note: "祖先节点ID" }
+      level:       { type: integer, required: true, min: 0, note: "距离层级, 0=自身" }
+    primary: [categoryId, pathId]
+
+relations:
+  Category:
+    parent:      { type: belongs_to, entity: Category, via: parentId, note: "自引用" }
+    children:    { type: has_many, entity: Category, via: parentId }
+    descr:       { type: has_many, entity: CategoryDescription, via: categoryId }
+    paths:       { type: has_many, entity: CategoryPath, via: categoryId }
+    products:    { type: many_to_many, entity: Product, pivot: ProductCategory }
+
+operations:
+  list:
+    method: GET
+    path: /api/categories
+    auth: public
+    cache: 120
+    input:
+      locale: { type: string, default: "zh_cn" }
+      tree:   { type: boolean, default: false, note: "是否返回树形结构" }
+    output: { type: array, of: Category }
+    post: "返回分类列表或树"
+
+  create:
+    method: POST
+    path: /api/categories
+    auth: admin
+    input:
+      parentId:  { type: integer, optional: true, null: true }
+      slug:      { type: string, required: true }
+      sortOrder: { type: integer, optional: true, default: 0 }
+      status:    { type: boolean, optional: true, default: true }
+      names:     { type: object, required: true, note: "多语言名称, key=locale, value=name" }
+    pre:
+      - "slug 唯一"
+      - "parentId 存在或为 null"
+    post:
+      - "分类创建"
+      - "CategoryPath 重建（需要刷新所有路径）"
+
+  update:
+    method: PUT
+    path: /api/categories/:id
+    auth: admin
+    input: { type: partial, of: create.input }
+    pre: "分类存在"
+    post:
+      - "分类更新"
+      - "如 parentId 变更，需重建 CategoryPath"
+
+  delete:
+    method: DELETE
+    path: /api/categories/:id
+    auth: admin
+    pre:
+      - "分类存在"
+      - "无子分类 (children.count = 0)"
+      - "无关联产品 (product_categories.count = 0)"
+    post: "分类及关联数据删除（级联 descr/paths）"
+
+rules:
+  - "slug 全局唯一"
+  - "parentId 不能指向自身或子孙节点（防止循环引用）"
+  - "顶级分类的 parentId = null"
+  - "删除分类前必须确保无子分类"
+  - "分类层级深度 ≤ 5 级"
+  - "CategoryPath 必须与 parentId 关系保持一致"

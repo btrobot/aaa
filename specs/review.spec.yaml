@@ -1,0 +1,77 @@
+# Review Module Specification
+# Layer: 5 (售后体系)
+# Dependencies: Product, Customer
+
+module: Review
+version: '1.0'
+
+entities:
+  Review:
+    table: reviews
+    fields:
+      id:         { type: serial, primary: true }
+      productId:  { type: integer, ref: products.id, required: true }
+      customerId: { type: integer, ref: customers.id, required: true }
+      rating:     { type: integer, required: true, min: 1, max: 5 }
+      content:    { type: text, null: true }
+      status:     { type: boolean, required: true, default: true, note: "true=显示, false=隐藏" }
+      createdAt:  { type: timestamp, auto: true }
+      updatedAt:  { type: timestamp, auto: true }
+
+relations:
+  Review:
+    product:  { type: belongs_to, entity: Product, via: productId }
+    customer: { type: belongs_to, entity: Customer, via: customerId }
+
+operations:
+  list:
+    method: GET
+    path: /api/reviews?productId=
+    auth: public
+    input: { productId: integer, page: integer, pageSize: integer }
+    pre: "产品存在"
+    output: { items: [Review], total: integer, average: float, distribution: map }
+    post: "返回评价列表, 仅含 status=true 的"
+
+  stats:
+    method: GET
+    path: /api/reviews/stats?productId=
+    auth: public
+    input: { productId: integer }
+    output: { average: float, total: integer, distribution: { '1': integer, '2': integer, '3': integer, '4': integer, '5': integer } }
+
+  create:
+    method: POST
+    path: /api/reviews
+    auth: customer
+    input:
+      productId:  { type: integer, required: true }
+      rating:     { type: integer, required: true, min: 1, max: 5 }
+      content:    { type: text, optional: true }
+    pre:
+      - "客户已购买该产品（有已完成订单）"
+      - "该客户未评价过该产品"
+    post: "评价创建, 默认 status=showing"
+
+  update:
+    method: PUT
+    path: /api/reviews/:id
+    auth: admin
+    input: { status: boolean }
+    pre: "评价存在"
+    post: "评价状态更新（显示/隐藏）"
+
+  delete:
+    method: DELETE
+    path: /api/reviews/:id
+    auth: admin
+    pre: "评价存在"
+    post: "评价删除"
+
+rules:
+  - "一个客户对一个产品只能评价一次"
+  - "仅已完成订单的客户可以评价"
+  - "评分范围 1-5"
+  - "管理员可隐藏/显示评价"
+  - "评价列表按时间倒序排列"
+  - "统计分布各星级累加等于总数"

@@ -1,0 +1,203 @@
+# Order Module Specification
+# Layer: 4 (交易体系)
+# Dependencies: Customer, Product, ProductSku, ShippingMethod
+
+module: Order
+version: '1.0'
+
+entities:
+  Order:
+    table: orders
+    fields:
+      id:            { type: serial, primary: true }
+      customerId:    { type: integer, ref: customers.id, required: true }
+      status:        { type: enum, values: [pending, confirmed, paid, shipped, completed, cancelled, returned], default: pending }
+      total:         { type: decimal(10,2), required: true, min: 0, note: "订单总金额" }
+      shippingFee:   { type: decimal(10,2), default: 0, min: 0 }
+      shippingMethod:{ type: varchar(255), default: "" }
+      shippingAddr:  { type: text, default: "" }
+      paymentMethod: { type: varchar(50), default: "" }
+      paymentStatus: { type: enum, values: [unpaid, paid, refunded], default: unpaid }
+      paidAt:        { type: timestamp, null: true }
+      paymentId:     { type: varchar(255), default: "" }
+      customerNote:  { type: text, default: "" }
+      adminNote:     { type: text, default: "" }
+      createdAt:     { type: timestamp, auto: true }
+      updatedAt:     { type: timestamp, auto: true }
+
+  OrderProduct:
+    table: order_products
+    fields:
+      id:         { type: serial, primary: true }
+      orderId:    { type: integer, ref: orders.id, required: true, onDelete: cascade }
+      productId:  { type: integer, ref: products.id, required: true }
+      skuId:      { type: integer, ref: product_skus.id, null: true }
+      name:       { type: varchar(255), required: true, note: "下单时快照" }
+      sku:        { type: varchar(100), default: "" }
+      quantity:   { type: integer, required: true, min: 1 }
+      price:      { type: decimal(10,2), required: true, note: "下单时快照单价" }
+      total:      { type: decimal(10,2), required: true, note: "quantity * price" }
+      image:      { type: varchar(255), default: "" }
+
+  OrderHistory:
+    table: order_histories
+    fields:
+      id:         { type: serial, primary: true }
+      orderId:    { type: integer, ref: orders.id, required: true, onDelete: cascade }
+      fromStatus: { type: varchar(50), null: true }
+      toStatus:   { type: varchar(50), required: true }
+      operator:   { type: varchar(100), default: "system" }
+      note:       { type: text, default: "" }
+      createdAt:  { type: timestamp, auto: true }
+
+  OrderTotal:
+    table: order_totals
+    fields:
+      id:       { type: serial, primary: true }
+      orderId:  { type: integer, ref: orders.id, required: true, onDelete: cascade }
+      code:     { type: varchar(50), required: true, note: "subtotal/shipping/tax/discount" }
+      title:    { type: varchar(255), default: "" }
+      value:    { type: decimal(10,2), required: true }
+
+  OrderShipment:
+    table: order_shipments
+    fields:
+      id:         { type: serial, primary: true }
+      orderId:    { type: integer, ref: orders.id, required: true, onDelete: cascade }
+      trackingNo: { type: varchar(255), default: "" }
+      carrier:    { type: varchar(100), default: "" }
+      status:     { type: varchar(50), default: "pending" }
+      shippedAt:  { type: timestamp, null: true }
+
+  OrderPayment:
+    table: order_payments
+    fields:
+      id:         { type: serial, primary: true }
+      orderId:    { type: integer, ref: orders.id, required: true, onDelete: cascade }
+      method:     { type: varchar(50), required: true }
+      amount:     { type: decimal(10,2), required: true }
+      status:     { type: varchar(50), default: "pending" }
+      tradeNo:    { type: varchar(255), default: "" }
+      paidAt:     { type: timestamp, null: true }
+
+state_machine:
+  Order.status:
+    entity: Order
+    field: status
+    initial: pending
+    states:
+      - pending
+      - confirmed
+      - paid
+      - shipped
+      - completed
+      - cancelled
+      - returned
+    transitions:
+      - { from: pending,    to: [confirmed, cancelled],        note: "确认订单/取消" }
+      - { from: confirmed,  to: [paid, cancelled],             note: "支付/取消" }
+      - { from: paid,       to: [shipped, refunded],           note: "发货/退款" }
+      - { from: shipped,    to: [completed],                   note: "完成" }
+      - { from: completed,  to: [returned],                    note: "退货" }
+      - { from: paid,       to: [cancelled],                   note: "支付后取消(需退款)", pre: "paymentStatus = unpaid" }
+    illegal_transitions:
+      - [pending, shipped]
+      - [pending, completed]
+      - [confirmed, shipped]
+      - [cancelled, any]
+      - [completed, paid]
+      - [returned, any]
+
+  Order.paymentStatus:
+    entity: Order
+    field: paymentStatus
+    initial: unpaid
+    transitions:
+      - { from: unpaid,  to: [paid],     note: "支付成功" }
+      - { from: paid,    to: [refunded], note: "退款" }
+
+operations:
+  create:
+    method: POST
+    path: /api/orders
+    auth: customer
+    input:
+      customerId: { type: integer, required: true }
+      items:      { type: array, of: { productId, skuId, quantity }, required: true, min: 1 }
+      address:    { type: object, required: true }
+      shippingMethodId: { type: integer, optional: true }
+      note:       { type: string, optional: true }
+    pre:
+      - "客户存在"
+      - "所有产品存在且 status=true"
+      - "所有 SKU 库存充足"
+      - "购物车未锁定"
+    post:
+      - "Order 创建, status=pending, paymentStatus=unpaid"
+      - "OrderProduct 创建 (含价格快照)"
+      - "OrderTotal 创建 (subtotal/shipping)"
+      - "OrderHistory 创建 (created)"
+      - "扣减库存 (product_skus.quantity -= ordered)"
+    effects: "库存扣减, 购物车清空"
+
+  list:
+    method: GET
+    path: /api/orders
+    auth: customer
+    input:
+      customerId: { type: integer, required: true }
+      status:     { type: enum, values: [pending, confirmed, paid, shipped, completed, cancelled], optional: true }
+      page:       { type: integer, default: 1 }
+      pageSize:   { type: integer, default: 20 }
+    output: { items: array, total: integer, page: integer }
+    post: "返回客户订单分页列表"
+
+  detail:
+    method: GET
+    path: /api/orders/:id
+    auth: customer
+    pre: "订单存在且属于当前客户 (或管理员)"
+    output: { type: Order, with: [items, history, totals] }
+    post: "返回订单完整信息"
+
+  updateStatus:
+    method: PUT
+    path: /api/orders/:id/status
+    auth: admin
+    input:
+      status: { type: enum, values: [confirmed, paid, shipped, completed, cancelled, returned], required: true }
+      note:   { type: string, optional: true }
+    pre:
+      - "订单存在"
+      - "状态转换合法（见状态机）"
+    post:
+      - "order.status 更新"
+      - "OrderHistory 记录"
+      - "如→cancelled: 恢复库存"
+      - "如→shipped: 记录 OrderShipment"
+      - "如→paid: 更新 paymentStatus=paid, paidAt=now"
+    effects: "库存恢复 (cancelled), 发货记录 (shipped)"
+
+  cancel:
+    method: POST
+    path: /api/orders/:id/cancel
+    auth: customer
+    pre:
+      - "订单存在"
+      - "属于当前客户"
+      - "status ∈ [pending, confirmed]"
+    post:
+      - "status = cancelled"
+      - "恢复库存"
+      - "OrderHistory 记录"
+
+rules:
+  - "order.total = sum(order_products.total) + shippingFee"
+  - "order_products.total = order_products.price * quantity"
+  - "订单状态转换必须严格遵循状态机定义"
+  - "取消订单（pending/confirmed→cancelled）必须恢复库存"
+  - "已支付订单取消（paid→cancelled）需先退款"
+  - "已完成订单不可修改"
+  - "订单创建时的商品价格是快照，后续产品价格变更不影响已创建订单"
+  - "客户只能查看自己的订单"
+  - "管理员可查看所有订单并执行状态变更"

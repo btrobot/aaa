@@ -1,0 +1,69 @@
+# Brand Module Specification
+# Layer: 1 (基础数据)
+# Dependencies: 无
+
+module: Brand
+version: '1.0'
+
+entities:
+  Brand:
+    table: brands
+    fields:
+      id:         { type: serial, primary: true }
+      name:       { type: varchar(255), required: true, unique: true }
+      logo:       { type: varchar(255), default: "" }
+      description:{ type: text, default: "" }
+      website:    { type: varchar(255), default: "" }
+      sortOrder:  { type: integer, default: 0 }
+      status:     { type: boolean, default: true }
+      createdAt:  { type: timestamp, auto: true }
+      updatedAt:  { type: timestamp, auto: true }
+
+relations:
+  Brand:
+    products: { type: has_many, entity: Product, via: brandId, note: "品牌下所有产品" }
+
+operations:
+  list:
+    method: GET
+    path: /api/brands
+    auth: public
+    cache: 120
+    output: { type: array, of: Brand }
+    post: "返回所有品牌列表，按 sortOrder 排序"
+
+  create:
+    method: POST
+    path: /api/brands
+    auth: admin
+    input:
+      name:       { type: string, required: true, max: 255 }
+      logo:       { type: string, optional: true }
+      description:{ type: string, optional: true }
+      website:    { type: string, optional: true }
+      sortOrder:  { type: integer, optional: true, default: 0 }
+      status:     { type: boolean, optional: true, default: true }
+    pre: "品牌名唯一"
+    post: "品牌创建"
+
+  update:
+    method: PUT
+    path: /api/brands/:id
+    auth: admin
+    input: { type: partial, of: create.input }
+    pre: "品牌存在"
+    post: "品牌更新"
+
+  delete:
+    method: DELETE
+    path: /api/brands/:id
+    auth: admin
+    pre:
+      - "品牌存在"
+      - "无关联产品 (products.brand_id = id 的数量为 0)"
+    post: "品牌删除"
+
+rules:
+  - "品牌名唯一"
+  - "删除品牌前必须确保无关联产品"
+  - "有产品的品牌不可删除（可置 status=false 下架）"

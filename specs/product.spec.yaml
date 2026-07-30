@@ -1,0 +1,188 @@
+# Product Module Specification
+# Layer: 2 (产品体系)
+# Dependencies: Brand, Category, AttributeGroup
+
+module: Product
+version: '1.0'
+
+entities:
+  Product:
+    table: products
+    fields:
+      id:          { type: serial, primary: true }
+      sku:         { type: varchar(100), required: true, unique: true, note: "库存单位编码" }
+      brandId:     { type: integer, ref: brands.id, required: false, null: true }
+      price:       { type: decimal(10,2), required: true, min: 0 }
+      costPrice:   { type: decimal(10,2), default: 0, min: 0 }
+      weight:      { type: integer, default: 0, unit: "g" }
+      status:      { type: boolean, default: true, note: "true=上架 false=下架" }
+      quantity:    { type: integer, default: 0, min: 0, note: "总库存" }
+      sales:       { type: integer, default: 0, min: 0 }
+      sortOrder:   { type: integer, default: 0 }
+      createdAt:   { type: timestamp, auto: true }
+      updatedAt:   { type: timestamp, auto: true }
+
+  ProductDescription:
+    table: product_descriptions
+    fields:
+      id:            { type: serial, primary: true }
+      productId:     { type: integer, ref: products.id, required: true, onDelete: cascade }
+      locale:        { type: varchar(10), required: true, note: "zh_cn / en / ja / ..." }
+      name:          { type: varchar(255), required: true }
+      description:   { type: text, default: "" }
+      metaTitle:     { type: varchar(255), default: "" }
+      metaDescription: { type: text, default: "" }
+      metaKeywords:  { type: text, default: "" }
+    unique: [productId, locale]
+
+  ProductSku:
+    table: product_skus
+    fields:
+      id:         { type: serial, primary: true }
+      productId:  { type: integer, ref: products.id, required: true, onDelete: cascade }
+      sku:        { type: varchar(100), required: true }
+      price:      { type: decimal(10,2), required: true, min: 0 }
+      quantity:   { type: integer, default: 0, min: 0 }
+      image:      { type: varchar(255), default: "" }
+      attrs:      { type: jsonb, default: "{}", note: "SKU属性键值对, e.g. {\"颜色\":\"红色\",\"尺寸\":\"L\"}" }
+    unique: [productId, sku]
+
+  ProductImage:
+    table: product_images
+    fields:
+      id:         { type: serial, primary: true }
+      productId:  { type: integer, ref: products.id, required: true, onDelete: cascade }
+      image:      { type: varchar(255), required: true }
+      sortOrder:  { type: integer, default: 0 }
+
+  ProductCategory:
+    table: product_categories
+    fields:
+      productId:   { type: integer, ref: products.id, required: true, onDelete: cascade }
+      categoryId:  { type: integer, ref: categories.id, required: true, onDelete: cascade }
+    primary: [productId, categoryId]
+
+  ProductAttribute:
+    table: product_attributes
+    fields:
+      productId:   { type: integer, ref: products.id, required: true, onDelete: cascade }
+      attributeId: { type: integer, ref: attributes.id, required: true, onDelete: cascade }
+      valueId:     { type: integer, ref: attribute_values.id, required: false, null: true }
+      textValue:   { type: text, default: "" }
+    primary: [productId, attributeId]
+
+  ProductRelation:
+    table: product_relations
+    fields:
+      productId:    { type: integer, ref: products.id, required: true, onDelete: cascade }
+      relatedId:    { type: integer, ref: products.id, required: true, onDelete: cascade }
+      relationType: { type: varchar(50), default: "related" }
+
+relations:
+  Product:
+    brand:     { type: belongs_to, entity: Brand, via: brandId }
+    categories:{ type: many_to_many, entity: Category, pivot: ProductCategory }
+    skus:      { type: has_many, entity: ProductSku, via: productId }
+    images:    { type: has_many, entity: ProductImage, via: productId }
+    descr:     { type: has_many, entity: ProductDescription, via: productId, note: "多语言" }
+    attrs:     { type: has_many, entity: ProductAttribute, via: productId }
+    relations: { type: has_many, entity: ProductRelation, via: productId }
+
+state_machine:
+  Product.status:
+    initial: false
+    transitions:
+      - { from: false, to: [true], note: "下架→上架" }
+      - { from: true,  to: [false], note: "上架→下架", pre: "无未完成订单" }
+
+operations:
+  list:
+    method: GET
+    path: /api/products
+    auth: public
+    cache: 30
+    input:
+      locale:    { type: string, default: "zh_cn" }
+      page:      { type: integer, default: 1, min: 1 }
+      pageSize:  { type: integer, default: 20, min: 1, max: 100 }
+      sort:      { type: enum, values: [sortOrder, price_asc, price_desc, created_at, sales], default: sortOrder }
+      categoryId:{ type: integer, optional: true }
+      brandId:   { type: integer, optional: true }
+      search:    { type: string, optional: true }
+    output:
+      items: { type: array, of: Product }
+      total: { type: integer }
+      page:  { type: integer }
+    post: "返回分页产品列表，含多语言名称"
+
+  detail:
+    method: GET
+    path: /api/products/:id
+    auth: public
+    input:
+      id:     { type: integer, required: true }
+      locale: { type: string, default: "zh_cn" }
+    pre: "产品存在"
+    output: { type: Product, with: [skus, images, descr, categories, brand, attrs] }
+    post: "返回产品完整信息（含SKU/图片/描述/分类/品牌/属性）"
+
+  create:
+    method: POST
+    path: /api/products
+    auth: admin
+    input:
+      sku:         { type: string, required: true, max: 100 }
+      price:       { type: decimal, required: true, min: 0 }
+      costPrice:   { type: decimal, optional: true, min: 0 }
+      weight:      { type: integer, optional: true, default: 0 }
+      status:      { type: boolean, optional: true, default: true }
+      quantity:    { type: integer, optional: true, default: 0 }
+      sortOrder:   { type: integer, optional: true, default: 0 }
+      brandId:     { type: integer, optional: true }
+      descriptions:{ type: object, required: true, note: "多语言描述, key=locale, value={name,description,...}" }
+      categoryIds: { type: array, of: integer, optional: true }
+    pre:
+      - "SKU 唯一"
+      - "brandId 存在（如提供）"
+      - "categoryIds 均存在（如提供）"
+    post:
+      - "产品创建"
+      - "描述记录创建"  
+      - "分类关联创建"
+      - "库存记录创建（quantity > 0 时）"
+    effects: "无"
+
+  update:
+    method: PUT
+    path: /api/products/:id
+    auth: admin
+    input: { type: partial, of: create.input, except: [descriptions, categoryIds] }
+    pre: "产品存在"
+    post: "产品字段更新"
+  
+  updateDescriptions:
+    method: PUT
+    path: /api/products/:id/descriptions
+    auth: admin
+    input:
+      descriptions: { type: object, required: true }
+    pre: "产品存在"
+    post: "描述 upsert"
+
+  delete:
+    method: DELETE
+    path: /api/products/:id
+    auth: admin
+    pre:
+      - "产品存在"
+      - "无关联订单（order_products 中无此产品）"
+    post: "产品及关联数据（级联删除）"
+    effects: "级联删除 descr/skus/images/categories/attrs/relations"
+
+rules:
+  - "price >= costPrice (当 costPrice > 0 时)"
+  - "product.sales = sum(order_products.quantity)  where order.status in [confirmed, paid, shipped, completed]"
+  - "product.quantity >= 0"
+  - "上架产品 (status=true) 必须至少有 1 个 SKU 且 quantity > 0"
+  - "产品名称在至少一个 locale 中不能为空"
+  - "SKU 一经创建不可修改"

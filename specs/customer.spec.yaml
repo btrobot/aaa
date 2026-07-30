@@ -1,0 +1,142 @@
+# Customer Module Specification
+# Layer: 3 (客户体系)
+# Dependencies: CustomerGroup
+
+module: Customer
+version: '1.0'
+
+entities:
+  Customer:
+    table: customers
+    fields:
+      id:         { type: serial, primary: true }
+      email:      { type: varchar(255), required: true, unique: true }
+      password:   { type: varchar(255), required: true, sensitive: true, note: "bcrypt hash" }
+      name:       { type: varchar(255), default: "" }
+      phone:      { type: varchar(50), default: "" }
+      avatar:     { type: varchar(255), default: "" }
+      groupId:    { type: integer, ref: customer_groups.id, null: true }
+      status:     { type: boolean, default: true }
+      newsletter: { type: boolean, default: false }
+      lastLogin:  { type: timestamp, null: true }
+      createdAt:  { type: timestamp, auto: true }
+      updatedAt:  { type: timestamp, auto: true }
+
+  CustomerAddress:
+    table: customer_addresses
+    fields:
+      id:         { type: serial, primary: true }
+      customerId: { type: integer, ref: customers.id, required: true, onDelete: cascade }
+      name:       { type: varchar(255), required: true }
+      phone:      { type: varchar(50), required: true }
+      province:   { type: varchar(100), default: "" }
+      city:       { type: varchar(100), default: "" }
+      district:   { type: varchar(100), default: "" }
+      address:    { type: text, required: true }
+      zipCode:    { type: varchar(20), default: "" }
+      isDefault:  { type: boolean, default: false }
+
+  CustomerWishlist:
+    table: customer_wishlists
+    fields:
+      customerId: { type: integer, ref: customers.id, required: true, onDelete: cascade }
+      productId:  { type: integer, ref: products.id, required: true, onDelete: cascade }
+      createdAt:  { type: timestamp, auto: true }
+    primary: [customerId, productId]
+
+relations:
+  Customer:
+    group:    { type: belongs_to, entity: CustomerGroup, via: groupId }
+    addresses:{ type: has_many, entity: CustomerAddress, via: customerId }
+    wishlist: { type: has_many, entity: CustomerWishlist, via: customerId }
+    orders:   { type: has_many, entity: Order, via: customerId }
+
+operations:
+  register:
+    method: POST
+    path: /api/auth
+    auth: public
+    input:
+      action:   { type: enum, values: [register], required: true }
+      email:    { type: email, required: true }
+      password: { type: string, required: true, min: 6 }
+      name:     { type: string, optional: true }
+    pre:
+      - "邮箱格式正确"
+      - "密码长度 ≥ 6"
+      - "邮箱未被注册"
+    post:
+      - "客户创建, status=true"
+      - "密码 bcrypt 加密存储"
+      - "返回 JWT token"
+      - "lastLogin 更新为当前时间"
+
+  login:
+    method: POST
+    path: /api/auth
+    auth: public
+    input:
+      action:   { type: enum, values: [login], required: true }
+      email:    { type: email, required: true }
+      password: { type: string, required: true }
+    pre:
+      - "邮箱存在"
+      - "密码匹配"
+    post:
+      - "返回 JWT token"
+      - "lastLogin 更新为当前时间"
+
+  updateProfile:
+    method: PUT
+    path: /api/customers/:id
+    auth: customer
+    input:
+      name:    { type: string, optional: true }
+      phone:   { type: string, optional: true }
+      avatar:  { type: string, optional: true }
+    pre: "客户存在"
+    post: "客户信息更新"
+
+  addAddress:
+    method: POST
+    path: /api/customers/:id/addresses
+    auth: customer
+    input:
+      name:      { type: string, required: true }
+      phone:     { type: string, required: true }
+      province:  { type: string, optional: true }
+      city:      { type: string, optional: true }
+      district:  { type: string, optional: true }
+      address:   { type: string, required: true }
+      zipCode:   { type: string, optional: true }
+      isDefault: { type: boolean, default: false }
+    pre: "客户存在"
+    post:
+      - "地址创建"
+      - "如 isDefault=true, 其他地址设为非默认"
+
+  addToWishlist:
+    method: POST
+    path: /api/customers/:id/wishlist
+    auth: customer
+    input: { productId: { type: integer, required: true } }
+    pre:
+      - "客户存在"
+      - "产品存在"
+      - "未在收藏夹中（idempotent）"
+    post: "收藏记录创建"
+
+  removeFromWishlist:
+    method: DELETE
+    path: /api/customers/:id/wishlist/:productId
+    auth: customer
+    pre: "收藏记录存在"
+    post: "收藏记录删除"
+
+rules:
+  - "邮箱全局唯一"
+  - "密码仅存储 bcrypt hash, 不存明文"
+  - "客户可删除自己的地址"
+  - "客户只能访问自己的数据（管理员例外）"
+  - "客户 status=false 时禁止登录"
+  - "收藏夹幂等: 重复添加不报错"

@@ -1,0 +1,76 @@
+# Payment Module Specification
+# Layer: 4 (交易体系)
+# Dependencies: Order
+
+module: Payment
+version: '1.0'
+
+description: "模拟支付网关（Stripe/PayPal 风格），无真实第三方对接"
+
+entities:
+  OrderPayment:
+    table: order_payments
+    fields:
+      id:         { type: serial, primary: true }
+      orderId:    { type: integer, ref: orders.id, required: true }
+      method:     { type: varchar(50), required: true, note: "stripe | paypal | bank_transfer" }
+      amount:     { type: decimal(10,2), required: true }
+      status:     { type: varchar(50), default: pending, note: "pending | success | failed | refunded" }
+      transactionId: { type: varchar(255), null: true }
+      createdAt:  { type: timestamp, auto: true }
+      updatedAt:  { type: timestamp, auto: true }
+
+  # 支付状态嵌入 orders 表
+  OrderPaymentFields:
+    table: orders
+    fields:
+      paymentStatus: { type: varchar(50), default: unpaid, note: "unpaid | paid | refunded" }
+      paidAt:        { type: timestamp, null: true }
+      paymentId:     { type: varchar(255), null: true }
+
+state_machine:
+  entity: OrderPayment
+  initial: pending
+  transitions:
+    pending:  [success, failed]
+    success:  [refunded]
+    failed:   [pending]
+
+operations:
+  createPayment:
+    method: POST
+    path: /api/payment
+    auth: customer
+    input:
+      orderId: { type: integer, required: true }
+      method:  { type: enum, values: [stripe, paypal, bank_transfer], required: true }
+    pre:
+      - "订单存在"
+      - "订单 status = confirmed"
+      - "订单 paymentStatus = unpaid"
+      - "订单属于当前客户"
+    post:
+      - "OrderPayment 记录创建, status=success"
+      - "订单 paymentStatus 更新为 paid"
+      - "订单 status 更新为 paid"
+      - "订单 paidAt 更新为当前时间"
+
+  callback:
+    note: "模拟支付回调，无需真实实现"
+    method: POST
+    path: /api/payment/callback
+    auth: public
+    input:
+      paymentId: { type: integer, required: true }
+      status:    { type: enum, values: [success, failed], required: true }
+    pre: "支付记录存在"
+    post:
+      - "支付记录 status 更新"
+      - "如 success, 订单 paymentStatus→paid, status→paid"
+
+rules:
+  - "一笔订单只能支付一次"
+  - "支付成功后订单 status 自动推进到 paid"
+  - "已支付的订单才能发货"
+  - "退款后订单 paymentStatus→refunded"
+  - "模拟支付默认成功（无真实网关验证）"
