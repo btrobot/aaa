@@ -1,7 +1,8 @@
-import { eq, and, desc, count } from 'drizzle-orm';
+import { eq, and, desc, count, SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/lib/db/db';
-import { reviews, customers } from '@/lib/db/schema';
+import { reviews, customers, products, orders, orderProducts } from '@/lib/db/schema';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 export const CreateReviewSchema = z.object({
   productId: z.number().int().positive(),
@@ -22,6 +23,42 @@ export type UpdateReviewInput = z.infer<typeof UpdateReviewSchema>;
 export const ReviewService = {
   async create(input: CreateReviewInput) {
     const validated = CreateReviewSchema.parse(input);
+
+    // pre: 产品存在
+    const [product] = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, validated.productId))
+      .limit(1);
+    if (!product) {
+      throw new NotFoundError('产品', validated.productId);
+    }
+
+    // pre: 客户已购买该产品（有已完成订单）
+    const purchaseRows = await db.select({ id: orders.id })
+      .from(orders)
+      .innerJoin(orderProducts, eq(orderProducts.orderId, orders.id))
+      .where(and(
+        eq(orders.customerId, validated.customerId),
+        eq(orderProducts.productId, validated.productId),
+        eq(orders.status, 'completed'),
+      ))
+      .limit(1);
+    if (purchaseRows.length === 0) {
+      throw new BusinessRuleError('只有已购买该产品的客户才能评价');
+    }
+
+    // pre: 该客户未评价过该产品
+    const existingRows = await db.select({ id: reviews.id })
+      .from(reviews)
+      .where(and(
+        eq(reviews.productId, validated.productId),
+        eq(reviews.customerId, validated.customerId),
+      ))
+      .limit(1);
+    if (existingRows.length > 0) {
+      throw new BusinessRuleError('您已经评价过该产品');
+    }
+
     const [review] = await db.insert(reviews).values({
       productId: validated.productId,
       customerId: validated.customerId,
@@ -36,13 +73,15 @@ export const ReviewService = {
       .from(reviews)
       .where(eq(reviews.id, id))
       .leftJoin(customers, eq(reviews.customerId, customers.id));
-    if (!rows.length) return null;
+    if (!rows.length) {
+      throw new NotFoundError('评价', id);
+    }
     const row = rows[0];
     return { ...row.reviews, customerName: row.customers?.name || '未知用户' };
   },
 
   async getByProductId(productId: number, status?: boolean) {
-    const conditions = [eq(reviews.productId, productId)];
+    const conditions: SQL[] = [eq(reviews.productId, productId)];
     if (status !== undefined) conditions.push(eq(reviews.status, status));
 
     const rows = await db.select()
@@ -57,8 +96,9 @@ export const ReviewService = {
     }));
   },
 
-  async getAll(params?: { status?: boolean; page?: number; pageSize?: number }) {
-    const conditions: any[] = [];
+  async list(params?: { productId?: number; status?: boolean; page?: number; pageSize?: number }) {
+    const conditions: SQL[] = [];
+    if (params?.productId !== undefined) conditions.push(eq(reviews.productId, params.productId));
     if (params?.status !== undefined) conditions.push(eq(reviews.status, params.status));
 
     const page = params?.page || 1;
@@ -76,15 +116,45 @@ export const ReviewService = {
       .from(reviews)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-    return {
-      items: rows.map(r => ({ ...r.reviews, customerName: r.customers?.name || '未知用户' })),
-      total: Number(total.count),
-    };
+    const items = rows.map(r => ({ ...r.reviews, customerName: r.customers?.name || '未知用户' }));
+
+    if (params?.productId !== undefined) {
+      const distRows = await db.select()
+        .from(reviews)
+        .where(and(eq(reviews.productId, params.productId), eq(reviews.status, true)));
+
+      let sum = 0;
+      const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      for (const r of distRows) {
+        sum += r.rating;
+        const key = r.rating as keyof typeof distribution;
+        distribution[key]++;
+      }
+      const distCount = distRows.length;
+
+      return {
+        items,
+        total: Number(total.count),
+        average: distCount > 0 ? Math.round((sum / distCount) * 10) / 10 : 0,
+        distribution,
+      };
+    }
+
+    return { items, total: Number(total.count) };
   },
 
   async update(id: number, input: UpdateReviewInput) {
+    // pre: 评价存在
+    const [existing] = await db.select({ id: reviews.id })
+      .from(reviews)
+      .where(eq(reviews.id, id))
+      .limit(1);
+    if (!existing) {
+      throw new NotFoundError('评价', id);
+    }
+
     const validated = UpdateReviewSchema.parse(input);
-    const updateData: Record<string, any> = {};
+    const updateData: { rating?: number; content?: string; status?: boolean } = {};
     if (validated.rating !== undefined) updateData.rating = validated.rating;
     if (validated.content !== undefined) updateData.content = validated.content;
     if (validated.status !== undefined) updateData.status = validated.status;
@@ -96,11 +166,29 @@ export const ReviewService = {
   },
 
   async delete(id: number) {
-    const result = await db.delete(reviews).where(eq(reviews.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    // pre: 评价存在
+    const [existing] = await db.select({ id: reviews.id })
+      .from(reviews)
+      .where(eq(reviews.id, id))
+      .limit(1);
+    if (!existing) {
+      throw new NotFoundError('评价', id);
+    }
+
+    await db.delete(reviews).where(eq(reviews.id, id));
+    return { success: true };
   },
 
   async getStats(productId: number) {
+    // pre: 产品存在
+    const [product] = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, productId))
+      .limit(1);
+    if (!product) {
+      throw new NotFoundError('产品', productId);
+    }
+
     const rows = await db.select()
       .from(reviews)
       .where(and(eq(reviews.productId, productId), eq(reviews.status, true)));
@@ -108,9 +196,13 @@ export const ReviewService = {
     const total = rows.length;
     if (total === 0) return { average: 0, total: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
 
-    const sum = rows.reduce((acc, r) => acc + r.rating, 0);
+    let sum = 0;
     const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    rows.forEach(r => { distribution[r.rating as keyof typeof distribution]++; });
+    for (const r of rows) {
+      sum += r.rating;
+      const key = r.rating as keyof typeof distribution;
+      distribution[key]++;
+    }
 
     return {
       average: Math.round((sum / total) * 10) / 10,

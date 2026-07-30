@@ -2,17 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ReviewService } from '@/lib/services/review.service';
 import { withRateLimit, withAdmin } from '@/lib/api-middleware';
 
-
-
 export const GET = withRateLimit(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const { id } = await params;
   const review = await ReviewService.findById(Number(id));
-  if (!review) {
-    return NextResponse.json({ error: '评价不存在' }, { status: 404 });
-  }
   return NextResponse.json(review);
 }, { maxRequests: 60, windowMs: 60_000 });
 
