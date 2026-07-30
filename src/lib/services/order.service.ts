@@ -143,6 +143,15 @@ export const OrderService = {
     return rows;
   },
 
+  async getById(id: number) {
+    const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    if (!order) return null;
+    const items = await db.select()
+      .from(orderProducts)
+      .where(eq(orderProducts.orderId, id));
+    return { ...order, items };
+  },
+
   async getCustomerOrders(customerId: number) {
     const rows = await db.select()
       .from(orders)

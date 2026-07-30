@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
-import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Search } from 'lucide-react';
 
@@ -21,9 +20,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminOrders() {
-  const { t } = useTranslations();
-  const pathname = usePathname();
-  const locale = pathname.startsWith('/en') ? 'en' : 'zh';
+  const { t, locale } = useTranslations();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -86,8 +83,8 @@ export default function AdminOrders() {
             </thead>
             <tbody>
               {filtered.map((order) => (
-                <tr key={order.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{order.number}</td>
+                <tr key={order.id} className="border-b last:border-0 hover:bg-gray-50 cursor-pointer" onClick={() => window.location.href = `/${locale}/admin/orders/${order.id}`}>
+                  <td className="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800">{order.number}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-sm font-medium">¥{Number(order.total).toLocaleString()}</td>
                   <td className="px-4 py-3">

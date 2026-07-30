@@ -164,6 +164,8 @@ export const api = {
       request<any[]>(`/api/orders?customerId=${customerId}`),
     getAll: () =>
       request<any[]>('/api/orders?admin=true'),
+    getById: (id: number) =>
+      request<any>(`/api/orders/${id}`),
     get: (number: string) =>
       request<any>(`/api/orders?number=${number}`),
     create: (customerId: number, data?: any) =>

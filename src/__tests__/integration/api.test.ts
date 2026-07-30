@@ -121,7 +121,7 @@ describe('认证 API 集成测试', () => {
     it('POST /api/customers/wishlist - 添加收藏', async () => {
       const { status, body } = await api('/api/customers/wishlist', {
         method: 'POST',
-        body: JSON.stringify({ customerId, productId: 20 }),
+        body: JSON.stringify({ customerId, productId: 1 }),
       });
       expect(status).toBe(201);
       expect(body).toHaveProperty('id');
@@ -138,7 +138,7 @@ describe('认证 API 集成测试', () => {
     it('POST /api/cart - 添加商品到购物车', async () => {
       const { status, body } = await api('/api/cart', {
         method: 'POST',
-        body: JSON.stringify({ customerId, productId: 20, quantity: 2 }),
+        body: JSON.stringify({ customerId, productId: 1, quantity: 2 }),
       });
       expect(status).toBe(201);
       expect(body).toHaveProperty('id');
