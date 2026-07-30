@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/db';
 import { customerGroups, customers } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 export interface CreateCustomerGroupInput {
   name: string;
@@ -26,10 +27,31 @@ export class CustomerGroupService {
       .from(customerGroups)
       .where(eq(customerGroups.id, id))
       .limit(1);
-    return group || null;
+    if (!group) {
+      throw new NotFoundError('客户分组', id);
+    }
+    return group;
   }
 
   async create(input: CreateCustomerGroupInput) {
+    // pre: 分组名唯一
+    const [existing] = await db
+      .select({ id: customerGroups.id })
+      .from(customerGroups)
+      .where(eq(customerGroups.name, input.name))
+      .limit(1);
+    if (existing) {
+      throw new BusinessRuleError('客户分组名已存在');
+    }
+
+    // rule: 折扣率 0-100
+    if (input.discount !== undefined) {
+      const discount = parseFloat(input.discount);
+      if (Number.isNaN(discount) || discount < 0 || discount > 100) {
+        throw new BusinessRuleError('折扣率必须在 0-100 之间');
+      }
+    }
+
     const [group] = await db
       .insert(customerGroups)
       .values({
@@ -42,6 +64,24 @@ export class CustomerGroupService {
   }
 
   async update(id: number, input: UpdateCustomerGroupInput) {
+    // pre: 分组存在
+    const [existing] = await db
+      .select({ id: customerGroups.id })
+      .from(customerGroups)
+      .where(eq(customerGroups.id, id))
+      .limit(1);
+    if (!existing) {
+      throw new NotFoundError('客户分组', id);
+    }
+
+    // rule: 折扣率 0-100
+    if (input.discount !== undefined) {
+      const discount = parseFloat(input.discount);
+      if (Number.isNaN(discount) || discount < 0 || discount > 100) {
+        throw new BusinessRuleError('折扣率必须在 0-100 之间');
+      }
+    }
+
     const [group] = await db
       .update(customerGroups)
       .set({
@@ -55,16 +95,28 @@ export class CustomerGroupService {
   }
 
   async delete(id: number) {
-    // Check if any customers are using this group
+    // pre: 分组存在
+    const [existing] = await db
+      .select({ id: customerGroups.id })
+      .from(customerGroups)
+      .where(eq(customerGroups.id, id))
+      .limit(1);
+    if (!existing) {
+      throw new NotFoundError('客户分组', id);
+    }
+
+    // pre: 分组无关联客户
     const [customer] = await db
       .select({ id: customers.id })
       .from(customers)
       .where(eq(customers.groupId, id))
       .limit(1);
     if (customer) {
-      throw new Error('该分组下存在客户，无法删除');
+      throw new BusinessRuleError('该分组下存在客户，无法删除');
     }
+
     await db.delete(customerGroups).where(eq(customerGroups.id, id));
+    return true;
   }
 }
 
