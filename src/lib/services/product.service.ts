@@ -9,7 +9,9 @@ import {
   productSkus,
   brands,
   categories,
+  orderProducts,
 } from '@/lib/db/schema';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 // ============================================================
 // 类型定义
@@ -65,6 +67,36 @@ export const ProductService = {
    */
   async create(input: CreateProductInput) {
     const validated = CreateProductSchema.parse(input);
+
+    // pre: SKU 唯一
+    const [existingSku] = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.sku, validated.sku));
+    if (existingSku) {
+      throw new BusinessRuleError(`SKU "${validated.sku}" 已存在`);
+    }
+
+    // pre: brandId 存在（如提供）
+    if (validated.brandId !== undefined) {
+      const [brand] = await db.select({ id: brands.id })
+        .from(brands)
+        .where(eq(brands.id, validated.brandId));
+      if (!brand) {
+        throw new BusinessRuleError(`品牌不存在 (id=${validated.brandId})`);
+      }
+    }
+
+    // pre: categoryIds 均存在（如提供）
+    if (validated.categoryIds?.length) {
+      for (const categoryId of validated.categoryIds) {
+        const [cat] = await db.select({ id: categories.id })
+          .from(categories)
+          .where(eq(categories.id, categoryId));
+        if (!cat) {
+          throw new BusinessRuleError(`分类不存在 (id=${categoryId})`);
+        }
+      }
+    }
 
     // 创建商品主记录
     const [product] = await db.insert(products).values({
@@ -127,7 +159,9 @@ export const ProductService = {
       .leftJoin(productDescriptions, eq(products.id, productDescriptions.productId))
       .leftJoin(brands, eq(products.brandId, brands.id));
 
-    if (!rows.length) return null;
+    if (!rows.length) {
+      throw new NotFoundError('产品', id);
+    }
 
     // 聚合多语言描述
     const product = rows[0].products;
@@ -165,8 +199,6 @@ export const ProductService = {
     // 状态筛选
     if (validated.status !== undefined) {
       conditions.push(eq(products.status, validated.status));
-    } else {
-      conditions.push(eq(products.status, true)); // 默认只显示上架商品
     }
 
     // 品牌筛选
@@ -190,9 +222,10 @@ export const ProductService = {
     }
 
     // 排序
+    const sortField = products[validated.sortBy];
     const orderBy = validated.sortOrder === 'desc'
-      ? desc(products[validated.sortBy as keyof typeof products] as any)
-      : asc(products[validated.sortBy as keyof typeof products] as any);
+      ? desc(sortField)
+      : asc(sortField);
 
     // 分类筛选
     if (validated.categoryId) {
@@ -234,7 +267,15 @@ export const ProductService = {
   async update(id: number, input: UpdateProductInput) {
     const validated = UpdateProductSchema.parse(input);
 
-    const updateData: Record<string, any> = {};
+    // pre: 产品存在
+    const [existing] = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, id));
+    if (!existing) {
+      throw new NotFoundError('产品', id);
+    }
+
+    const updateData: Record<string, unknown> = {};
     if (validated.sku !== undefined) updateData.sku = validated.sku;
     if (validated.brandId !== undefined) updateData.brandId = validated.brandId;
     if (validated.price !== undefined) updateData.price = validated.price;
@@ -294,10 +335,26 @@ export const ProductService = {
    * 删除商品
    */
   async delete(id: number) {
-    const result = await db.delete(products)
+    // pre: 产品存在
+    const [existing] = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, id));
+    if (!existing) {
+      throw new NotFoundError('产品', id);
+    }
+
+    // pre: 无关联订单
+    const [orderLink] = await db.select({ id: orderProducts.id })
+      .from(orderProducts)
+      .where(eq(orderProducts.productId, id));
+    if (orderLink) {
+      throw new BusinessRuleError('该产品有关联订单，无法删除');
+    }
+
+    await db.delete(products)
       .where(eq(products.id, id));
 
-    return result.rowCount ? result.rowCount > 0 : false;
+    return true;
   },
 
   /**

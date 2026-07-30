@@ -10,9 +10,6 @@ export const GET = withMiddleware(async (
 ) => {
   const { id } = await params;
   const product = await ProductService.findById(Number(id));
-  if (!product) {
-    return NextResponse.json({ error: '产品不存在' }, { status: 404 });
-  }
   return cacheResponse(NextResponse.json(product), { maxAge: 60 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
