@@ -4,52 +4,32 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: '新应用 | 扣子编程',
-    template: '%s | 扣子编程',
+    default: '星乐游乐设备 | StarJoy Amusement Rides',
+    template: '%s | 星乐游乐设备',
   },
   description:
-    '扣子编程是一款一站式云端 Vibe Coding 开发平台。通过对话轻松构建智能体、工作流和网站，实现从创意到上线的无缝衔接。',
+    '全球领先的游乐设施制造商，专业从事游乐设施设计、研发、生产、销售与服务的综合性企业。Global leading amusement ride manufacturer.',
   keywords: [
-    '扣子编程',
-    'Coze Code',
-    'Vibe Coding',
-    'AI 编程',
-    '智能体搭建',
-    '工作流搭建',
-    '网站搭建',
-    '网站部署',
-    '全栈开发',
-    'AI 工程师',
+    '游乐设施',
+    '旋转木马',
+    '过山车',
+    '摩天轮',
+    '碰碰车',
+    '游乐设备',
+    'amusement rides',
+    'carousel',
+    'roller coaster',
+    'ferris wheel',
+    'theme park equipment',
   ],
-  authors: [{ name: 'Coze Code Team', url: 'https://code.coze.cn' }],
-  generator: 'Coze Code',
-  // icons: {
-  //   icon: '',
-  // },
+  authors: [{ name: 'StarJoy Amusement Rides' }],
   openGraph: {
-    title: '扣子编程 | 你的 AI 工程师已就位',
+    title: '星乐游乐设备 | 全球领先的游乐设施制造商',
     description:
-      '我正在使用扣子编程 Vibe Coding，让创意瞬间上线。告别拖拽，拥抱心流。',
-    url: 'https://code.coze.cn',
-    siteName: '扣子编程',
+      '专业设计、研发、生产各类游乐设施，为全球客户提供安全、创新、高品质的游乐体验',
     locale: 'zh_CN',
     type: 'website',
-    // images: [
-    //   {
-    //     url: '',
-    //     width: 1200,
-    //     height: 630,
-    //     alt: '扣子编程 - 你的 AI 工程师',
-    //   },
-    // ],
   },
-  // twitter: {
-  //   card: 'summary_large_image',
-  //   title: 'Coze Code | Your AI Engineer is Here',
-  //   description:
-  //     'Build and deploy full-stack applications through AI conversation. No env setup, just flow.',
-  //   // images: [''],
-  // },
   robots: {
     index: true,
     follow: true,
@@ -64,8 +44,8 @@ export default function RootLayout({
   const isDev = process.env.COZE_PROJECT_ENV === 'DEV';
 
   return (
-    <html lang="en">
-      <body className={`antialiased`}>
+    <html lang="zh" suppressHydrationWarning>
+      <body className="antialiased min-h-screen flex flex-col">
         {isDev && <Inspector />}
         {children}
       </body>
