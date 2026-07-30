@@ -70,7 +70,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback(
     (newLocale: Locale) => {
-      const path = pathname.replace(/^\/(zh|en)/, `/${newLocale}`);
+      const path = pathname.replace(/^\/(zh|en|ja|ko|es|fr|de|ru|pt|ar|th)/, `/${newLocale}`);
       router.push(path);
     },
     [pathname, router]

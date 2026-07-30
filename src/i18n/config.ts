@@ -1,12 +1,21 @@
-export type Locale = 'zh' | 'en';
+export type Locale = 'zh' | 'en' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'ru' | 'pt' | 'ar' | 'th';
 
 export const defaultLocale: Locale = 'zh';
 
-export const locales: Locale[] = ['zh', 'en'];
+export const locales: Locale[] = ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'ru', 'pt', 'ar', 'th'];
 
 export const localeNames: Record<Locale, string> = {
   zh: '中文',
   en: 'English',
+  ja: '日本語',
+  ko: '한국어',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  ru: 'Русский',
+  pt: 'Português',
+  ar: 'العربية',
+  th: 'ไทย',
 };
 
 export type TranslationKey = string;

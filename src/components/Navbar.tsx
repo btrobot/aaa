@@ -4,17 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { useCart } from '@/lib/cart-context';
+import { useCurrency } from '@/i18n/CurrencyProvider';
 import { locales, localeNames } from '@/i18n/config';
 import type { Locale } from '@/i18n/config';
 import { Menu, X, ShoppingCart, ChevronDown, Globe, User, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+import { currencies as allCurrencies, currencySymbols, type Currency } from '@/i18n/CurrencyProvider';
+
 export default function Navbar() {
   const { locale, t, setLocale } = useTranslations();
   const { totalItems } = useCart();
+  const { currency, setCurrency } = useCurrency();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [currOpen, setCurrOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -104,6 +109,29 @@ export default function Navbar() {
                       }`}
                     >
                       {localeNames[l]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Currency Selector */}
+            <div className="relative">
+              <Button variant="ghost" size="sm" className="text-gray-600 gap-1" onClick={() => setCurrOpen(!currOpen)}>
+                <span className="text-sm">{currencySymbols[currency]}</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+              {currOpen && (
+                <div className="absolute right-0 mt-1 w-28 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                  {allCurrencies.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => { setCurrency(c); setCurrOpen(false); }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                        currency === c ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {currencySymbols[c]} {c}
                     </button>
                   ))}
                 </div>

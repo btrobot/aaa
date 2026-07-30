@@ -16,15 +16,25 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [settingsLang, setSettingsLang] = useState<string>('zh_cn');
+  const [seoLang, setSeoLang] = useState(locale);
+
+  const LANG_LABELS: Record<string, string> = {
+    zh_cn: '中文', en: 'English', ja: '日本語', ko: '한국어',
+    es: 'Español', fr: 'Français', de: 'Deutsch', ru: 'Русский',
+    pt: 'Português', ar: 'العربية', th: 'ไทย',
+  };
+  const LANGUAGES = Object.entries(LANG_LABELS).map(([code, name]) => ({ code, name }));
+  type Settings = Record<string, string>;
 
   useEffect(() => {
     loadSettings();
-  }, [locale]);
+  }, [settingsLang]);
 
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const data = await api.settings.getAll(locale === 'en' ? 'en' : undefined);
+      const data = await api.settings.getAll(settingsLang === 'zh_cn' ? undefined : settingsLang);
       setSettings(data || {});
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -43,7 +53,7 @@ export default function AdminSettingsPage() {
       setMessage(null);
       await api.settings.update({
         settings,
-        locale: locale === 'en' ? 'en' : undefined,
+        locale: settingsLang === 'zh_cn' ? undefined : settingsLang,
       });
       setMessage({ type: 'success', text: '设置已保存' });
       setTimeout(() => setMessage(null), 3000);
@@ -98,10 +108,24 @@ export default function AdminSettingsPage() {
       {/* 商店信息 */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">商店信息</h2>
+        {/* 语言标签 */}
+        <div className="flex gap-2 mb-4">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => setSettingsLang(l.code)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                settingsLang === l.code ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {l.name}
+            </button>
+          ))}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>商店名称</Label>
-            <Input value={settings.store_name || ''} onChange={(e) => handleChange('store_name', e.target.value)} />
+            <Label>商店名称 ({settingsLang === 'zh_cn' ? '中文' : settingsLang === 'en' ? 'English' : '日本語'})</Label>
+            <Input value={settings[`store_name_${settingsLang}` as keyof Settings] as string || ''} onChange={(e) => handleChange(`store_name_${settingsLang}`, e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>商店邮箱</Label>
@@ -112,8 +136,8 @@ export default function AdminSettingsPage() {
             <Input value={settings.store_phone || ''} onChange={(e) => handleChange('store_phone', e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>地址</Label>
-            <Input value={settings.store_address || ''} onChange={(e) => handleChange('store_address', e.target.value)} />
+            <Label>地址 ({settingsLang === 'zh_cn' ? '中文' : settingsLang === 'en' ? 'English' : '日本語'})</Label>
+            <Input value={settings[`store_address_${settingsLang}` as keyof Settings] as string || ''} onChange={(e) => handleChange(`store_address_${settingsLang}`, e.target.value)} />
           </div>
         </div>
       </Card>
@@ -132,6 +156,13 @@ export default function AdminSettingsPage() {
               <option value="CNY">CNY (¥)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="KRW">KRW (₩)</option>
+              <option value="THB">THB (฿)</option>
+              <option value="SGD">SGD (S$)</option>
+              <option value="AUD">AUD (A$)</option>
+              <option value="AED">AED (د.إ)</option>
             </select>
           </div>
           <div className="space-y-2">
@@ -147,6 +178,15 @@ export default function AdminSettingsPage() {
             >
               <option value="zh_cn">中文</option>
               <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="ru">Русский</option>
+              <option value="pt">Português</option>
+              <option value="ar">العربية</option>
+              <option value="th">ไทย</option>
             </select>
           </div>
           <div className="space-y-2">

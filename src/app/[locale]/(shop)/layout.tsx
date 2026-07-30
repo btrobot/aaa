@@ -1,4 +1,5 @@
 import { I18nProvider } from '@/i18n/I18nProvider';
+import { CurrencyProvider } from '@/i18n/CurrencyProvider';
 import { CartProvider } from '@/lib/cart-context';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -25,19 +26,21 @@ export default async function LocaleLayout({
   };
 
   return (
-    <CartProvider>
-      <I18nProvider>
-        {/* JSON-LD 结构化数据 */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd),
-          }}
-        />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </I18nProvider>
-    </CartProvider>
+    <CurrencyProvider>
+      <CartProvider>
+        <I18nProvider>
+          {/* JSON-LD 结构化数据 */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationJsonLd),
+            }}
+          />
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </I18nProvider>
+      </CartProvider>
+    </CurrencyProvider>
   );
 }
