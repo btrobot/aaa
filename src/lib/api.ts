@@ -17,7 +17,7 @@ export interface Page {
 
 const BASE_URL = '';
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
+export async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${url}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
@@ -221,6 +221,14 @@ export const api = {
       }),
   },
 
+  // 配送方式
+  shipping: {
+    list: (locale?: string) => {
+      const qs = locale ? `?locale=${locale}` : '';
+      return request<any[]>(`/api/shipping-methods${qs}`);
+    },
+  },
+
   // 文章
   pages: {
     list: (params?: { locale?: string; status?: boolean }) => {
@@ -240,5 +248,18 @@ export const api = {
       }),
     delete: (id: number) =>
       request<void>(`/api/pages/${id}`, { method: 'DELETE' }),
+  },
+
+  // 系统设置
+  settings: {
+    getAll: (locale?: string) => {
+      const qs = locale ? `?locale=${locale}` : '';
+      return request<Record<string, string>>(`/api/settings${qs}`);
+    },
+    update: (data: { settings: Record<string, string>; locale?: string }) =>
+      request<Record<string, string>>('/api/settings', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
   },
 };

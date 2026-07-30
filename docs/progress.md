@@ -43,6 +43,9 @@
 | 文章/新闻模块 | ✅ | 完整 CRUD + 前台新闻列表/详情 + 后台管理 + 中英文双语 + 种子数据 (3 篇) |
 | 分类/品牌管理 CRUD | ✅ | 后台管理页面，含新增/编辑/删除弹窗 |
 | 订单详情页 | ✅ | 后台订单详情页，含状态流转按钮 |
+| 配送模块 | ✅ | shipping_methods + shipping_method_descriptions 表，ShippingService，API 路由，3 种配送方式(标准/快递/经济)，结账流程配送方式选择，自动计算运费(满额免运费)，后台配送管理页面 |
+| 支付模块 | ✅ | 新增 payment_status/payment_paid_at/payment_id 字段，PaymentService(模拟 Stripe/PayPal 创建支付 + 回调确认)，支付结果页，订单详情页显示支付状态 |
+| 系统设置 | ✅ | SettingsService 批量读写，系统设置 API，后台设置页面(商店信息/货币语言/订单设置/税务发票/SEO) |
 
 ### 📊 测试覆盖率
 

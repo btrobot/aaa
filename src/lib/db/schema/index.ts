@@ -297,6 +297,9 @@ export const orders = pgTable('orders', {
   status: varchar('status', { length: 50 }).notNull().default('pending'),
   shippingMethod: varchar('shipping_method', { length: 255 }),
   paymentMethod: varchar('payment_method', { length: 255 }),
+  paymentStatus: varchar('payment_status', { length: 50 }).default('unpaid'),
+  paymentId: varchar('payment_id', { length: 500 }),
+  paidAt: timestamp('paid_at'),
   comment: text('comment'),
   customerNote: text('customer_note'),
   ip: varchar('ip', { length: 50 }),
@@ -546,4 +549,31 @@ export const notifications = pgTable('notifications', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   notifNotifiableIdx: index('notif_notifiable_idx').on(table.notifiableId, table.notifiableType),
+}));
+
+// ============================================================
+// 配送方式
+// ============================================================
+
+export const shippingMethods = pgTable('shipping_methods', {
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  icon: varchar('icon', { length: 500 }),
+  baseFee: decimal('base_fee', { precision: 10, scale: 2 }).notNull().default('0.00'),
+  freeShippingThreshold: decimal('free_shipping_threshold', { precision: 10, scale: 2 }).default('0.00'),
+  estimatedDays: varchar('estimated_days', { length: 100 }),
+  status: boolean('status').default(true),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const shippingMethodDescriptions = pgTable('shipping_method_descriptions', {
+  id: serial('id').primaryKey(),
+  shippingMethodId: integer('shipping_method_id').notNull().references(() => shippingMethods.id, { onDelete: 'cascade' }),
+  locale: varchar('locale', { length: 10 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+}, (table) => ({
+  shippingMethodLocaleIdx: uniqueIndex('shipping_method_locale_idx').on(table.shippingMethodId, table.locale),
 }));

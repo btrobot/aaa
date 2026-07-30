@@ -1,5 +1,5 @@
 import { db } from '@/lib/db/db';
-import { orders, orderProducts, carts, products, productDescriptions } from '@/lib/db/schema';
+import { orders, orderProducts, carts, products, productDescriptions, customerAddresses } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'completed' | 'cancelled' | 'returned';
@@ -50,11 +50,23 @@ function generateOrderNumber(): string {
 export interface CreateOrderInput {
   customerId: number;
   shippingAddressId?: number;
+  shippingAddress?: {
+    name: string;
+    phone: string;
+    email?: string;
+    address: string;
+    city: string;
+    state?: string;
+    zip?: string;
+    country: string;
+  };
   paymentAddressId?: number;
   shippingMethod?: string;
+  shippingFee?: string;
   paymentMethod?: string;
   currency?: string;
   note?: string;
+  customerNote?: string;
 }
 
 export const OrderService = {
@@ -100,18 +112,41 @@ export const OrderService = {
       });
     }
 
+    // 处理收货地址
+    let shippingAddressId = input.shippingAddressId;
+    if (!shippingAddressId && input.shippingAddress) {
+      const addr = input.shippingAddress;
+      const [customerAddr] = await db.insert(customerAddresses).values({
+        customerId: input.customerId,
+        name: addr.name,
+        phone: addr.phone,
+        address1: addr.address,
+        city: addr.city || '',
+        zipCode: addr.zip || '',
+        countryId: 1, // 默认中国
+      }).returning();
+      shippingAddressId = customerAddr.id;
+    }
+
+    // 计算运费
+    const shippingFee = input.shippingFee ? parseFloat(input.shippingFee) : 0;
+    const finalTotal = total + shippingFee;
+
     // 创建订单
     const orderNumber = generateOrderNumber();
     const [order] = await db.insert(orders).values({
       number: orderNumber,
       customerId: input.customerId,
-      total: total.toFixed(2),
+      total: finalTotal.toFixed(2),
+      subtotal: total.toFixed(2),
+      shippingFee: shippingFee.toFixed(2),
       status: 'pending',
-      shippingAddressId: input.shippingAddressId || null,
+      shippingAddressId: shippingAddressId || null,
       paymentAddressId: input.paymentAddressId || null,
       shippingMethod: input.shippingMethod || null,
       paymentMethod: input.paymentMethod || null,
       currency: input.currency || 'CNY',
+      customerNote: input.customerNote || input.note || null,
     }).returning();
 
     // 创建订单商品

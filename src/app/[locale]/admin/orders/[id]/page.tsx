@@ -13,6 +13,20 @@ const statusColors: Record<string, string> = {
   returned: 'bg-gray-100 text-gray-800',
 };
 
+const paymentColors: Record<string, string> = {
+  unpaid: 'bg-yellow-100 text-yellow-800',
+  paid: 'bg-green-100 text-green-800',
+  failed: 'bg-red-100 text-red-800',
+  refunded: 'bg-gray-100 text-gray-800',
+};
+
+const paymentLabels: Record<string, string> = {
+  unpaid: '未支付',
+  paid: '已支付',
+  failed: '支付失败',
+  refunded: '已退款',
+};
+
 const statusLabels: Record<string, string> = {
   pending: '待处理',
   confirmed: '已确认',
@@ -129,6 +143,16 @@ export default function AdminOrderDetailPage() {
           <div>
             <label className="text-sm text-gray-500">运费</label>
             <p className="font-medium">¥{Number(order.shippingFee).toFixed(2)}</p>
+          </div>
+          <div>
+            <label className="text-sm text-gray-500">支付状态</label>
+            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${paymentColors[order.paymentStatus] || 'bg-gray-100'}`}>
+              {paymentLabels[order.paymentStatus] || order.paymentStatus}
+            </span>
+          </div>
+          <div>
+            <label className="text-sm text-gray-500">支付方式</label>
+            <p className="font-medium">{order.paymentMethod || '-'}</p>
           </div>
           <div>
             <label className="text-sm text-gray-500">折扣</label>
