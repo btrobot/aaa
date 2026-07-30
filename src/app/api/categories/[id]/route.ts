@@ -17,7 +17,18 @@ export const PUT = withAdmin(async (
 ) => {
   const { id } = await params;
   const body = await request.json();
-  const category = await CategoryService.update(Number(id), body);
+  const name = body.name ? String(body.name) : undefined;
+  const locale = body.locale ? String(body.locale) : undefined;
+  const category = await CategoryService.update(Number(id), {
+    parentId: body.parentId !== undefined ? body.parentId : undefined,
+    status: body.status !== undefined ? Boolean(body.status) : undefined,
+    slug: body.slug ? String(body.slug) : undefined,
+    ...(name && locale ? {
+      descriptions: {
+        [locale]: { name, description: body.description ? String(body.description) : undefined },
+      },
+    } : {}),
+  });
   return NextResponse.json(category);
 });
 
