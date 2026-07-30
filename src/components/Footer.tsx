@@ -68,7 +68,7 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">{t('footer.customerService')}</h3>
             <ul className="space-y-2.5">
               {customerService.map((link) => (
-                <li key={link.href}>
+                <li key={link.label}>
                   <Link href={link.href} className="text-sm text-gray-400 hover:text-orange-400 transition-colors">{link.label}</Link>
                 </li>
               ))}
