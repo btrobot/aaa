@@ -43,7 +43,9 @@
     "feature4Title": "Worry-free After-sales",
     "feature4Desc": "7-day returns, professional customer service team",
     "deals": "Special Offers",
-    "dealsDesc": "Don't miss out on great deals"
+    "dealsDesc": "Don't miss out on great deals",
+    "noCategories": "No categories",
+    "noProducts": "No products"
   },
   "products": {
     "title": "All Products",

@@ -4,10 +4,10 @@ import { CustomerService } from '@/lib/services/customer.service';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: '请提供客户ID' }, { status: 400 });
+    const customerId = searchParams.get('customerId') || searchParams.get('id');
+    if (!customerId) return NextResponse.json({ error: '请提供客户ID' }, { status: 400 });
 
-    const items = await CustomerService.getWishlist(Number(id));
+    const items = await CustomerService.getWishlist(Number(customerId));
     const products = items.map((item: any) => ({
       id: item.productId,
       name: item.product?.name || `Product #${item.productId}`,

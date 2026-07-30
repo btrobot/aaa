@@ -43,7 +43,9 @@
     "feature4Title": "售后无忧",
     "feature4Desc": "7天退换货，专业客服团队",
     "deals": "限时特惠",
-    "dealsDesc": "优惠不容错过"
+    "dealsDesc": "优惠不容错过",
+    "noCategories": "暂无分类",
+    "noProducts": "暂无产品"
   },
   "products": {
     "title": "全部商品",

@@ -109,20 +109,33 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-gray-900">{t('home.categories')}</h2>
             <p className="mt-2 text-gray-500">{t('home.categoriesDesc')}</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/${locale}/products?category=${cat.id}`}
-                className="group flex flex-col items-center p-6 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all"
-              >
-                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
-                  <Cog className="w-6 h-6 text-blue-600" />
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center p-6 bg-white rounded-xl border border-gray-100 animate-pulse">
+                  <div className="w-12 h-12 rounded-full bg-gray-200 mb-3" />
+                  <div className="h-4 w-16 bg-gray-200 rounded" />
                 </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">{cat.name}</span>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : categories.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/${locale}/products?category=${cat.id}`}
+                  className="group flex flex-col items-center p-6 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all"
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+                    <Cog className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">{cat.name}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-400">{t('home.noCategories')}</p>
+          )}
         </div>
       </section>
 

@@ -5,7 +5,7 @@ test.describe('前台商店 - 核心用户旅程', () => {
     await page.goto('/');
     await expect(page.locator('nav')).toBeVisible();
     await expect(page.locator('footer')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /NodeCoda|贝可/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /品质好物|Quality Products|游乐设备/i })).toBeVisible();
   });
 
   test('产品浏览 - 从首页到产品详情', async ({ page }) => {
