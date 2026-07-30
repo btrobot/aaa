@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-const BASE = `http://localhost:${process.env.DEPLOY_RUN_PORT || 5000}`;
+const BASE = `http://localhost:${process.env.DEPLOY_RUN_PORT || 9090}`;
 
 async function api(path: string, options?: RequestInit) {
   const res = await fetch(`${BASE}${path}`, {
