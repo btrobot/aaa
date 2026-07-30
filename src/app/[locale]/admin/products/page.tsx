@@ -92,6 +92,9 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <Link href={`/${locale}/admin/products/${product.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                        <Edit2 className="w-4 h-4 text-gray-400" />
+                      </Link>
                       <Link href={`/${locale}/products/${product.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg">
                         <Eye className="w-4 h-4 text-gray-400" />
                       </Link>

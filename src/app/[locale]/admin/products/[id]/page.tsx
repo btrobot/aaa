@@ -4,22 +4,28 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X, Loader2 } from 'lucide-react';
 
 function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
 
-export default function AdminNewProduct() {
+export default function AdminEditProduct() {
   const { t } = useTranslations();
   const router = useRouter();
   const params = useParams();
+  const id = Number(params.id);
   const locale = (params.locale as string)?.startsWith('en') ? 'en' : 'zh';
 
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const [sku, setSku] = useState('');
   const [price, setPrice] = useState('');
+  const [costPrice, setCostPrice] = useState('');
   const [quantity, setQuantity] = useState('0');
+  const [weight, setWeight] = useState('0');
+  const [sortOrder, setSortOrder] = useState('0');
+  const [status, setStatus] = useState(true);
   const [brandId, setBrandId] = useState<number | ''>('');
 
   const [nameZh, setNameZh] = useState('');
@@ -32,19 +38,43 @@ export default function AdminNewProduct() {
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    loadOptions();
-  }, []);
+    if (!id || isNaN(id)) {
+      setError('无效的产品ID');
+      setLoading(false);
+      return;
+    }
+    loadData();
+  }, [id]);
 
-  async function loadOptions() {
+  async function loadData() {
     try {
-      const [brandsList, categoriesTree] = await Promise.all([
+      const [product, brandsList, categoriesTree] = await Promise.all([
+        api.products.get(id),
         api.brands.list(),
         api.categories.list(toApiLocale(locale)),
       ]);
+
+      setSku(product.sku);
+      setPrice(product.price);
+      setCostPrice(product.costPrice || '');
+      setQuantity(String(product.quantity));
+      setWeight(String(product.weight));
+      setSortOrder(String(product.sortOrder));
+      setStatus(product.status);
+      setBrandId(product.brandId ?? '');
+
+      const zhDesc = product.descriptions?.find((d: any) => d.locale === 'zh_cn');
+      const enDesc = product.descriptions?.find((d: any) => d.locale === 'en');
+      if (zhDesc) { setNameZh(zhDesc.name); setDescZh(zhDesc.description || ''); }
+      if (enDesc) { setNameEn(enDesc.name); setDescEn(enDesc.description || ''); }
+
+      setCategoryIds(product.categoryIds || []);
       setBrands(Array.isArray(brandsList) ? brandsList : []);
       setCategories(Array.isArray(categoriesTree) ? categoriesTree : []);
     } catch (err) {
-      console.error('加载选项失败:', err);
+      setError(err instanceof Error ? err.message : '加载产品失败');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -70,10 +100,6 @@ export default function AdminNewProduct() {
   }
 
   async function handleSave() {
-    if (!sku.trim()) { setError('SKU 不能为空'); return; }
-    if (!price.trim()) { setError('价格不能为空'); return; }
-    if (!nameZh.trim() && !nameEn.trim()) { setError('至少填写一个语言的产品名称'); return; }
-
     setSaving(true);
     setError('');
 
@@ -82,21 +108,41 @@ export default function AdminNewProduct() {
     if (nameEn) descriptions.en = { name: nameEn, description: descEn || undefined };
 
     try {
-      await api.products.create({
-        sku: sku.trim(),
-        price: price.trim(),
-        quantity: Number(quantity) || 0,
+      await api.products.update(id, {
+        sku: sku || undefined,
+        price: price || undefined,
+        costPrice: costPrice || undefined,
+        quantity: quantity ? Number(quantity) : undefined,
+        weight: weight ? Number(weight) : undefined,
+        sortOrder: sortOrder ? Number(sortOrder) : undefined,
+        status,
         brandId: brandId || undefined,
-        status: true,
-        descriptions,
+        descriptions: Object.keys(descriptions).length > 0 ? descriptions : undefined,
         categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       });
       router.push(`/${params.locale}/admin/products`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败');
+      setError(err instanceof Error ? err.message : '保存失败');
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error && !sku) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button onClick={() => router.back()} className="text-blue-600 hover:underline text-sm">返回</button>
+      </div>
+    );
   }
 
   return (
@@ -108,7 +154,7 @@ export default function AdminNewProduct() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('admin.products')}</h1>
-            <p className="text-gray-500 mt-1">{t('admin.add')}</p>
+            <p className="text-gray-500 mt-1">{t('admin.edit')} — {sku}</p>
           </div>
         </div>
         <button
@@ -138,7 +184,6 @@ export default function AdminNewProduct() {
                   type="text" value={sku}
                   onChange={(e) => setSku(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="例如: RIDE-001"
                 />
               </div>
               <div>
@@ -147,12 +192,11 @@ export default function AdminNewProduct() {
                   type="text" value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="例如: 999.00"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('admin.stock')}</label>
                 <input
@@ -160,6 +204,33 @@ export default function AdminNewProduct() {
                   onChange={(e) => setQuantity(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">成本价</label>
+                <input
+                  type="text" value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">排序</label>
+                <input
+                  type="number" value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('admin.category')}</label>
+                <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-0.5">
+                  {categories.length > 0 ? renderCategoryOptions(categories) : (
+                    <p className="text-sm text-gray-400 p-2">暂无分类</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('admin.brand')}</label>
@@ -175,21 +246,13 @@ export default function AdminNewProduct() {
                 </select>
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('admin.category')}</label>
-              <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-0.5">
-                {categories.length > 0 ? renderCategoryOptions(categories) : (
-                  <p className="text-sm text-gray-400 p-2">暂无分类</p>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* 多语言描述 */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
             <h2 className="text-lg font-semibold text-gray-900">多语言描述</h2>
 
+            {/* 中文 */}
             <div className="space-y-3 p-4 bg-blue-50/50 rounded-lg border border-blue-100">
               <h3 className="text-sm font-medium text-blue-800">中文 (zh_cn)</h3>
               <div>
@@ -212,6 +275,7 @@ export default function AdminNewProduct() {
               </div>
             </div>
 
+            {/* 英文 */}
             <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <h3 className="text-sm font-medium text-gray-800">English (en)</h3>
               <div>
@@ -240,7 +304,42 @@ export default function AdminNewProduct() {
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">{t('admin.status')}</h2>
-            <p className="text-sm text-gray-500">新建产品默认上架</p>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio" name="status" checked={status === true}
+                  onChange={() => setStatus(true)}
+                  className="w-4 h-4 text-blue-600 border-gray-300"
+                />
+                <span className="text-sm text-gray-700">上架</span>
+              </label>
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio" name="status" checked={status === false}
+                  onChange={() => setStatus(false)}
+                  className="w-4 h-4 text-blue-600 border-gray-300"
+                />
+                <span className="text-sm text-gray-700">下架</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900">产品信息</h2>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-gray-500">ID</dt>
+                <dd className="text-gray-900 font-medium">{id}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-gray-500">SKU</dt>
+                <dd className="text-gray-900 font-medium">{sku}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-gray-500">重量</dt>
+                <dd className="text-gray-900">{weight} kg</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </div>
