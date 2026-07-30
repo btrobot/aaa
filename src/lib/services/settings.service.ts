@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/db';
 import { settings } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 interface SettingGroup {
   [key: string]: string | null;
@@ -29,9 +30,17 @@ export class SettingsService {
   }
 
   /** 批量更新设置 */
-  async updateAll(data: Record<string, string | null>, locale?: string) {
+  async updateAll(data: Record<string, string | null>, locale?: string): Promise<SettingGroup> {
     const entries = Object.entries(data);
+    if (entries.length === 0) {
+      throw new BusinessRuleError('设置数据不能为空');
+    }
+
     for (const [key, value] of entries) {
+      if (!key.trim()) {
+        throw new BusinessRuleError('设置 key 不能为空');
+      }
+
       const existing = await db.select()
         .from(settings)
         .where(
@@ -57,7 +66,11 @@ export class SettingsService {
   }
 
   /** 获取单个设置 */
-  async get(key: string, locale?: string): Promise<string | null> {
+  async get(key: string, locale?: string): Promise<string> {
+    if (!key.trim()) {
+      throw new BusinessRuleError('设置 key 不能为空');
+    }
+
     const rows = await db.select()
       .from(settings)
       .where(
@@ -67,12 +80,15 @@ export class SettingsService {
       )
       .limit(1);
     if (rows[0]?.value) return rows[0].value;
+
     // 回退到全局设置
     const global = await db.select()
       .from(settings)
       .where(eq(settings.key, key))
       .limit(1);
-    return global[0]?.value || null;
+    if (global[0]?.value) return global[0].value;
+
+    throw new NotFoundError('设置', key);
   }
 }
 
