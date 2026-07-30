@@ -11,9 +11,6 @@ export const GET = withMiddleware(async (
   const { id } = await params;
   const locale = request.nextUrl.searchParams.get('locale') || 'zh_cn';
   const page = await pageService.getById(Number(id), locale);
-  if (!page) {
-    return NextResponse.json({ error: '页面不存在' }, { status: 404 });
-  }
   return cacheResponse(NextResponse.json(page), { maxAge: 60 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 

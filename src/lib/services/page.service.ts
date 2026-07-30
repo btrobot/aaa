@@ -1,13 +1,13 @@
 import { db } from '@/lib/db/db';
 import { pages, pageDescriptions } from '@/lib/db/schema';
-import { eq, desc, asc, and } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { z } from 'zod';
-
-const localeMap: Record<string, string> = { zh: 'zh_cn', en: 'en' };
+import { NotFoundError, BusinessRuleError } from './errors';
 
 const pageDescSchema = z.object({
   title: z.string().min(1),
   content: z.string().optional(),
+  summary: z.string().optional(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
@@ -16,6 +16,7 @@ const pageDescSchema = z.object({
 type PageDesc = z.infer<typeof pageDescSchema>;
 
 export const createPageSchema = z.object({
+  slug: z.string().max(255).optional(),
   author: z.string().optional(),
   image: z.string().optional(),
   status: z.boolean().optional().default(true),
@@ -49,6 +50,7 @@ export class PageService {
 
     return rows.map((row) => ({
       id: row.pages.id,
+      slug: row.pages.slug,
       author: row.pages.author,
       image: row.pages.image,
       status: row.pages.status,
@@ -73,10 +75,11 @@ export class PageService {
       .where(eq(pages.id, id))
       .limit(1);
 
-    if (rows.length === 0) return null;
+    if (rows.length === 0) throw new NotFoundError('文章', id);
     const row = rows[0];
     return {
       id: row.pages.id,
+      slug: row.pages.slug,
       author: row.pages.author,
       image: row.pages.image,
       status: row.pages.status,
@@ -84,7 +87,7 @@ export class PageService {
       createdAt: row.pages.createdAt,
       updatedAt: row.pages.updatedAt,
       title: row.page_descriptions?.title || null,
-      summary: row.page_descriptions?.metaDescription || null,
+      summary: row.page_descriptions?.summary || null,
       content: row.page_descriptions?.content || null,
       metaTitle: row.page_descriptions?.metaTitle || null,
       metaDescription: row.page_descriptions?.metaDescription || null,
@@ -94,7 +97,16 @@ export class PageService {
 
   async create(data: z.infer<typeof createPageSchema>) {
     const validated = createPageSchema.parse(data);
+
+    // pre: slug 唯一
+    if (validated.slug) {
+      const [existing] = await db.select({ id: pages.id })
+        .from(pages).where(eq(pages.slug, validated.slug)).limit(1);
+      if (existing) throw new BusinessRuleError(`slug "${validated.slug}" 已存在`);
+    }
+
     const [page] = await db.insert(pages).values({
+      slug: validated.slug ?? null,
       author: validated.author,
       image: validated.image,
       status: validated.status,
@@ -103,15 +115,15 @@ export class PageService {
 
     if (validated.descriptions) {
       for (const [locale, desc] of Object.entries(validated.descriptions)) {
-        const d = desc as PageDesc;
         await db.insert(pageDescriptions).values({
           pageId: page.id,
           locale,
-          title: d.title,
-          content: d.content || null,
-          metaTitle: d.metaTitle || null,
-          metaDescription: d.metaDescription || null,
-          metaKeywords: d.metaKeywords || null,
+          title: desc.title,
+          content: desc.content || null,
+          summary: desc.summary || null,
+          metaTitle: desc.metaTitle || null,
+          metaDescription: desc.metaDescription || null,
+          metaKeywords: desc.metaKeywords || null,
         });
       }
     }
@@ -119,22 +131,23 @@ export class PageService {
   }
 
   async update(id: number, data: z.infer<typeof updatePageSchema>) {
+    // pre: 文章存在
+    await this.getById(id);
+
     const validated = updatePageSchema.parse(data);
-    const updateData: Record<string, any> = {};
+    const updateData: { slug?: string | null; author?: string; image?: string; status?: boolean; sortOrder?: number } = {};
+    if (validated.slug !== undefined) updateData.slug = validated.slug;
     if (validated.author !== undefined) updateData.author = validated.author;
     if (validated.image !== undefined) updateData.image = validated.image;
     if (validated.status !== undefined) updateData.status = validated.status;
     if (validated.sortOrder !== undefined) updateData.sortOrder = validated.sortOrder;
 
     if (Object.keys(updateData).length > 0) {
-      await db.update(pages)
-        .set({ ...updateData, updatedAt: new Date() })
-        .where(eq(pages.id, id));
+      await db.update(pages).set(updateData).where(eq(pages.id, id));
     }
 
     if (validated.descriptions) {
       for (const [locale, desc] of Object.entries(validated.descriptions)) {
-        const d = desc as PageDesc;
         const existing = await db.select()
           .from(pageDescriptions)
           .where(and(eq(pageDescriptions.pageId, id), eq(pageDescriptions.locale, locale)))
@@ -143,22 +156,24 @@ export class PageService {
         if (existing.length > 0) {
           await db.update(pageDescriptions)
             .set({
-              title: d.title,
-              content: d.content || null,
-              metaTitle: d.metaTitle || null,
-              metaDescription: d.metaDescription || null,
-              metaKeywords: d.metaKeywords || null,
+              title: desc.title,
+              content: desc.content || null,
+              summary: desc.summary || null,
+              metaTitle: desc.metaTitle || null,
+              metaDescription: desc.metaDescription || null,
+              metaKeywords: desc.metaKeywords || null,
             })
             .where(and(eq(pageDescriptions.pageId, id), eq(pageDescriptions.locale, locale)));
         } else {
           await db.insert(pageDescriptions).values({
             pageId: id,
             locale,
-            title: d.title,
-            content: d.content || null,
-            metaTitle: d.metaTitle || null,
-            metaDescription: d.metaDescription || null,
-            metaKeywords: d.metaKeywords || null,
+            title: desc.title,
+            content: desc.content || null,
+            summary: desc.summary || null,
+            metaTitle: desc.metaTitle || null,
+            metaDescription: desc.metaDescription || null,
+            metaKeywords: desc.metaKeywords || null,
           });
         }
       }
@@ -167,8 +182,11 @@ export class PageService {
   }
 
   async delete(id: number) {
+    // pre: 文章存在
+    await this.getById(id);
     await db.delete(pageDescriptions).where(eq(pageDescriptions.pageId, id));
     await db.delete(pages).where(eq(pages.id, id));
+    return true;
   }
 }
 
