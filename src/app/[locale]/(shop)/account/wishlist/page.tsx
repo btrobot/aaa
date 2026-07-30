@@ -1,22 +1,68 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
-import { products } from '@/lib/mock-data';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
+
+function toApiLocale(locale: string) {
+  return locale === 'en' ? 'en' : 'zh_cn';
+}
 
 export default function WishlistPage() {
   const { locale, t } = useTranslations();
-  const wishlist = products.slice(0, 5);
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const stored = localStorage.getItem('customer');
+        if (!stored) { setLoading(false); return; }
+        const c = JSON.parse(stored);
+        const data = await api.customers.wishlist(c.id, toApiLocale(locale));
+        setWishlist(data || []);
+      } catch (err) {
+        console.error('Failed to load wishlist:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [locale]);
+
+  const handleRemove = async (productId: number) => {
+    try {
+      const stored = localStorage.getItem('customer');
+      if (!stored) return;
+      const c = JSON.parse(stored);
+      await api.customers.removeWishlist(c.id, productId);
+      setWishlist(wishlist.filter((p) => p.id !== productId));
+    } catch (err) {
+      console.error('Failed to remove:', err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="animate-pulse grid grid-cols-2 md:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (<div key={i} className="h-64 bg-gray-100 rounded-xl" />))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center gap-3 mb-6">
-          <Heart className="h-6 w-6 text-orange-500" />
+          <Heart className="h-6 w-6 text-blue-600" />
           <h1 className="text-2xl font-bold text-gray-900">{t('account.wishlist')}</h1>
           <span className="text-gray-400">({wishlist.length})</span>
         </div>
@@ -25,28 +71,41 @@ export default function WishlistPage() {
           <div className="text-center py-20">
             <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-medium text-gray-500">{t('account.wishlistEmpty')}</h2>
-            <Link href={`/${locale}/products`}><Button className="mt-4 bg-orange-500 hover:bg-orange-600">{t('cart.continueShopping')}</Button></Link>
+            <Link href={`/${locale}/products`}>
+              <Button className="mt-4 bg-blue-600 hover:bg-blue-700">{t('cart.continueShopping')}</Button>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {wishlist.map((product) => (
               <Card key={product.id} className="border-0 shadow-sm group">
-                <div className="relative aspect-square bg-gray-100 overflow-hidden rounded-t-xl">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  <button className="absolute top-2 right-2 p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-                    <Trash2 className="h-4 w-4 text-gray-500" />
-                  </button>
-                </div>
+                <Link href={`/${locale}/products/${product.id}`}>
+                  <div className="relative aspect-square bg-gray-100 overflow-hidden rounded-t-xl">
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <Heart className="w-12 h-12" />
+                      </div>
+                    )}
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleRemove(product.id); }}
+                      className="absolute top-2 right-2 p-2 bg-white/80 rounded-full hover:bg-white transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </div>
+                </Link>
                 <CardContent className="p-3">
                   <Link href={`/${locale}/products/${product.id}`}>
-                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-orange-600">{product.name}</h3>
+                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-blue-600">{product.name}</h3>
                   </Link>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-base font-bold text-orange-600">¥{product.price.toLocaleString()}</span>
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                      <ShoppingCart className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <p className="text-sm font-bold text-blue-600 mt-1">¥{Number(product.price).toLocaleString()}</p>
+                  <Button size="sm" className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-xs" asChild>
+                    <Link href={`/${locale}/cart?add=${product.id}`}>
+                      <ShoppingCart className="w-3 h-3 mr-1" /> {t('cart.addToCart')}
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}

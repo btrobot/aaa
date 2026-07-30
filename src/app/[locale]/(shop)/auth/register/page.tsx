@@ -4,79 +4,87 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Mail, Lock, User, Phone } from 'lucide-react';
+import { Cookie, Lock, Mail, User } from 'lucide-react';
 
 export default function RegisterPage() {
   const { locale, t } = useTranslations();
   const router = useRouter();
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/${locale}/account`);
+    if (form.password !== form.confirmPassword) {
+      setError(t('auth.passwordMismatch'));
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.auth.register({ email: form.email, password: form.password, name: form.name, locale });
+      router.push(`/${locale}/account`);
+    } catch (err: any) {
+      setError(err.message || t('auth.registerFailed'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <Card className="w-full max-w-md border-0 shadow-sm">
-        <CardContent className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">{t('auth.register')}</h1>
-            <p className="text-gray-500 mt-2">{t('auth.registerDesc')}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center py-12 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+            <Cookie className="w-7 h-7 text-blue-600" />
           </div>
-
+          <CardTitle className="text-xl">{t('auth.createAccount')}</CardTitle>
+          <CardDescription>{t('auth.registerDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t('auth.name')}</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input id="name" className="pl-10" placeholder="张三" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input id="name" className="pl-10" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-email">{t('auth.email')}</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input id="reg-email" type="email" className="pl-10" placeholder="email@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input id="email" type="email" className="pl-10" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">{t('auth.phone')}</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input id="phone" className="pl-10" placeholder="13800138000" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input id="password" type="password" className="pl-10" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-password">{t('auth.password')}</Label>
+              <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input id="reg-password" type="password" className="pl-10" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input id="confirmPassword" type="password" className="pl-10" value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} required />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">{t('auth.confirmPassword')}</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input id="confirm-password" type="password" className="pl-10" placeholder="••••••••" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} required />
-              </div>
-            </div>
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 h-11 text-base mt-2">
-              {t('auth.register')}
+            {error && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
+              {loading ? t('common.loading') : t('auth.register')}
             </Button>
+            <p className="text-center text-sm text-gray-500">
+              {t('auth.hasAccount')}{' '}
+              <Link href={`/${locale}/auth/login`} className="text-blue-600 hover:underline font-medium">{t('auth.login')}</Link>
+            </p>
           </form>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            {t('auth.hasAccount')}{' '}
-            <Link href={`/${locale}/auth/login`} className="text-orange-600 hover:text-orange-700 font-medium">
-              {t('auth.login')}
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>

@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(customer);
     }
 
+    if (searchParams.get('admin') === 'true') {
+      const all = await CustomerService.findAll();
+      return NextResponse.json(all);
+    }
+
     return NextResponse.json({ error: '请提供客户ID' }, { status: 400 });
   } catch (error) {
     return NextResponse.json(

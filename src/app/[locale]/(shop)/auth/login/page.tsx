@@ -4,111 +4,71 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Cookie, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const { locale, t } = useTranslations();
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/${locale}/account`);
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.auth.login({ email: form.email, password: form.password });
+      // 保存 session（简化版，直接保存到 localStorage）
+      localStorage.setItem('customer', JSON.stringify(res));
+      router.push(`/${locale}/account`);
+    } catch (err: any) {
+      setError(err.message || t('auth.loginFailed'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <Card className="w-full max-w-md border-0 shadow-sm">
-        <CardContent className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">{t('auth.login')}</h1>
-            <p className="text-gray-500 mt-2">{t('auth.loginDesc')}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center py-12 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+            <Cookie className="w-7 h-7 text-blue-600" />
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <CardTitle className="text-xl">{t('auth.loginTitle')}</CardTitle>
+          <CardDescription>{t('auth.loginDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t('auth.email')}</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  className="pl-10"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input id="email" type="email" className="pl-10" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
               </div>
             </div>
-
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t('auth.password')}</Label>
-                <Link href="#" className="text-xs text-orange-600 hover:text-orange-700">
-                  {t('auth.forgotPassword')}
-                </Link>
-              </div>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  className="pl-10"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input id="password" type="password" className="pl-10" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
               </div>
             </div>
-
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 h-11 text-base">
-              {t('auth.login')}
+            {error && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
+              {loading ? t('common.loading') : t('auth.login')}
             </Button>
+            <p className="text-center text-sm text-gray-500">
+              {t('auth.noAccount')}{' '}
+              <Link href={`/${locale}/auth/register`} className="text-blue-600 hover:underline font-medium">{t('auth.register')}</Link>
+            </p>
           </form>
-
-          <div className="relative my-6">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-gray-400">
-              {t('auth.or')}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { name: 'Google', bg: 'bg-gray-100', text: 'text-gray-700' },
-              { name: 'GitHub', bg: 'bg-gray-900', text: 'text-white' },
-            ].map((provider) => (
-              <Button
-                key={provider.name}
-                variant="outline"
-                className={`${provider.bg} ${provider.text} border-0`}
-              >
-                {provider.name}
-              </Button>
-            ))}
-          </div>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            {t('auth.noAccount')}{' '}
-            <Link href={`/${locale}/auth/register`} className="text-orange-600 hover:text-orange-700 font-medium">
-              {t('auth.register')}
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>

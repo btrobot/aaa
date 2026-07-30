@@ -136,6 +136,13 @@ export const OrderService = {
     return row || null;
   },
 
+  async getAll() {
+    const rows = await db.select()
+      .from(orders)
+      .orderBy(orders.createdAt);
+    return rows;
+  },
+
   async getCustomerOrders(customerId: number) {
     const rows = await db.select()
       .from(orders)

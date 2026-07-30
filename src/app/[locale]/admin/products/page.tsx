@@ -1,30 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { Plus, Search, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { api } from '@/lib/api';
+import { Search, Plus, Edit2, Eye, Star } from 'lucide-react';
 
-const mockProducts = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  name: `Product ${i + 1}`,
-  sku: `SKU-${String(i + 1).padStart(4, '0')}`,
-  price: (Math.random() * 500 + 10).toFixed(2),
-  stock: Math.floor(Math.random() * 200),
-  sales: Math.floor(Math.random() * 1000),
-  status: Math.random() > 0.2 ? 'active' : 'inactive',
-  createdAt: `2024-01-${String(Math.floor(Math.random() * 30) + 1).padStart(2, '0')}`,
-}));
+function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
 
 export default function AdminProducts() {
   const { t } = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  const filtered = mockProducts.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await api.products.list({ locale: toApiLocale(locale), pageSize: 100 });
+        setProducts(data);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [locale]);
+
+  const filtered = products.filter((p: any) =>
+    (p.description?.name || '').toLowerCase().includes(search.toLowerCase()) ||
     p.sku.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -33,98 +41,71 @@ export default function AdminProducts() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('admin.products')}</h1>
-          <p className="text-gray-500 mt-1">{mockProducts.length} {t('admin.totalProducts')}</p>
+          <p className="text-gray-500 mt-1">{products.length} {t('admin.totalProducts')}</p>
         </div>
-        <Link
-          href={`/${locale}/admin/products/new`}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          {t('admin.add')}
+        <Link href={`/${locale}/admin/products/new`} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+          <Plus className="w-4 h-4" /> {t('admin.addProduct')}
         </Link>
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder={t('admin.search')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input type="text" placeholder={t('admin.search')} value={search} onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      {loading ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (<div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-gray-500 bg-gray-50">
-                <th className="px-5 py-3 font-medium">{t('admin.name')}</th>
-                <th className="px-5 py-3 font-medium">SKU</th>
-                <th className="px-5 py-3 font-medium">{t('admin.price')}</th>
-                <th className="px-5 py-3 font-medium">{t('admin.stock')}</th>
-                <th className="px-5 py-3 font-medium">{t('admin.sales')}</th>
-                <th className="px-5 py-3 font-medium">{t('admin.status')}</th>
-                <th className="px-5 py-3 font-medium">{t('admin.createdAt')}</th>
-                <th className="px-5 py-3 font-medium">{t('admin.actions')}</th>
+              <tr className="bg-gray-50 border-b">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.product')}</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">SKU</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.price')}</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.quantity')}</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.status')}</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">{t('admin.actions')}</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
-              {filtered.map((product) => (
-                <tr key={product.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-5 py-3">
-                    <span className="font-medium text-gray-900">{product.name}</span>
+            <tbody>
+              {filtered.map((product: any) => (
+                <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                        {product.image || <Star className="w-5 h-5" />}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{product.description?.name || product.sku}</span>
+                    </div>
                   </td>
-                  <td className="px-5 py-3 text-gray-500">{product.sku}</td>
-                  <td className="px-5 py-3 text-gray-900">${product.price}</td>
-                  <td className="px-5 py-3">
-                    <span className={product.stock > 10 ? 'text-gray-900' : 'text-red-600 font-medium'}>
-                      {product.stock}
+                  <td className="px-4 py-3 text-sm text-gray-500">{product.sku}</td>
+                  <td className="px-4 py-3 text-sm font-medium">¥{Number(product.price).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{product.quantity}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${product.status ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {product.status ? '上架' : '下架'}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-gray-600">{product.sales}</td>
-                  <td className="px-5 py-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                      product.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {t(`admin.productStatus.${product.status}`)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-gray-500">{product.createdAt}</td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link href={`/${locale}/products/${product.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                        <Eye className="w-4 h-4 text-gray-400" />
+                      </Link>
                     </div>
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={6} className="text-center py-8 text-gray-400">暂无产品</td></tr>
+              )}
             </tbody>
           </table>
         </div>
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
-            Showing 1-{filtered.length} of {mockProducts.length}
-          </p>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">1</button>
-            <button className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">2</button>
-            <button className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">3</button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

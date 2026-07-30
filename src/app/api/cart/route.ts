@@ -5,10 +5,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const customerId = Number(searchParams.get('customerId'));
+    const locale = searchParams.get('locale') || 'zh_cn';
     if (!customerId) {
       return NextResponse.json({ error: '请提供 customerId' }, { status: 400 });
     }
-    const items = await CartService.getCart(customerId);
+    const items = await CartService.getCart(customerId, locale);
     return NextResponse.json(items);
   } catch (error) {
     return NextResponse.json(

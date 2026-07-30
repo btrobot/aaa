@@ -112,6 +112,11 @@ export class CustomerService {
   /**
    * Find customer by ID (without password)
    */
+  static async findAll() {
+    const rows = await db.select().from(customers);
+    return rows.map(({ password: _, ...safe }) => safe);
+  }
+
   static async findById(id: number) {
     const [customer] = await db
       .select()

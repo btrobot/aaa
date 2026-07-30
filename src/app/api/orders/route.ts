@@ -15,6 +15,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(order);
     }
 
+    if (searchParams.get('admin') === 'true') {
+      const orders = await OrderService.getAll();
+      return NextResponse.json(orders);
+    }
+
     if (customerId) {
       const orders = await OrderService.getCustomerOrders(customerId);
       return NextResponse.json(orders);
