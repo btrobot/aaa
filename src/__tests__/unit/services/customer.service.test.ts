@@ -72,6 +72,7 @@ describe('CustomerService', () => {
         email: 'test@example.com',
         password: 'password123',
         name: 'Test User',
+        newsletter: false,
       });
 
       expect(result).toHaveProperty('id', 1);
@@ -87,6 +88,7 @@ describe('CustomerService', () => {
           email: 'test@example.com',
           password: 'password123',
           name: 'Test User',
+          newsletter: false,
         })
       ).rejects.toThrow('Email already exists');
     });
@@ -176,8 +178,8 @@ describe('CustomerService', () => {
 
   describe('addresses', () => {
     it('should add an address', async () => {
-      const mockAddress = { id: 1, customerId: 1, name: 'Home', phone: '13800138000', address1: '123 Main St', countryId: 1 };
-      mockDb.insert.mockReturnValue({
+      const mockAddress = { id: 1, customerId: 1, name: 'Home', phone: '13800138000', address1: '123 Main St', countryId: 1, isDefault: false };
+      (mockDb.insert as any).mockReturnValue({
         values: vi.fn(() => ({
           returning: vi.fn(() => Promise.resolve([mockAddress])),
         })),
@@ -188,6 +190,7 @@ describe('CustomerService', () => {
         phone: '13800138000',
         address1: '123 Main St',
         countryId: 1,
+        isDefault: false,
       });
 
       expect(result).toHaveProperty('id', 1);
@@ -210,7 +213,7 @@ describe('CustomerService', () => {
   describe('wishlist', () => {
     it('should add a product to wishlist', async () => {
       const mockWishlist = { id: 1, customerId: 1, productId: 10, createdAt: new Date() };
-      mockDb.insert.mockReturnValue({
+      (mockDb.insert as any).mockReturnValue({
         values: vi.fn(() => ({
           returning: vi.fn(() => Promise.resolve([mockWishlist])),
         })),

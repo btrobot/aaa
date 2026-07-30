@@ -71,6 +71,8 @@ describe('BrandService', () => {
         name: 'Test Brand',
         description: 'A test brand',
         website: 'https://test.com',
+        sortOrder: 0,
+        status: true,
       };
 
       const result = await BrandService.create(brandData);

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/db';
-import { carts, products, productDescriptions } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { carts, products, productDescriptions, productImages } from '@/lib/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 
 export interface AddCartItemInput {
   customerId: number;
@@ -56,6 +56,7 @@ export const CartService = {
   },
 
   async getCart(customerId: number, locale: string = 'zh_cn'): Promise<CartItem[]> {
+    // 获取购物车列表，关联产品信息和第一张图片
     const rows = await db.select()
       .from(carts)
       .leftJoin(products, eq(carts.productId, products.id))
@@ -63,18 +64,28 @@ export const CartService = {
         eq(products.id, productDescriptions.productId),
         eq(productDescriptions.locale, locale)
       ))
+      .leftJoin(productImages, eq(products.id, productImages.productId))
       .where(eq(carts.customerId, customerId));
 
-    return rows.map(row => ({
-      id: row.carts.id,
-      productId: row.carts.productId,
-      productName: row.product_descriptions?.name || '',
-      sku: row.products?.sku || '',
-      price: row.products?.price || '0',
-      quantity: row.carts.quantity,
-      image: row.products?.image || undefined,
-      selected: row.carts.selected,
-    }));
+    // 按购物车项分组，取第一张图片
+    const cartMap = new Map<number, CartItem>();
+    for (const row of rows) {
+      const cartId = row.carts.id;
+      if (!cartMap.has(cartId)) {
+        cartMap.set(cartId, {
+          id: row.carts.id,
+          productId: row.carts.productId,
+          productName: row.product_descriptions?.name || '',
+          sku: row.products?.sku || '',
+          price: row.products?.price || '0',
+          quantity: row.carts.quantity,
+          image: row.product_images?.image || undefined,
+          selected: row.carts.selected ?? true,
+        });
+      }
+    }
+
+    return Array.from(cartMap.values());
   },
 
   async updateQuantity(id: number, quantity: number) {
@@ -96,7 +107,7 @@ export const CartService = {
   async removeItem(customerId: number, cartId: number): Promise<boolean> {
     const result = await db.delete(carts)
       .where(and(eq(carts.id, cartId), eq(carts.customerId, customerId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   },
 
   async clearCart(customerId: number) {

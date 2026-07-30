@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/db';
 import { categories, categoryDescriptions } from '@/lib/db/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 export interface CreateCategoryInput {
   parentId: number | null;
@@ -42,12 +42,7 @@ export const CategoryService = {
     const rows = await db.select()
       .from(categories)
       .leftJoin(categoryDescriptions, eq(categories.id, categoryDescriptions.categoryId))
-      .where(
-        and(
-          eq(categoryDescriptions.locale, locale),
-          isNull(categories.deletedAt)
-        )
-      )
+      .where(eq(categoryDescriptions.locale, locale))
       .orderBy(categories.sortOrder);
 
     const map = new Map<number, CategoryTreeItem>();
@@ -60,7 +55,7 @@ export const CategoryService = {
         id: cat.id,
         parentId: cat.parentId,
         name: desc?.name || '',
-        status: cat.status,
+        status: cat.status ?? true,
         children: [],
       };
       map.set(cat.id, item);
@@ -112,8 +107,9 @@ export const CategoryService = {
   },
 
   async delete(id: number) {
+    // 删除分类（软删除：标记为不活跃）
     await db.update(categories)
-      .set({ deletedAt: new Date() })
+      .set({ status: false })
       .where(eq(categories.id, id));
     return true;
   },

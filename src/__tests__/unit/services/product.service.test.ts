@@ -64,6 +64,8 @@ describe('ProductService', () => {
         price: '99999.00',
         brandId: 1,
         status: true,
+        quantity: 0,
+        sortOrder: 0,
         descriptions: {
           zh_cn: { name: '经典旋转木马', description: '双层豪华旋转木马' },
           en: { name: 'Classic Carousel', description: 'Double-deck luxury carousel' },
@@ -79,6 +81,9 @@ describe('ProductService', () => {
         ProductService.create({
           sku: '',
           price: '100.00',
+          status: true,
+          quantity: 0,
+          sortOrder: 0,
           descriptions: { zh_cn: { name: '测试商品' } },
         })
       ).rejects.toThrow('SKU 不能为空');
@@ -127,7 +132,7 @@ describe('ProductService', () => {
 
       mockDb.select.mockReturnValue(createChainMock(mockProducts));
 
-      const result = await ProductService.search({ keyword: '旋转木马', locale: 'zh_cn' });
+      const result = await ProductService.search({ keyword: '旋转木马', locale: 'zh_cn', page: 1, pageSize: 20, sortBy: 'sort_order', sortOrder: 'desc' });
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(2);
     });
@@ -140,7 +145,7 @@ describe('ProductService', () => {
       mockDb.select.mockReturnValueOnce(createChainMock([]))
         .mockReturnValueOnce(createChainMock(mockProducts));
 
-      const result = await ProductService.search({ categoryId: 1, locale: 'zh_cn' });
+      const result = await ProductService.search({ categoryId: 1, locale: 'zh_cn', page: 1, pageSize: 20, sortBy: 'sort_order', sortOrder: 'desc' });
       expect(Array.isArray(result)).toBe(true);
     });
   });
