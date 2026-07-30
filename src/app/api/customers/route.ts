@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { CustomerService } from '@/lib/services/customer.service';
 import { withAuth, withAdmin, withMiddleware } from '@/lib/api-middleware';
 
@@ -28,10 +28,8 @@ export const GET = withMiddleware(async (request, { user }) => {
     return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
   const customerId = id || user.id;
+  // findById 在客户不存在时抛出 NotFoundError，由中间件统一处理为 404
   const customer = await CustomerService.findById(customerId);
-  if (!customer) {
-    return NextResponse.json({ error: '客户不存在' }, { status: 404 });
-  }
   return NextResponse.json(customer);
 }, { auth: true });
 

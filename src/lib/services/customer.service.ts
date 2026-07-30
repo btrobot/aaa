@@ -1,8 +1,9 @@
 import { db } from '@/lib/db/db';
-import { customers, customerAddresses, customerWishlists } from '@/lib/db/schema';
+import { customers, customerAddresses, customerWishlists, products } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 // Validation schemas
 export const registerSchema = z.object({
@@ -49,14 +50,14 @@ export class CustomerService {
   static async register(data: RegisterInput) {
     const validated = registerSchema.parse(data);
 
-    // Check if email already exists
+    // pre: 邮箱未被注册
     const existing = await db
       .select()
       .from(customers)
       .where(eq(customers.email, validated.email));
 
     if (existing.length > 0) {
-      throw new Error('Email already exists');
+      throw new BusinessRuleError('邮箱已被注册');
     }
 
     // Hash password
@@ -84,18 +85,20 @@ export class CustomerService {
   static async login(data: LoginInput) {
     const validated = loginSchema.parse(data);
 
+    // pre: 客户存在
     const [customer] = await db
       .select()
       .from(customers)
       .where(eq(customers.email, validated.email));
 
     if (!customer) {
-      throw new Error('Invalid credentials');
+      throw new BusinessRuleError('邮箱或密码错误');
     }
 
+    // pre: 密码正确
     const isValid = await bcrypt.compare(validated.password, customer.password);
     if (!isValid) {
-      throw new Error('Invalid credentials');
+      throw new BusinessRuleError('邮箱或密码错误');
     }
 
     // Update last login
@@ -110,32 +113,47 @@ export class CustomerService {
   }
 
   /**
-   * Find customer by ID (without password)
+   * Find all customers (without password)
    */
   static async findAll() {
     const rows = await db.select().from(customers);
     return rows.map(({ password: _, ...safe }) => safe);
   }
 
+  /**
+   * Find customer by ID — throws NotFoundError when missing
+   */
   static async findById(id: number) {
     const [customer] = await db
       .select()
       .from(customers)
       .where(eq(customers.id, id));
 
-    if (!customer) return null;
+    if (!customer) {
+      throw new NotFoundError('客户', id);
+    }
 
     const { password: _, ...safeCustomer } = customer;
     return safeCustomer;
   }
 
   /**
-   * Update customer profile
+   * Update customer profile — pre: 客户存在
    */
   static async updateProfile(id: number, data: UpdateProfileInput) {
     const validated = updateProfileSchema.parse(data);
 
-    const updateData: Record<string, any> = {};
+    // pre: 客户存在
+    const [existing] = await db
+      .select({ id: customers.id })
+      .from(customers)
+      .where(eq(customers.id, id));
+
+    if (!existing) {
+      throw new NotFoundError('客户', id);
+    }
+
+    const updateData: Record<string, unknown> = {};
     if (validated.name !== undefined) updateData.name = validated.name;
     if (validated.phone !== undefined) updateData.phone = validated.phone;
     if (validated.avatar !== undefined) updateData.avatar = validated.avatar;
@@ -154,10 +172,28 @@ export class CustomerService {
   // ========== Address Management ==========
 
   /**
-   * Add a new address for customer
+   * Add a new address for customer — pre: 客户存在
    */
   static async addAddress(customerId: number, data: AddressInput) {
     const validated = addressSchema.parse(data);
+
+    // pre: 客户存在
+    const [existing] = await db
+      .select({ id: customers.id })
+      .from(customers)
+      .where(eq(customers.id, customerId));
+
+    if (!existing) {
+      throw new NotFoundError('客户', customerId);
+    }
+
+    // post: 如 isDefault=true, 其他地址设为非默认
+    if (validated.isDefault) {
+      await db
+        .update(customerAddresses)
+        .set({ isDefault: false })
+        .where(eq(customerAddresses.customerId, customerId));
+    }
 
     const [address] = await db
       .insert(customerAddresses)
@@ -192,7 +228,21 @@ export class CustomerService {
    * Delete an address
    */
   static async deleteAddress(customerId: number, addressId: number) {
-    const result = await db
+    const [existing] = await db
+      .select({ id: customerAddresses.id })
+      .from(customerAddresses)
+      .where(
+        and(
+          eq(customerAddresses.id, addressId),
+          eq(customerAddresses.customerId, customerId)
+        )
+      );
+
+    if (!existing) {
+      throw new NotFoundError('地址', addressId);
+    }
+
+    await db
       .delete(customerAddresses)
       .where(
         and(
@@ -201,15 +251,41 @@ export class CustomerService {
         )
       );
 
-    return (result as any).rowCount > 0;
+    return true;
   }
 
   // ========== Wishlist Management ==========
 
   /**
-   * Add a product to customer's wishlist
+   * Add a product to customer's wishlist — 幂等，重复添加不报错
+   * pre: 产品存在
    */
   static async addToWishlist(customerId: number, productId: number) {
+    // pre: 产品存在
+    const [existingProduct] = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, productId));
+
+    if (!existingProduct) {
+      throw new NotFoundError('产品', productId);
+    }
+
+    // 幂等：已存在则直接返回
+    const [existing] = await db
+      .select()
+      .from(customerWishlists)
+      .where(
+        and(
+          eq(customerWishlists.customerId, customerId),
+          eq(customerWishlists.productId, productId)
+        )
+      );
+
+    if (existing) {
+      return existing;
+    }
+
     const [item] = await db
       .insert(customerWishlists)
       .values({ customerId, productId })
@@ -220,9 +296,25 @@ export class CustomerService {
 
   /**
    * Remove a product from customer's wishlist
+   * pre: 收藏记录存在
    */
   static async removeFromWishlist(customerId: number, productId: number) {
-    const result = await db
+    // pre: 收藏记录存在
+    const [existing] = await db
+      .select()
+      .from(customerWishlists)
+      .where(
+        and(
+          eq(customerWishlists.customerId, customerId),
+          eq(customerWishlists.productId, productId)
+        )
+      );
+
+    if (!existing) {
+      throw new NotFoundError('收藏记录');
+    }
+
+    await db
       .delete(customerWishlists)
       .where(
         and(
@@ -231,7 +323,7 @@ export class CustomerService {
         )
       );
 
-    return (result as any).rowCount > 0;
+    return true;
   }
 
   /**

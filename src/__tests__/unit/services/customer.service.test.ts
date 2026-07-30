@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { customers, customerAddresses, customerWishlists } from '@/lib/db/schema';
+import { NotFoundError, BusinessRuleError } from '@/lib/services/errors';
 
-function createChainMock(resolvedValue: any) {
-  const buildChain = (endValue: any) => {
+// ─── 通用 mock 工具 ───────────────────────────────────────────
+
+function createChainMock(resolvedValue: unknown) {
+  const buildChain = (endValue: unknown): unknown => {
     return new Proxy(() => Promise.resolve(endValue), {
       get(_, prop) {
         if (prop === 'then') return (resolve: Function) => resolve(endValue);
@@ -17,90 +19,107 @@ function createChainMock(resolvedValue: any) {
   return buildChain(resolvedValue);
 }
 
-const mockDb = vi.hoisted(() => {
-  const defaultInsertReturn = Promise.resolve([{
-    id: 1, email: 'test@example.com', name: 'Test User',
-    password: 'hashed_pwd', phone: null, avatar: null,
-    groupId: null, status: true, newsletter: false,
-    lastLogin: null, createdAt: new Date(), updatedAt: new Date(),
-  }]);
+// ─── 数据库 mock ──────────────────────────────────────────────
 
+const defaultCustomer = {
+  id: 1, email: 'test@example.com', name: 'Test User',
+  password: 'hashed_pwd', phone: null, avatar: null,
+  groupId: null, status: true, newsletter: false,
+  lastLogin: null, createdAt: new Date(), updatedAt: new Date(),
+};
+
+function makeInsertMock(returnValue: unknown) {
   return {
-    insert: vi.fn(() => ({
-      values: vi.fn(() => ({
-        returning: vi.fn(() => defaultInsertReturn),
-      })),
-    })),
-    select: vi.fn(() => createChainMock([])),
-    update: vi.fn(() => ({
-      set: vi.fn(() => ({
-        where: vi.fn(() => ({
-          returning: vi.fn(() => Promise.resolve([{
-            id: 1, email: 'test@example.com', name: 'Updated User',
-            password: 'hashed_pwd', status: true,
-          }])),
-        })),
-      })),
-    })),
-    delete: vi.fn(() => ({
-      where: vi.fn(() => Promise.resolve({ rowCount: 1 })),
+    values: vi.fn(() => ({
+      returning: vi.fn(() => Promise.resolve([returnValue])),
     })),
   };
-});
+}
 
-vi.mock('@/lib/db/db', () => ({
-  db: mockDb,
+const mockDb = vi.hoisted(() => ({
+  insert: vi.fn(() => makeInsertMock({ ...defaultCustomer })),
+  select: vi.fn(() => createChainMock([])),
+  update: vi.fn(() => ({
+    set: vi.fn(() => ({
+      where: vi.fn(() => ({
+        returning: vi.fn(() => Promise.resolve([{ ...defaultCustomer, name: 'Updated User' }])),
+      })),
+    })),
+  })),
+  delete: vi.fn(() => ({
+    where: vi.fn(() => Promise.resolve(undefined)),
+  })),
 }));
 
-// Mock bcrypt
+vi.mock('@/lib/db/db', () => ({ db: mockDb }));
+
 vi.mock('bcryptjs', () => ({
   hash: vi.fn(() => Promise.resolve('hashed_password')),
   compare: vi.fn(() => Promise.resolve(true)),
-  default: { hash: vi.fn(() => Promise.resolve('hashed_password')), compare: vi.fn(() => Promise.resolve(true)) },
+  default: {
+    hash: vi.fn(() => Promise.resolve('hashed_password')),
+    compare: vi.fn(() => Promise.resolve(true)),
+  },
 }));
 
 import { CustomerService } from '@/lib/services/customer.service';
 
+// ─── 测试 ─────────────────────────────────────────────────────
+
 describe('CustomerService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDb.select.mockReturnValue(createChainMock([]));
+    mockDb.insert.mockReturnValue(makeInsertMock({ ...defaultCustomer }));
   });
 
+  // ======== register ========
   describe('register', () => {
-    it('should register a new customer', async () => {
+    it('正常注册 → 返回脱敏客户信息', async () => {
       const result = await CustomerService.register({
-        email: 'test@example.com',
+        email: 'new@example.com',
         password: 'password123',
-        name: 'Test User',
+        name: '新用户',
         newsletter: false,
       });
 
       expect(result).toHaveProperty('id', 1);
       expect(result).toHaveProperty('email', 'test@example.com');
-      expect(mockDb.insert).toHaveBeenCalledWith(customers);
+      expect(result).not.toHaveProperty('password');
+      expect(mockDb.insert).toHaveBeenCalled();
     });
 
-    it('should throw if email already exists', async () => {
-      mockDb.select.mockReturnValue(createChainMock([{ id: 1, email: 'test@example.com' }]));
+    it('邮箱已被注册 → 抛出 BusinessRuleError', async () => {
+      mockDb.select.mockReturnValue(
+        createChainMock([{ id: 1, email: 'dup@example.com' }])
+      );
 
       await expect(
         CustomerService.register({
-          email: 'test@example.com',
+          email: 'dup@example.com',
           password: 'password123',
-          name: 'Test User',
+          name: '重复用户',
           newsletter: false,
         })
-      ).rejects.toThrow('Email already exists');
+      ).rejects.toThrow(BusinessRuleError);
+
+      await expect(
+        CustomerService.register({
+          email: 'dup@example.com',
+          password: 'password123',
+          name: '重复用户',
+          newsletter: false,
+        })
+      ).rejects.toThrow('邮箱已被注册');
     });
   });
 
+  // ======== login ========
   describe('login', () => {
-    it('should login with valid credentials', async () => {
-      const mockCustomer = {
-        id: 1, email: 'test@example.com', name: 'Test User',
-        password: 'hashed_password', status: true,
-      };
-      mockDb.select.mockReturnValue(createChainMock([mockCustomer]));
+    it('正确凭证 → 返回脱敏客户信息', async () => {
+      mockDb.select.mockReturnValue(
+        createChainMock([{ ...defaultCustomer, password: 'hashed_password' }])
+      );
 
       const result = await CustomerService.login({
         email: 'test@example.com',
@@ -108,99 +127,222 @@ describe('CustomerService', () => {
       });
 
       expect(result).toHaveProperty('id', 1);
-      expect(result).toHaveProperty('email', 'test@example.com');
-      // Password should not be returned
       expect(result).not.toHaveProperty('password');
     });
 
-    it('should throw with invalid email', async () => {
+    it('邮箱不存在 → 抛出 BusinessRuleError', async () => {
       mockDb.select.mockReturnValue(createChainMock([]));
 
       await expect(
-        CustomerService.login({
-          email: 'wrong@email.com',
-          password: 'password123',
-        })
-      ).rejects.toThrow('Invalid credentials');
-    });
-
-    it('should throw with invalid password', async () => {
-      // Mock compare to return false - import the mocked module to access the spy
-      const bcryptModule = await import('bcryptjs');
-      (bcryptModule.default.compare as any).mockResolvedValueOnce(false);
-
-      const mockCustomer = {
-        id: 1, email: 'test@example.com', name: 'Test User',
-        password: 'hashed_password', status: true,
-      };
-      mockDb.select.mockReturnValue(createChainMock([mockCustomer]));
+        CustomerService.login({ email: 'noone@example.com', password: 'x' })
+      ).rejects.toThrow(BusinessRuleError);
 
       await expect(
-        CustomerService.login({
-          email: 'test@example.com',
-          password: 'wrong_password',
-        })
-      ).rejects.toThrow('Invalid credentials');
+        CustomerService.login({ email: 'noone@example.com', password: 'x' })
+      ).rejects.toThrow('邮箱或密码错误');
+    });
+
+    it('密码不正确 → 抛出 BusinessRuleError', async () => {
+      const bcryptModule = await import('bcryptjs');
+      // 使用 mockReturnValue 持续返回 false，而非 mockResolvedValueOnce
+      (bcryptModule.default.compare as ReturnType<typeof vi.fn>).mockReturnValue(
+        Promise.resolve(false)
+      );
+
+      mockDb.select.mockReturnValue(
+        createChainMock([{ ...defaultCustomer, password: 'hashed_password' }])
+      );
+
+      await expect(
+        CustomerService.login({ email: 'test@example.com', password: 'wrong' })
+      ).rejects.toThrow(BusinessRuleError);
+
+      await expect(
+        CustomerService.login({ email: 'test@example.com', password: 'wrong' })
+      ).rejects.toThrow('邮箱或密码错误');
     });
   });
 
+  // ======== findById ========
   describe('findById', () => {
-    it('should find a customer by id', async () => {
-      const mockCustomer = { id: 1, email: 'test@example.com', name: 'Test User', status: true };
-      mockDb.select.mockReturnValue(createChainMock([mockCustomer]));
+    it('客户存在 → 返回脱敏信息', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ ...defaultCustomer }]));
 
       const result = await CustomerService.findById(1);
 
-      expect(result).toHaveProperty('email', 'test@example.com');
+      expect(result).toHaveProperty('id', 1);
       expect(result).not.toHaveProperty('password');
     });
 
-    it('should return null when not found', async () => {
+    it('客户不存在 → 抛出 NotFoundError', async () => {
       mockDb.select.mockReturnValue(createChainMock([]));
 
-      const result = await CustomerService.findById(999);
-
-      expect(result).toBeNull();
+      await expect(CustomerService.findById(999)).rejects.toThrow(NotFoundError);
+      await expect(CustomerService.findById(999)).rejects.toThrow('客户不存在');
     });
   });
 
+  // ======== updateProfile ========
   describe('updateProfile', () => {
-    it('should update customer profile', async () => {
+    it('正常更新 → 返回更新后信息', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ id: 1 }]));
+
       const result = await CustomerService.updateProfile(1, {
-        name: 'Updated User',
+        name: '更新用户',
         phone: '13800138000',
       });
 
       expect(result).toHaveProperty('name', 'Updated User');
-      expect(mockDb.update).toHaveBeenCalledWith(customers);
+    });
+
+    it('客户不存在 → 抛出 NotFoundError', async () => {
+      mockDb.select.mockReturnValue(createChainMock([]));
+
+      await expect(
+        CustomerService.updateProfile(999, { name: '不存在' })
+      ).rejects.toThrow(NotFoundError);
     });
   });
 
-  describe('addresses', () => {
-    it('should add an address', async () => {
-      const mockAddress = { id: 1, customerId: 1, name: 'Home', phone: '13800138000', address1: '123 Main St', countryId: 1, isDefault: false };
-      (mockDb.insert as any).mockReturnValue({
-        values: vi.fn(() => ({
-          returning: vi.fn(() => Promise.resolve([mockAddress])),
-        })),
-      });
+  // ======== addAddress ========
+  describe('addAddress', () => {
+    const addressInput = {
+      name: '家',
+      phone: '13800138000',
+      countryId: 1,
+      address1: '北京市朝阳区',
+      isDefault: false,
+    };
 
-      const result = await CustomerService.addAddress(1, {
-        name: 'Home',
-        phone: '13800138000',
-        address1: '123 Main St',
-        countryId: 1,
-        isDefault: false,
-      });
+    it('正常添加地址 → 返回地址信息', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ id: 1 }]));
 
-      expect(result).toHaveProperty('id', 1);
-      expect(mockDb.insert).toHaveBeenCalledWith(customerAddresses);
+      const result = await CustomerService.addAddress(1, addressInput);
+
+      expect(result).toHaveProperty('id');
+      expect(mockDb.insert).toHaveBeenCalled();
     });
 
-    it('should list addresses for a customer', async () => {
+    it('isDefault=true 时 → 先清除旧默认', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ id: 1 }]));
+
+      await CustomerService.addAddress(1, { ...addressInput, isDefault: true });
+
+      expect(mockDb.update).toHaveBeenCalled();
+    });
+
+    it('客户不存在 → 抛出 NotFoundError', async () => {
+      mockDb.select.mockReturnValue(createChainMock([]));
+
+      await expect(
+        CustomerService.addAddress(999, addressInput)
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  // ======== addToWishlist ========
+  describe('addToWishlist', () => {
+    it('正常添加到收藏夹 → 返回收藏记录', async () => {
+      const wishlistRecord = { customerId: 1, productId: 10, createdAt: new Date(), id: 1 };
+      mockDb.insert.mockReturnValue(makeInsertMock(wishlistRecord));
+
+      // 第一次 select: 产品存在; 第二次 select: 未收藏
+      let callCount = 0;
+      mockDb.select.mockImplementation(() => {
+        callCount++;
+        if (callCount <= 1) return createChainMock([{ id: 10 }]);
+        return createChainMock([]);
+      });
+
+      const result = await CustomerService.addToWishlist(1, 10);
+
+      expect(result).toHaveProperty('customerId', 1);
+      expect(result).toHaveProperty('productId', 10);
+    });
+
+    it('重复添加 → 幂等返回已有记录', async () => {
+      const existing = { customerId: 1, productId: 10, createdAt: new Date() };
+      mockDb.select.mockReturnValue(createChainMock([existing]));
+
+      const result = await CustomerService.addToWishlist(1, 10);
+
+      expect(result).toEqual(existing);
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+
+    it('产品不存在 → 抛出 NotFoundError', async () => {
+      mockDb.select.mockReturnValue(createChainMock([]));
+
+      await expect(
+        CustomerService.addToWishlist(1, 999)
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  // ======== removeFromWishlist ========
+  describe('removeFromWishlist', () => {
+    it('正常移除 → 返回 true', async () => {
+      mockDb.select.mockReturnValue(
+        createChainMock([{ customerId: 1, productId: 10 }])
+      );
+
+      const result = await CustomerService.removeFromWishlist(1, 10);
+
+      expect(result).toBe(true);
+      expect(mockDb.delete).toHaveBeenCalled();
+    });
+
+    it('收藏记录不存在 → 抛出 NotFoundError', async () => {
+      mockDb.select.mockReturnValue(createChainMock([]));
+
+      await expect(
+        CustomerService.removeFromWishlist(1, 999)
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  // ======== deleteAddress ========
+  describe('deleteAddress', () => {
+    it('正常删除 → 返回 true', async () => {
+      mockDb.select.mockReturnValue(createChainMock([{ id: 1 }]));
+
+      const result = await CustomerService.deleteAddress(1, 1);
+
+      expect(result).toBe(true);
+    });
+
+    it('地址不存在 → 抛出 NotFoundError', async () => {
+      mockDb.select.mockReturnValue(createChainMock([]));
+
+      await expect(
+        CustomerService.deleteAddress(1, 999)
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  // ======== findAll ========
+  describe('findAll', () => {
+    it('返回所有客户列表（脱敏）', async () => {
+      mockDb.select.mockReturnValue(
+        createChainMock([
+          { ...defaultCustomer, id: 1 },
+          { ...defaultCustomer, id: 2, email: 'user2@example.com' },
+        ])
+      );
+
+      const result = await CustomerService.findAll();
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).not.toHaveProperty('password');
+    });
+  });
+
+  // ======== getAddresses ========
+  describe('getAddresses', () => {
+    it('返回客户地址列表', async () => {
       const mockAddresses = [
-        { id: 1, customerId: 1, name: 'Home', address1: '123 Main St' },
-        { id: 2, customerId: 1, name: 'Office', address1: '456 Oak Ave' },
+        { id: 1, customerId: 1, name: '家', address1: '地址1' },
+        { id: 2, customerId: 1, name: '公司', address1: '地址2' },
       ];
       mockDb.select.mockReturnValue(createChainMock(mockAddresses));
 
@@ -210,39 +352,17 @@ describe('CustomerService', () => {
     });
   });
 
-  describe('wishlist', () => {
-    it('should add a product to wishlist', async () => {
-      const mockWishlist = { id: 1, customerId: 1, productId: 10, createdAt: new Date() };
-      (mockDb.insert as any).mockReturnValue({
-        values: vi.fn(() => ({
-          returning: vi.fn(() => Promise.resolve([mockWishlist])),
-        })),
-      });
-
-      await CustomerService.addToWishlist(1, 10);
-
-      expect(mockDb.insert).toHaveBeenCalledWith(customerWishlists);
-    });
-
-    it('should remove a product from wishlist', async () => {
-      await CustomerService.removeFromWishlist(1, 10);
-
-      expect(mockDb.delete).toHaveBeenCalledWith(customerWishlists);
-    });
-
-    it('should get wishlist', async () => {
+  // ======== getWishlist ========
+  describe('getWishlist', () => {
+    it('返回收藏夹列表', async () => {
       mockDb.select.mockReturnValue(createChainMock([
-        { customer_wishlists: { id: 1, customerId: 1, productId: 10 }, products: { id: 10, sku: 'TEST-001' } },
+        { customerId: 1, productId: 10, createdAt: new Date() },
       ]));
-      const result = await CustomerService.getWishlist(1);
-      expect(Array.isArray(result)).toBe(true);
-    });
-  });
 
-  describe('addresses', () => {
-    it('should delete an address', async () => {
-      await CustomerService.deleteAddress(1, 1);
-      expect(mockDb.delete).toHaveBeenCalled();
+      const result = await CustomerService.getWishlist(1);
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(1);
     });
   });
 });
