@@ -57,7 +57,7 @@ export interface CurrencyContextType {
   currencySymbol: string;
 }
 
-const CurrencyContext = createContext<CurrencyContextType>({
+export const CurrencyContext = createContext<CurrencyContextType>({
   currency: 'CNY',
   setCurrency: () => {},
   formatPrice: () => '',

@@ -20,7 +20,7 @@ interface CartContextType {
   totalItems: number;
 }
 
-const CartContext = createContext<CartContextType>({
+export const CartContext = createContext<CartContextType>({
   items: [],
   addItem: () => {},
   removeItem: () => {},

@@ -23,10 +23,27 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock next-intl
-vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
-  useLocale: () => 'zh',
-}));
+vi.mock('next-intl', () => {
+  const tMap: Record<string, string> = {
+    'noReviews': '暂无评价',
+    'writeReview': '写评价',
+    'submitReview': '提交评价',
+    'yourRating': '您的评分',
+    'yourReview': '您的评价内容',
+    'loginToReview': '请登录后评价',
+    'reviewSubmitted': '评价提交成功',
+    'reviewError': '评价提交失败',
+    'averageRating': '平均评分',
+    'totalReviews': '总评价数',
+    'reviewLoading': '加载中...',
+    'reviewEmpty': '暂无评价',
+    'reviewSuccess': '评价已提交',
+  };
+  return {
+    useTranslations: () => (key: string) => tMap[key] || key,
+    useLocale: () => 'zh',
+  };
+});
 
 vi.mock('next-intl/server', () => ({
   getTranslations: () => async (key: string) => key,
