@@ -8,9 +8,6 @@ export const GET = withMiddleware(async (
 ) => {
   const { id } = await params;
   const brand = await BrandService.findById(Number(id));
-  if (!brand) {
-    return NextResponse.json({ error: '品牌不存在' }, { status: 404 });
-  }
   return cacheResponse(NextResponse.json(brand), { maxAge: 60 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 

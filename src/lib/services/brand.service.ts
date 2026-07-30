@@ -1,7 +1,8 @@
 import { db } from '@/lib/db/db';
-import { brands } from '@/lib/db/schema';
-import { eq, desc, asc, and } from 'drizzle-orm';
+import { brands, products as productsTable } from '@/lib/db/schema';
+import { eq, desc, asc } from 'drizzle-orm';
 import { z } from 'zod';
+import { NotFoundError, BusinessRuleError } from './errors';
 
 // Validation schemas
 export const createBrandSchema = z.object({
@@ -27,10 +28,21 @@ export interface BrandQuery {
 
 export class BrandService {
   /**
-   * Create a new brand
+   * 创建品牌
+   * pre: 品牌名唯一
    */
   static async create(data: CreateBrandInput) {
     const validated = createBrandSchema.parse(data);
+
+    // pre: 品牌名唯一
+    const [existing] = await db
+      .select({ id: brands.id })
+      .from(brands)
+      .where(eq(brands.name, validated.name))
+      .limit(1);
+    if (existing) {
+      throw new BusinessRuleError(`品牌名 "${validated.name}" 已存在`);
+    }
 
     const [brand] = await db
       .insert(brands)
@@ -48,19 +60,22 @@ export class BrandService {
   }
 
   /**
-   * Find brand by ID
+   * 按 ID 查找品牌
+   * pre: 品牌存在
    */
   static async findById(id: number) {
     const [brand] = await db
       .select()
       .from(brands)
-      .where(eq(brands.id, id));
+      .where(eq(brands.id, id))
+      .limit(1);
 
-    return brand || null;
+    if (!brand) throw new NotFoundError('品牌', id);
+    return brand;
   }
 
   /**
-   * Find all brands with pagination and filtering
+   * 查找所有品牌（分页 + 筛选）
    */
   static async findAll(query: BrandQuery = {}) {
     const { page = 1, limit = 20, sort = 'desc', status } = query;
@@ -73,23 +88,26 @@ export class BrandService {
 
     const orderByClause = sort === 'asc' ? asc(brands.sortOrder) : desc(brands.sortOrder);
 
-    const result = await db
+    return db
       .select()
       .from(brands)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
-
-    return result;
   }
 
   /**
-   * Update a brand
+   * 更新品牌
+   * pre: 品牌存在
    */
   static async update(id: number, data: UpdateBrandInput) {
     const validated = updateBrandSchema.parse(data);
 
-    const updateData: Record<string, any> = {};
+    // pre: 品牌存在
+    await BrandService.findById(id);
+
+    // 构建更新对象，只包含已定义字段
+    const updateData: { name?: string; logo?: string | null; description?: string | null; website?: string | null; sortOrder?: number; status?: boolean } = {};
     if (validated.name !== undefined) updateData.name = validated.name;
     if (validated.logo !== undefined) updateData.logo = validated.logo;
     if (validated.description !== undefined) updateData.description = validated.description;
@@ -107,13 +125,27 @@ export class BrandService {
   }
 
   /**
-   * Delete a brand
+   * 删除品牌
+   * pre: 品牌存在 + 无关联产品
    */
   static async delete(id: number): Promise<boolean> {
+    // pre-1: 品牌存在
+    await BrandService.findById(id);
+
+    // pre-2: 无关联产品
+    const relatedProducts = await db
+      .select({ id: productsTable.id })
+      .from(productsTable)
+      .where(eq(productsTable.brandId, id))
+      .limit(1);
+    if (relatedProducts.length > 0) {
+      throw new BusinessRuleError('该品牌下仍有产品，无法删除。请先移除或转移关联产品，或置 status=false 下架品牌');
+    }
+
     const result = await db
       .delete(brands)
       .where(eq(brands.id, id));
 
-    return (result as any).rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }
