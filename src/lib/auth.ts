@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { SignJWT, jwtVerify, errors as JoseErrors, type JWTPayload } from 'jose';
 
 // ─── JWT Secret ────────────────────────────────────────────────
 // 生产环境必须配置 JWT_SECRET 环境变量，否则拒绝启动
@@ -31,12 +31,15 @@ export async function signToken(payload: Omit<AuthPayload, 'iat' | 'exp'>): Prom
     .sign(SECRET);
 }
 
-export async function verifyToken(token: string): Promise<AuthPayload | null> {
+export async function verifyToken(token: string): Promise<AuthPayload> {
   try {
     const { payload } = await jwtVerify(token, SECRET);
     return payload as unknown as AuthPayload;
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof JoseErrors.JWTExpired) {
+      throw new AuthError('登录已过期, 请重新登录', 401);
+    }
+    throw new AuthError('无效的登录凭证', 401);
   }
 }
 
@@ -55,16 +58,15 @@ export function getTokenFromRequest(request: Request): string | null {
   return null;
 }
 
-export async function authenticate(request: Request): Promise<AuthPayload | null> {
+export async function authenticate(request: Request): Promise<AuthPayload> {
   const token = getTokenFromRequest(request);
-  if (!token) return null;
+  if (!token) {
+    throw new AuthError('请先登录', 401);
+  }
   return verifyToken(token);
 }
 
-export function requireAuth(user: AuthPayload | null, allowedRoles?: ('customer' | 'admin')[]): void {
-  if (!user) {
-    throw new AuthError('请先登录', 401);
-  }
+export function requireAuth(user: AuthPayload, allowedRoles?: ('customer' | 'admin')[]): void {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     throw new AuthError('权限不足', 403);
   }

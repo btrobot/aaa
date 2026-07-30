@@ -72,9 +72,20 @@ export function withMiddleware<TParams extends Record<string, string> = Record<s
       }
 
       // 2. 鉴权
-      const user = await authenticate(request);
+      let user: AuthPayload | null = null;
       if (config.auth) {
-        requireAuth(user, config.roles);
+        // 必须认证：authenticate 抛错时直接传播
+        user = await authenticate(request);
+        if (config.roles) {
+          requireAuth(user, config.roles);
+        }
+      } else {
+        // 公开路由：尝试认证，失败则 user 为 null
+        try {
+          user = await authenticate(request);
+        } catch {
+          user = null;
+        }
       }
 
       // 3. 执行业务 handler
