@@ -3,16 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
-import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { useCurrency } from '@/i18n/CurrencyProvider';
 import { locales, localeNames } from '@/i18n/config';
-import type { Locale } from '@/i18n/config';
 import { Menu, X, ShoppingCart, ChevronDown, Globe, User, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { currencies as allCurrencies, currencySymbols, type Currency } from '@/i18n/CurrencyProvider';
+import { currencies as allCurrencies, currencySymbols } from '@/i18n/CurrencyProvider';
 
 export default function Navbar() {
   const { locale, t, setLocale } = useTranslations();

@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── 链式查询 Mock ─────────────────────────────────────────────
 function createChainMock(resolvedValue: unknown) {
-  const buildChain = (endValue: unknown): any =>
+  const buildChain = (endValue: unknown) =>
     new Proxy(() => Promise.resolve(endValue), {
       get(_, prop) {
-        if (prop === 'then') return (resolve: Function) => resolve(endValue);
+        if (prop === 'then') return (resolve: (value: unknown) => unknown) => resolve(endValue);
         if (prop === 'catch') return () => Promise.resolve(endValue);
         return () => buildChain(endValue);
       },

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import {
   Plus, Pencil, Trash2, ChevronDown, ChevronRight,
-  Loader2, GripVertical, ListTree, Package,
+  Loader2, ListTree,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 const toApiLocale = (locale: string) => (locale === 'zh' ? 'zh_cn' : 'en');
@@ -45,7 +44,6 @@ type ModalMode = 'group' | 'attribute' | 'value' | null;
 type ModalAction = 'create' | 'edit';
 
 export default function AdminAttributesPage() {
-  const { t } = useTranslations();
   const params = useParams();
   const locale = (params.locale as string) || 'zh';
   const apiLocale = toApiLocale(locale);
@@ -60,7 +58,7 @@ export default function AdminAttributesPage() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [modalAction, setModalAction] = useState<ModalAction>('create');
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<GroupItem | AttrItem | ValueItem | null>(null);
   const [parentGroupId, setParentGroupId] = useState<number | null>(null);
   const [parentAttrId, setParentAttrId] = useState<number | null>(null);
   const [formName, setFormName] = useState('');
@@ -72,7 +70,7 @@ export default function AdminAttributesPage() {
       const data = await api.attributes.list(apiLocale);
       setGroups(data as GroupItem[]);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('加载属性失败');
     } finally {
       setLoading(false);
@@ -84,7 +82,7 @@ export default function AdminAttributesPage() {
   const toggleGroup = (id: number) => {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
@@ -92,7 +90,7 @@ export default function AdminAttributesPage() {
   const toggleAttr = (id: number) => {
     setExpandedAttrs((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
@@ -113,7 +111,7 @@ export default function AdminAttributesPage() {
     setParentAttrId(attrId); setEditingItem(null); setFormName(''); setShowModal(true);
   };
 
-  const openEdit = (item: any, mode: ModalMode) => {
+  const openEdit = (item: GroupItem | AttrItem | ValueItem, mode: ModalMode) => {
     setModalMode(mode); setModalAction('edit');
     setEditingItem(item); setFormName(item.name || ''); setShowModal(true);
   };
@@ -255,7 +253,7 @@ export default function AdminAttributesPage() {
                 {expandedGroups.has(group.id) && (
                   <CardContent className="px-6 pb-4 pt-0 bg-gray-50/50">
                     {group.attributes.length === 0 && (
-                      <p className="text-gray-400 text-sm py-4 text-center">暂无属性，点击"+属性"添加</p>
+                      <p className="text-gray-400 text-sm py-4 text-center">暂无属性，点击&quot;+属性&quot;添加</p>
                     )}
                     {group.attributes.map((attr) => (
                       <div key={attr.id} className="border-b border-gray-100 last:border-0">

@@ -23,7 +23,7 @@ export const PUT = withAuth(async (
   { params, user }
 ) => {
   const { id } = await params;
-  const body = await request.json();
+  await request.json();
   // 先验证所有权
   const notification = await notificationService.getById(Number(id));
   if (!notification || notification.notifiableId !== user.id) {

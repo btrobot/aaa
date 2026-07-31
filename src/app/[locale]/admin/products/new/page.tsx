@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
 import { useRouter, useParams } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, type Brand, type CategoryTreeNode } from '@/lib/api';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
 function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
@@ -28,14 +28,14 @@ export default function AdminNewProduct() {
   const [descEn, setDescEn] = useState('');
 
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Brand[]>([]);
 
   useEffect(() => {
     loadOptions();
-  }, []);
+  }, [loadOptions]);
 
-  async function loadOptions() {
+  const loadOptions = useCallback(async () => {
     try {
       const [brandsList, categoriesTree] = await Promise.all([
         api.brands.list(),
@@ -46,7 +46,7 @@ export default function AdminNewProduct() {
     } catch (err) {
       console.error('加载选项失败:', err);
     }
-  }
+  }, [locale]);
 
   function toggleCategory(catId: number) {
     setCategoryIds(prev =>
@@ -54,8 +54,8 @@ export default function AdminNewProduct() {
     );
   }
 
-  function renderCategoryOptions(cats: any[], depth = 0): React.ReactNode[] {
-    return cats.flatMap((cat: any) => [
+  function renderCategoryOptions(cats: CategoryTreeNode[], depth = 0): React.ReactNode[] {
+    return cats.flatMap((cat: CategoryTreeNode) => [
       <label key={cat.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded cursor-pointer">
         <input
           type="checkbox"
@@ -77,7 +77,7 @@ export default function AdminNewProduct() {
     setSaving(true);
     setError('');
 
-    const descriptions: Record<string, any> = {};
+    const descriptions: Record<string, Record<string, string | undefined>> = {};
     if (nameZh) descriptions.zh_cn = { name: nameZh, description: descZh || undefined };
     if (nameEn) descriptions.en = { name: nameEn, description: descEn || undefined };
 
@@ -169,7 +169,7 @@ export default function AdminNewProduct() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">无品牌</option>
-                  {brands.map((b: any) => (
+                  {brands.map((b: Brand) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,6 @@ import { THEME_PRESETS, type ThemePreset } from '@/lib/theme/presets';
 import { Palette, Save, CheckCircle2, AlertCircle, Loader2, Sun, Moon, Eye } from 'lucide-react';
 
 export default function ThemePage() {
-  const { locale, t } = useTranslations();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -20,7 +18,6 @@ export default function ThemePage() {
     primary: '#2563eb',
     radius: '0.5',
   });
-  const [previewHover, setPreviewHover] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -82,7 +79,7 @@ export default function ThemePage() {
         },
       });
       setMessage({ type: 'success', text: '主题设置已保存' });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: '保存失败，请重试' });
     } finally {
       setSaving(false);
@@ -139,8 +136,6 @@ export default function ThemePage() {
             <button
               key={preset.id}
               onClick={() => handleSelectPreset(preset)}
-              onMouseEnter={() => setPreviewHover(preset.id)}
-              onMouseLeave={() => setPreviewHover(null)}
               className={`relative p-4 rounded-xl border-2 transition-all ${
                 selectedTheme === preset.id
                   ? 'border-blue-500 ring-2 ring-blue-200'

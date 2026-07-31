@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 function createChainMock(resolvedValue: unknown) {
-  const buildChain = (endValue: unknown): any =>
+  const buildChain = (endValue: unknown) =>
     new Proxy(() => Promise.resolve(endValue), {
       get(_, prop) {
-        if (prop === 'then') return (resolve: Function) => resolve(endValue);
+        if (prop === 'then') return (resolve: (value: unknown) => unknown) => resolve(endValue);
         if (prop === 'catch') return () => Promise.resolve(endValue);
         return () => buildChain(endValue);
       },
@@ -13,7 +13,7 @@ function createChainMock(resolvedValue: unknown) {
   return buildChain(resolvedValue);
 }
 
-let selectData: unknown[] = [];
+let _selectData: unknown[] = [];
 const mockDb = {
   insert: vi.fn(() => ({
     values: vi.fn(() => ({
@@ -42,7 +42,7 @@ const mockDb = {
 vi.mock('@/lib/db/db', () => ({ db: mockDb }));
 
 function mockSelect(data: unknown[]) {
-  selectData = data;
+  _selectData = data;
   mockDb.select.mockReturnValue(createChainMock(data));
 }
 

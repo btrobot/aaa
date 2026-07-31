@@ -4,11 +4,18 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
-import { Building2, ChevronRight, Globe } from 'lucide-react';
+import { Building2, ChevronRight } from 'lucide-react';
 
 export default function BrandsPage() {
   const { locale, t } = useTranslations();
-  const [brands, setBrands] = useState<any[]>([]);
+  
+interface BrandData {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+const [brands, setBrands] = useState<BrandData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

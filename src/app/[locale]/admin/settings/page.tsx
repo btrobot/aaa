@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,13 +10,11 @@ import { Switch } from '@/components/ui/switch';
 import { Save, Settings as SettingsIcon, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function AdminSettingsPage() {
-  const { locale, t } = useTranslations();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [settingsLang, setSettingsLang] = useState<string>('zh_cn');
-  const [seoLang, setSeoLang] = useState(locale);
 
   const LANG_LABELS: Record<string, string> = {
     zh_cn: '中文', en: 'English', ja: '日本語', ko: '한국어',
@@ -27,11 +24,7 @@ export default function AdminSettingsPage() {
   const LANGUAGES = Object.entries(LANG_LABELS).map(([code, name]) => ({ code, name }));
   type Settings = Record<string, string>;
 
-  useEffect(() => {
-    loadSettings();
-  }, [settingsLang]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.settings.getAll(settingsLang === 'zh_cn' ? undefined : settingsLang);
@@ -41,7 +34,11 @@ export default function AdminSettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [settingsLang]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const handleChange = (key: string, value: string) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -57,7 +54,7 @@ export default function AdminSettingsPage() {
       });
       setMessage({ type: 'success', text: '设置已保存' });
       setTimeout(() => setMessage(null), 3000);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: '保存失败，请重试' });
     } finally {
       setSaving(false);

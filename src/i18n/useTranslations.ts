@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import type { Locale } from './config';
 
 export interface I18nContextType {

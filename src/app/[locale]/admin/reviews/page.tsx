@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { Star, Trash2, Search, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
 
 interface Review {
   id: number;
@@ -24,7 +23,6 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const router = useRouter();
 
   const loadReviews = async () => {
     setLoading(true);
@@ -32,7 +30,7 @@ export default function AdminReviewsPage() {
       const res = await fetch('/api/reviews?pageSize=100');
       const data = await res.json();
       setReviews(data.items || []);
-    } catch (e: unknown) {
+    } catch {
       setError('加载评价失败');
     } finally {
       setLoading(false);
@@ -49,7 +47,7 @@ export default function AdminReviewsPage() {
         body: JSON.stringify({ status: !current }),
       });
       setReviews(reviews.map(r => r.id === id ? { ...r, status: !current } : r));
-    } catch (e: unknown) {
+    } catch {
       setError('操作失败');
     }
   };
@@ -59,7 +57,7 @@ export default function AdminReviewsPage() {
     try {
       await fetch(`/api/reviews/${id}`, { method: 'DELETE' });
       setReviews(reviews.filter(r => r.id !== id));
-    } catch (e: unknown) {
+    } catch {
       setError('删除失败');
     }
   };

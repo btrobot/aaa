@@ -13,7 +13,6 @@ const pageDescSchema = z.object({
   metaKeywords: z.string().optional(),
 });
 
-type PageDesc = z.infer<typeof pageDescSchema>;
 
 export const createPageSchema = z.object({
   slug: z.string().max(255).optional(),

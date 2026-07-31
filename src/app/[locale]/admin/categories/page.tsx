@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronDown, Loader2 } from 'lucide-react';
 
 interface Category {
   id: number;
@@ -17,7 +16,6 @@ interface Category {
 const toApiLocale = (locale: string) => (locale === 'zh' ? 'zh_cn' : 'en');
 
 export default function AdminCategoriesPage() {
-  const { t } = useTranslations();
   const params = useParams();
   const locale = (params.locale as string) || 'zh';
   const apiLocale = toApiLocale(locale);
@@ -36,7 +34,7 @@ export default function AdminCategoriesPage() {
       const data = await api.categories.list();
       setCategories(data as Category[]);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('加载分类失败');
     } finally {
       setLoading(false);
@@ -78,7 +76,7 @@ export default function AdminCategoriesPage() {
       }
       setShowModal(false);
       await loadCategories();
-    } catch (err) {
+    } catch {
       setError(editingCategory ? '更新分类失败' : '创建分类失败');
     } finally {
       setSaving(false);
@@ -90,7 +88,7 @@ export default function AdminCategoriesPage() {
     try {
       await api.categories.delete(id);
       await loadCategories();
-    } catch (err) {
+    } catch {
       setError('删除分类失败');
     }
   };

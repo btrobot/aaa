@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { notificationService } from '@/lib/services/notification.service';
 import { withAuth, withAdmin } from '@/lib/api-middleware';
 

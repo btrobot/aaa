@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { usePathname } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, type Product } from '@/lib/api';
 import { Search, Plus, Edit2, Eye, Star } from 'lucide-react';
 
 function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
@@ -13,7 +13,7 @@ export default function AdminProducts() {
   const { t } = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -31,7 +31,7 @@ export default function AdminProducts() {
     load();
   }, [locale]);
 
-  const filtered = products.filter((p: any) =>
+  const filtered = products.filter((p: Product) =>
     (p.description?.name || '').toLowerCase().includes(search.toLowerCase()) ||
     p.sku.toLowerCase().includes(search.toLowerCase())
   );
@@ -72,7 +72,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((product: any) => (
+              {filtered.map((product: Product) => (
                 <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

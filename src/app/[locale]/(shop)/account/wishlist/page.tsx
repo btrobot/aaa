@@ -10,13 +10,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
-
 export default function WishlistPage() {
   const { locale, t } = useTranslations();
-  const [wishlist, setWishlist] = useState<any[]>([]);
+  
+interface WishlistProduct {
+  id: number;
+  name: string;
+  price: string;
+  image?: string;
+}
+
+const [wishlist, setWishlist] = useState<WishlistProduct[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +37,7 @@ export default function WishlistPage() {
       }
     }
     load();
-  }, [locale]);
+  }, [user]);
 
   const handleRemove = async (productId: number) => {
     try {

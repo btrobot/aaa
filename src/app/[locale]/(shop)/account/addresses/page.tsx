@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MapPin, Plus, Edit2, Trash2 } from 'lucide-react';
 
 interface Address {
@@ -19,13 +19,12 @@ interface Address {
 }
 
 export default function AddressesPage() {
-  const { locale, t } = useTranslations();
+  const { t } = useTranslations();
   const [addresses, setAddresses] = useState<Address[]>([
     { id: 1, name: '张三', phone: '13800138000', address: '北京市朝阳区建国路88号 100022', isDefault: true },
     { id: 2, name: '张三', phone: '13900139000', address: '上海市浦东新区陆家嘴金融区 200120', isDefault: false },
   ]);
-  const [editing, setEditing] = useState<Address | null>(null);
-
+  
   const setDefault = (id: number) => {
     setAddresses(addresses.map((a) => ({ ...a, isDefault: a.id === id })));
   };

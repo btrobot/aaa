@@ -7,13 +7,11 @@ import { api } from '@/lib/api';
 import type { Product } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Image from 'next/image';
-import { Search, SlidersHorizontal, Grid3X3, List, ChevronDown, Cog } from 'lucide-react';
+import { Search, SlidersHorizontal, Grid3X3, List, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-import { Skeleton } from '@/components/ui/skeleton';
 
 function toApiLocale(locale: string) {
   return locale === 'en' ? 'en' : 'zh_cn';
@@ -22,7 +20,13 @@ function toApiLocale(locale: string) {
 export default function ProductsPage() {
   const { locale, t } = useTranslations();
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  
+interface CategoryData {
+  id: number;
+  name: string;
+}
+
+const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');

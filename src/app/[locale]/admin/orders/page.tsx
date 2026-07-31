@@ -19,9 +19,17 @@ const statusLabels: Record<string, string> = {
   completed: '已完成', cancelled: '已取消', returned: '已退货',
 };
 
+interface AdminOrder {
+  id: number;
+  number: string;
+  total: string;
+  status: string;
+  createdAt: string;
+}
+
 export default function AdminOrders() {
   const { t, locale } = useTranslations();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

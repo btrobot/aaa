@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
@@ -19,11 +19,7 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadPages();
-  }, [locale]);
-
-  const loadPages = async () => {
+  const loadPages = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -34,7 +30,11 @@ export default function NewsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [locale]);
+
+  useEffect(() => {
+    loadPages();
+  }, [loadPages]);
 
   if (loading) {
     return (

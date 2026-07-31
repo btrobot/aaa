@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
 import { usePathname } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, type Page } from '@/lib/api';
 import { Search, Plus, Edit2, Trash2, Globe, CheckCircle, XCircle } from 'lucide-react';
 
 function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
@@ -12,11 +12,11 @@ export default function AdminPages() {
   const { t } = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
-  const [pages, setPages] = useState<any[]>([]);
+  const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<any>(null);
+  const [editing, setEditing] = useState<Page | null>(null);
   const [formData, setFormData] = useState({
     title: '', content: '', summary: '', status: true,
     titleEn: '', contentEn: '', summaryEn: '',
@@ -25,9 +25,9 @@ export default function AdminPages() {
 
   useEffect(() => {
     loadPages();
-  }, [locale]);
+  }, [loadPages]);
 
-  async function loadPages() {
+  const loadPages = useCallback(async () => {
     try {
       const data = await api.pages.list({ locale: toApiLocale(locale) });
       setPages(Array.isArray(data) ? data : []);
@@ -37,7 +37,7 @@ export default function AdminPages() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [locale]);
 
   function openCreate() {
     setEditing(null);
@@ -45,7 +45,7 @@ export default function AdminPages() {
     setShowModal(true);
   }
 
-  function openEdit(page: any) {
+  function openEdit(page: Page) {
     setEditing(page);
     setFormData({
       title: page.title || '',
@@ -63,7 +63,7 @@ export default function AdminPages() {
     if (!formData.title.trim()) return;
     setSaving(true);
     try {
-      const descriptions: Record<string, any> = {
+      const descriptions: Record<string, Record<string, string | undefined>> = {
         zh_cn: { title: formData.title, content: formData.content || undefined, metaTitle: formData.title, metaDescription: formData.summary || undefined },
       };
       if (formData.titleEn.trim()) {
@@ -93,7 +93,7 @@ export default function AdminPages() {
     }
   }
 
-  async function toggleStatus(page: any) {
+  async function toggleStatus(page: Page) {
     try {
       await api.pages.update(page.id, { status: !page.status });
       loadPages();
@@ -102,7 +102,7 @@ export default function AdminPages() {
     }
   }
 
-  const filtered = pages.filter((p: any) =>
+  const filtered = pages.filter((p: Page) =>
     (p.title || '').toLowerCase().includes(search.toLowerCase())
   );
 
@@ -140,7 +140,7 @@ export default function AdminPages() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((page: any) => (
+              {filtered.map((page: Page) => (
                 <tr key={page.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
 import { usePathname } from 'next/navigation';
-import { api } from '@/lib/api';
-import { ShoppingCart, DollarSign, Users, Package, TrendingUp, ArrowUpRight } from 'lucide-react';
+import { api, type Order } from '@/lib/api';
+import { ShoppingCart, DollarSign, Users, Package } from 'lucide-react';
 import Link from 'next/link';
 
 const statusColors: Record<string, string> = {
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
   const [stats, setStats] = useState({ orders: 0, revenue: 0, customers: 0, products: 0 });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function AdminDashboard() {
           api.customers.getAll().catch(() => []),
           api.products.list({ locale: locale === 'en' ? 'en' : 'zh_cn', pageSize: 100 }).catch(() => []),
         ]);
-        const totalRevenue = orders.reduce((sum: number, o: any) => sum + Number(o.total), 0);
+        const totalRevenue = orders.reduce((sum: number, o: Order) => sum + Number(o.total), 0);
         setStats({ orders: orders.length, revenue: totalRevenue, customers: customers.length || 0, products: Array.isArray(products) ? products.length : 0 });
         setRecentOrders(orders.slice(0, 5));
       } catch (err) {
@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       }
     }
     load();
-  }, []);
+  }, [locale]);
 
   const statsCards = [
     { label: 'admin.totalOrders', value: stats.orders.toLocaleString(), icon: ShoppingCart, change: '', color: 'bg-blue-500' },

@@ -9,10 +9,6 @@ import type { Page } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Calendar, ArrowLeft, User, Newspaper } from 'lucide-react';
 
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
-
 export default function NewsDetailPage() {
   const { locale, t } = useTranslations();
   const params = useParams();

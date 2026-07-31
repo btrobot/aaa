@@ -4,15 +4,13 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
 import type { Product } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { ShoppingCart, Heart, Minus, Plus, Cog, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart, Minus, Plus, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { ProductReviews } from '@/components/ProductReviews';
 
@@ -76,8 +74,6 @@ export default function ProductDetailPage({
   }, [id, locale]);
 
   const handleAddToCart = async () => {
-    // In a real app, get customerId from auth context
-    const { user } = useAuth();
     setAddingToCart(true);
     try {
       await api.cart.add(Number(id), quantity);

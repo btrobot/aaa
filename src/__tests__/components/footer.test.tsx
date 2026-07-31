@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import Footer from '@/components/Footer';
@@ -5,7 +6,7 @@ import { renderWithProviders } from './test-utils';
 
 // Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => (
+  default: ({ children, href, ...props }: { children?: ReactNode; href?: string; [key: string]: unknown }) => (
     <a href={href} {...props}>
       {children}
     </a>

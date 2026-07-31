@@ -20,7 +20,7 @@ export const localeNames: Record<Locale, string> = {
 
 export type TranslationKey = string;
 
-let messages: Record<string, Record<string, string>> = {};
+const messages: Record<string, Record<string, string>> = {};
 
 export async function loadMessages(locale: Locale) {
   if (messages[locale]) return messages[locale];
@@ -42,6 +42,6 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): stri
   return typeof result === 'string' ? result : path;
 }
 
-export function getStaticMessages(locale: Locale): Record<string, string> {
+export function getStaticMessages(_locale: Locale): Record<string, string> {
   return {};
 }

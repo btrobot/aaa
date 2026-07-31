@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Pencil, Trash2, Plus, Percent } from 'lucide-react';
@@ -30,7 +30,7 @@ export default function CustomerGroupsPage() {
       const res = await fetch('/api/customer-groups');
       const data = await res.json();
       setGroups(data.items ?? []);
-    } catch (err) {
+    } catch {
       toast.error('加载客户分组失败');
     } finally {
       setLoading(false);

@@ -20,11 +20,11 @@ vi.mock('@/lib/api-middleware', async () => {
     return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
   }
   return {
-    withAdmin: (handler: Function) => async (req: NextRequest) => {
-      try { return await handler(req); } catch (error) { return getErrorResponse(error); }
+    withAdmin: (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) => async (req: NextRequest, ctx: Record<string, unknown>) => {
+      try { return await handler(req, ctx); } catch (error) { return getErrorResponse(error); }
     },
-    withMiddleware: (handler: Function) => async (req: NextRequest) => {
-      try { return await handler(req); } catch (error) { return getErrorResponse(error); }
+    withMiddleware: (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) => async (req: NextRequest, ctx: Record<string, unknown>) => {
+      try { return await handler(req, ctx); } catch (error) { return getErrorResponse(error); }
     },
     cacheResponse: (res: NextResponse) => res,
   };

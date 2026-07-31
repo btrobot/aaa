@@ -1,6 +1,210 @@
 // API 客户端 — 封装所有后端 API 调用
 // 所有函数返回类型与 API 路由响应一致
 
+// ============ 请求/响应类型 ============
+
+export interface CreateProductInput {
+  sku: string;
+  brandId?: number;
+  price: string;
+  costPrice?: string;
+  weight?: number;
+  status?: boolean;
+  quantity?: number;
+  sortOrder?: number;
+  descriptions: Record<string, Record<string, string | undefined>>;
+  categoryIds?: number[];
+  images?: string[];
+}
+
+export interface UpdateProductInput {
+  sku?: string;
+  brandId?: number;
+  price?: string;
+  costPrice?: string;
+  weight?: number;
+  status?: boolean;
+  quantity?: number;
+  sortOrder?: number;
+  descriptions?: Record<string, Record<string, string | undefined>>;
+  categoryIds?: number[];
+  images?: string[];
+}
+
+export interface CreateCategoryInput {
+  name: string;
+  locale?: string;
+  parentId?: number | null;
+  slug?: string;
+  status?: boolean;
+  description?: string;
+}
+
+export interface UpdateCategoryInput {
+  name?: string;
+  locale?: string;
+  parentId?: number | null;
+  slug?: string;
+  status?: boolean;
+  description?: string;
+}
+
+export interface CreateBrandInput {
+  name: string;
+  logo?: string | null;
+  description?: string | null;
+  website?: string | null;
+  sortOrder?: number;
+  status?: boolean;
+}
+
+export interface UpdateBrandInput {
+  name?: string;
+  logo?: string | null;
+  description?: string | null;
+  website?: string | null;
+  sortOrder?: number;
+  status?: boolean;
+}
+
+export interface CartItem {
+  id: number;
+  productId: number;
+  productName: string;
+  sku: string;
+  price: string;
+  quantity: number;
+  image?: string;
+  selected: boolean;
+}
+
+export interface CreateOrderInput {
+  locale?: string;
+  shippingAddressId?: number;
+  shippingAddress?: {
+    name: string;
+    phone: string;
+    email?: string;
+    address: string;
+    city: string;
+    state?: string;
+    zip?: string;
+    country: string;
+  };
+  paymentAddressId?: number;
+  shippingMethod?: string;
+  shippingFee?: string;
+  paymentMethod?: string;
+  currency?: string;
+  note?: string;
+  customerNote?: string;
+}
+
+export interface AuthResponse {
+  customer: Customer;
+  token: string;
+}
+
+export interface Customer {
+  id: number;
+  email: string;
+  name: string;
+  phone: string | null;
+  avatar: string | null;
+  groupId: number | null;
+  status: boolean;
+  newsletter: boolean;
+  role?: string;
+  lastLogin: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateCustomerInput {
+  name?: string;
+  phone?: string | null;
+  avatar?: string | null;
+  newsletter?: boolean;
+}
+
+export interface WishlistItem {
+  id: number;
+  customerId: number;
+  productId: number;
+  createdAt: string;
+}
+
+export interface ShippingMethod {
+  id: number;
+  code: string;
+  icon: string | null;
+  baseFee: string;
+  freeShippingThreshold: string | null;
+  estimatedDays: string | null;
+  status: boolean;
+  sortOrder: number;
+  name: string;
+  description: string | null;
+  locale: string;
+}
+
+export interface CreatePageInput {
+  slug?: string;
+  author?: string;
+  image?: string;
+  status?: boolean;
+  sortOrder?: number;
+  descriptions: Record<string, Record<string, string | undefined>>;
+}
+
+export interface UpdatePageInput {
+  slug?: string;
+  author?: string;
+  image?: string;
+  status?: boolean;
+  sortOrder?: number;
+  descriptions?: Record<string, Record<string, string | undefined>>;
+}
+
+export interface AttributeGroup {
+  id: number;
+  sortOrder: number;
+  name: string;
+  locale: string;
+  attributes: AttributeItem[];
+}
+
+export interface AttributeItem {
+  id: number;
+  attributeGroupId: number | null;
+  sortOrder: number;
+  name: string;
+  locale: string;
+  values: AttributeValue[];
+}
+
+export interface AttributeValue {
+  id: number;
+  attributeId: number;
+  sortOrder: number;
+  name: string;
+  locale: string;
+}
+
+export interface CreateAttributeInput {
+  sortOrder?: number;
+  descriptions: Record<string, { name: string }>;
+  attributeGroupId?: number;
+  attributeId?: number;
+}
+
+export interface UpdateAttributeInput {
+  sortOrder?: number;
+  descriptions: Record<string, { name: string }>;
+}
+
+// ============ 现有接口 ============
+
 export interface Page {
   id: number;
   authorId: number | null;
@@ -13,6 +217,54 @@ export interface Page {
   locale?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OrderItem {
+  id: number;
+  orderId: number;
+  productId: number;
+  name: string;
+  sku: string | null;
+  price: string;
+  quantity: number;
+  total: string;
+}
+
+export interface Order {
+  id: number;
+  number: string;
+  customerId: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string | null;
+  subtotal: string;
+  shippingFee: string;
+  discount: string;
+  total: string;
+  createdAt: string;
+  updatedAt: string;
+  orderNumber?: string;
+  items: OrderItem[];
+}
+
+export interface Brand {
+  id: number;
+  name: string;
+  slug?: string;
+  image?: string | null;
+  logo?: string | null;
+  description?: string;
+  website?: string | null;
+  sortOrder?: number;
+  status?: boolean;
+}
+
+export interface CategoryTreeNode {
+  id: number;
+  name: string;
+  slug?: string;
+  parentId?: number | null;
+  children?: CategoryTreeNode[];
 }
 
 const BASE_URL = '';
@@ -121,12 +373,12 @@ export const api = {
       return request<Product[]>(`/api/products?${qs.toString()}`);
     },
     get: (id: number) => request<Product>(`/api/products/${id}`),
-    create: (data: any) =>
+    create: (data: CreateProductInput) =>
       request<Product>('/api/products', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: (id: number, data: any) =>
+    update: (id: number, data: UpdateProductInput) =>
       request<Product>(`/api/products/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -139,15 +391,15 @@ export const api = {
   categories: {
     list: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<any[]>(`/api/categories${qs}`);
+      return request<CategoryTreeNode[]>(`/api/categories${qs}`);
     },
-    create: (data: any) =>
-      request<any>('/api/categories', {
+    create: (data: CreateCategoryInput) =>
+      request<CategoryTreeNode>('/api/categories', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: (id: number, data: any) =>
-      request<any>(`/api/categories/${id}`, {
+    update: (id: number, data: UpdateCategoryInput) =>
+      request<CategoryTreeNode>(`/api/categories/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -157,14 +409,14 @@ export const api = {
 
   // 品牌
   brands: {
-    list: () => request<any[]>('/api/brands'),
-    create: (data: any) =>
-      request<any>('/api/brands', {
+    list: () => request<Brand[]>('/api/brands'),
+    create: (data: CreateBrandInput) =>
+      request<Brand>('/api/brands', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: (id: number, data: any) =>
-      request<any>(`/api/brands/${id}`, {
+    update: (id: number, data: UpdateBrandInput) =>
+      request<Brand>(`/api/brands/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -176,39 +428,39 @@ export const api = {
   cart: {
     get: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<any[]>(`/api/cart${qs}`);
+      return request<CartItem[]>(`/api/cart${qs}`);
     },
     add: (productId: number, quantity: number) =>
-      request<any>('/api/cart', {
+      request<CartItem>('/api/cart', {
         method: 'POST',
         body: JSON.stringify({ productId, quantity }),
       }),
     update: (id: number, quantity: number) =>
-      request<any>('/api/cart', {
+      request<CartItem>('/api/cart', {
         method: 'PUT',
         body: JSON.stringify({ id, quantity }),
       }),
     remove: (id: number) =>
-      request<any>(`/api/cart?id=${id}`, { method: 'DELETE' }),
+      request<{ success: boolean }>(`/api/cart?id=${id}`, { method: 'DELETE' }),
   },
 
   // 订单
   orders: {
     list: () =>
-      request<any[]>('/api/orders'),
+      request<Order[]>('/api/orders'),
     getAll: () =>
-      request<any[]>('/api/orders?admin=true'),
+      request<Order[]>('/api/orders?admin=true'),
     getById: (id: number) =>
-      request<any>(`/api/orders/${id}`),
+      request<Order>(`/api/orders/${id}`),
     get: (number: string) =>
-      request<any>(`/api/orders?number=${number}`),
-    create: (data?: any) =>
-      request<any>('/api/orders', {
+      request<Order>(`/api/orders?number=${number}`),
+    create: (data?: CreateOrderInput) =>
+      request<Order>('/api/orders', {
         method: 'POST',
         body: JSON.stringify(data || {}),
       }),
     updateStatus: (id: number, status: string) =>
-      request<any>(`/api/orders/${id}`, {
+      request<Order>(`/api/orders/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ status }),
       }),
@@ -217,26 +469,26 @@ export const api = {
   // 认证
   auth: {
     login: (data: { email: string; password: string }) =>
-      request<any>('/api/auth', {
+      request<AuthResponse>('/api/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'login', ...data }),
       }),
     register: (data: { email: string; password: string; name: string; locale?: string }) =>
-      request<any>('/api/auth', {
+      request<AuthResponse>('/api/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'register', ...data }),
       }),
-    me: () => request<any>('/api/auth/me'),
+    me: () => request<Customer>('/api/auth/me'),
   },
 
   // 客户
   customers: {
-    get: () => request<any>('/api/customers'),
-    getAll: () => request<any[]>('/api/customers?admin=true'),
-    wishlist: () => request<any[]>('/api/customers/wishlist'),
-    removeWishlist: (productId: number) => request<any>(`/api/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
-    update: (data: any) =>
-      request<any>('/api/customers', {
+    get: () => request<Customer>('/api/customers'),
+    getAll: () => request<Customer[]>('/api/customers?admin=true'),
+    wishlist: () => request<WishlistItem[]>('/api/customers/wishlist'),
+    removeWishlist: (productId: number) => request<{ success: boolean }>(`/api/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
+    update: (data: UpdateCustomerInput) =>
+      request<Customer>('/api/customers', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -246,7 +498,7 @@ export const api = {
   shipping: {
     list: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<any[]>(`/api/shipping-methods${qs}`);
+      return request<ShippingMethod[]>(`/api/shipping-methods${qs}`);
     },
   },
 
@@ -260,9 +512,9 @@ export const api = {
     },
     getById: (id: number) =>
       request<Page>(`/api/pages/${id}`),
-    create: (data: any) =>
+    create: (data: CreatePageInput) =>
       request<Page>('/api/pages', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: any) =>
+    update: (id: number, data: UpdatePageInput) =>
       request<Page>(`/api/pages/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -285,19 +537,19 @@ export const api = {
   },
   attributes: {
     list: (locale: string) =>
-      request<any[]>(`/api/attributes?locale=${locale}`),
-    create: (type: string, data: any) =>
-      request<any>('/api/attributes', {
+      request<AttributeGroup[]>(`/api/attributes?locale=${locale}`),
+    create: (type: string, data: CreateAttributeInput) =>
+      request<Record<string, unknown>>('/api/attributes', {
         method: 'POST',
         body: JSON.stringify({ type, data }),
       }),
-    update: (type: string, id: number, data: any) =>
-      request<any>('/api/attributes', {
+    update: (type: string, id: number, data: UpdateAttributeInput) =>
+      request<Record<string, unknown>>('/api/attributes', {
         method: 'PUT',
         body: JSON.stringify({ type, id, data }),
       }),
     delete: (type: string, id: number) =>
-      request<any>(`/api/attributes?type=${type}&id=${id}`, {
+      request<{ success: boolean }>(`/api/attributes?type=${type}&id=${id}`, {
         method: 'DELETE',
       }),
   },

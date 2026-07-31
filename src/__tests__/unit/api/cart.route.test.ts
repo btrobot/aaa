@@ -25,7 +25,7 @@ vi.mock('@/lib/api-middleware', async () => {
   }
 
   return {
-    withAuth: (handler: Function) => async (req: NextRequest, ctx: Record<string, unknown>) => {
+    withAuth: (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) => async (req: NextRequest, ctx: Record<string, unknown>) => {
       try {
         return await handler(req, ctx);
       } catch (error) {

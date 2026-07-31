@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
 import { api, request } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +22,6 @@ interface ShippingMethod {
 }
 
 export default function AdminShippingPage() {
-  const { t, locale } = useTranslations();
   const [methods, setMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -127,7 +125,6 @@ export default function AdminShippingPage() {
     }
   };
 
-  const toLocale = locale === 'en' ? 'en' : 'zh_cn';
 
   if (loading) {
     return (

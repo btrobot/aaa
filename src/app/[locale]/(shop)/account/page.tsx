@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Package, MapPin, Heart, Settings, LogOut, ChevronRight, Clock, CreditCard, RotateCcw } from 'lucide-react';
+import { User, Package, MapPin, Heart, Settings, LogOut, ChevronRight, RotateCcw } from 'lucide-react';
 
 const sidebarLinks = [
   { icon: User, label: 'account.profile', href: '/account' },
@@ -42,7 +42,16 @@ function statusText(status: string) {
 export default function AccountPage() {
   const { locale, t } = useTranslations();
   const { user, loading: authLoading, logout } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  
+interface AccountOrder {
+  id: number;
+  number: string;
+  status: string;
+  total: string;
+  createdAt: string;
+}
+
+const [orders, setOrders] = useState<AccountOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,7 +67,7 @@ export default function AccountPage() {
       }
     }
     load();
-  }, []);
+  }, [user]);
 
   if (loading || authLoading) {
     return (

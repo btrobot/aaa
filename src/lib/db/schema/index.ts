@@ -9,11 +9,9 @@ import {
   text,
   uniqueIndex,
   index,
-  foreignKey,
   jsonb,
   doublePrecision,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 
 // ============================================================
 // 商品体系

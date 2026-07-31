@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { RotateCcw, Clock, CheckCircle, XCircle, RefreshCw, Loader2, Plus, Package, User, MapPin, Heart, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { RotateCcw, Loader2, Plus, Package, User, MapPin, Heart, Settings } from 'lucide-react';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   pending: { label: '待处理', variant: 'secondary' },
@@ -34,13 +34,36 @@ const sidebarLinks = [
   { icon: Settings, label: 'account.settings', href: '#' },
 ];
 
-export default function CustomerRmasPage({ params }: { params: { locale: string } }) {
+
+interface RmaItem {
+  id: number;
+  orderId: number;
+  customerId: number;
+  type: string;
+  status: string;
+  reason: string;
+  adminNote?: string;
+  createdAt: string;
+}
+
+interface CustomerInfo {
+  id: number;
+  name?: string;
+  email?: string;
+}
+
+interface OrderItem {
+  id: number;
+  status: string;
+  total: string;
+}
+export default function CustomerRmasPage({ params: _params }: { params: { locale: string } }) {
   const { locale, t } = useTranslations();
-  const [rmas, setRmas] = useState<any[]>([]);
+  const [rmas, setRmas] = useState<RmaItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [customer, setCustomer] = useState<any>(null);
+  const [customer, setCustomer] = useState<CustomerInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
   const [form, setForm] = useState({
     orderId: '',
     orderProductId: '',
@@ -142,7 +165,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
                         <SelectValue placeholder="选择订单" />
                       </SelectTrigger>
                       <SelectContent>
-                        {orders.filter((o: any) => o.status === 'completed' || o.status === 'shipped').map((o: any) => (
+                        {orders.filter((o) => o.status === 'completed' || o.status === 'shipped').map((o) => (
                           <SelectItem key={o.id} value={String(o.id)}>
                             订单 #{o.id} - ¥{o.total}
                           </SelectItem>
@@ -152,7 +175,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">类型</label>
-                    <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as any }))}>
+                    <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as 'refund' | 'exchange' | 'return' }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -218,7 +241,7 @@ export default function CustomerRmasPage({ params }: { params: { locale: string 
             </Card>
           ) : (
             <div className="space-y-3">
-              {rmas.map((rma: any) => (
+              {rmas.map((rma) => (
                 <Card key={rma.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">

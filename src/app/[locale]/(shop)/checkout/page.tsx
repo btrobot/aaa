@@ -5,14 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ChevronRight, CreditCard, Building, Wallet, Truck, ShoppingBag, Package } from 'lucide-react';
+import { ChevronRight, CreditCard, Building, Wallet, Truck, ShoppingBag } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 
 function toApiLocale(locale: string) {
@@ -54,8 +53,6 @@ export default function CheckoutPage() {
     name: '', phone: '', email: '', address: '', city: '', state: '', zip: '', country: '中国',
     note: '', paymentMethod: 'alipay',
   });
-
-  const { user } = useAuth();
 
   useEffect(() => {
     async function load() {

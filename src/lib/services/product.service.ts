@@ -6,7 +6,6 @@ import {
   productDescriptions,
   productCategories,
   productImages,
-  productSkus,
   brands,
   categories,
   orderProducts,

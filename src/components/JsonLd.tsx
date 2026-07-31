@@ -132,7 +132,7 @@ export function ArticleJsonLd({
 function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   useEffect(() => {
     // 避免重复注入，加一个简单去重 key
-    const key = data['@type'] as string + '_' + (data.name as string || data.headline as string || '');
+    const key = String(data['@type']) + '_' + (String(data.name || data.headline || ''));
     const id = `json-ld-${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
     if (document.getElementById(id)) return;
 
@@ -146,7 +146,7 @@ function JsonLdScript({ data }: { data: Record<string, unknown> }) {
       const el = document.getElementById(id);
       if (el) el.remove();
     };
-  }, []);
+  }, [data]);
 
   return null;
 }

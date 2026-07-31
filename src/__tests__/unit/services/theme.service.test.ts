@@ -23,8 +23,8 @@ vi.mock('@/lib/services/settings.service', () => ({
   settingsService: mockSettingsService,
 }));
 
-const { ThemeService, PRESET_NAMES } = await import('@/lib/services/theme.service');
-const { BusinessRuleError } = await import('@/lib/services/errors');
+const { ThemeService, PRESET_NAMES: _PRESET_NAMES } = await import('@/lib/services/theme.service');
+const { BusinessRuleError: _BusinessRuleError } = await import('@/lib/services/errors');
 
 describe('ThemeService', () => {
   beforeEach(() => {

@@ -3,11 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
-import { Search, Mail, Phone, MapPin } from 'lucide-react';
+import { Search, Mail } from 'lucide-react';
+
+interface Customer {
+  id: number;
+  name: string;
+  email: string;
+  status: boolean;
+  createdAt: string;
+}
 
 export default function AdminCustomers() {
   const { t } = useTranslations();
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 

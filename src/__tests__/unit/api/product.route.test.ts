@@ -28,7 +28,7 @@ vi.mock('@/lib/api-middleware', async () => {
     }
     return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
   }
-  const wrap = (handler: Function) =>
+  const wrap = (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) =>
     async (req: NextRequest, ctx: Record<string, unknown>) => {
       try {
         return await handler(req, ctx);
@@ -45,7 +45,7 @@ vi.mock('@/lib/api-middleware', async () => {
 });
 
 // ─── 动态导入路由 ─────────────────────────────────────────────
-const { GET: GET_LIST, POST } = await import('@/app/api/products/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/products/route');
 const {
   GET: GET_BY_ID,
   PUT,

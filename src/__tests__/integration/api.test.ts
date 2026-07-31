@@ -123,7 +123,7 @@ describe('购物车 API', () => {
 
 describe('收藏夹 API', () => {
   it('POST /api/customers/wishlist — 添加收藏', async () => {
-    const { status, body } = await api('/api/customers/wishlist', {
+    const { status } = await api('/api/customers/wishlist', {
       method: 'POST',
       token: customerToken,
       body: JSON.stringify({ productId: 1 }),
@@ -142,7 +142,7 @@ describe('收藏夹 API', () => {
 
 describe('订单 API', () => {
   it('POST /api/orders — 从购物车创建订单', async () => {
-    const { status, body } = await api('/api/orders', {
+    const { status } = await api('/api/orders', {
       method: 'POST',
       token: customerToken,
       body: JSON.stringify({}),

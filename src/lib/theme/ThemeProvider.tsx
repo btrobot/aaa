@@ -78,15 +78,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Listen for theme changes from admin
   useEffect(() => {
-    const handler = (e: CustomEvent) => {
-      const preset = getThemeById(e.detail);
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      const preset = getThemeById(detail);
       if (preset) {
         setThemeState(preset);
         applyTheme(preset);
       }
     };
-    window.addEventListener('theme-change' as any, handler as any);
-    return () => window.removeEventListener('theme-change' as any, handler as any);
+    window.addEventListener('theme-change', handler);
+    return () => window.removeEventListener('theme-change', handler);
   }, [applyTheme]);
 
   return (

@@ -19,13 +19,13 @@ vi.mock('@/lib/api-middleware', async () => {
     }
     return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
   }
-  const wrap = (handler: Function) => async (req: NextRequest, ctx: Record<string, unknown>) => {
+  const wrap = (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) => async (req: NextRequest, ctx: Record<string, unknown>) => {
     try { return await handler(req, ctx); } catch (error) { return getErrorResponse(error); }
   };
   return { withAdmin: wrap, withMiddleware: wrap, withAuth: wrap, cacheResponse: (res: NextResponse) => res };
 });
 
-const { GET: GET_LIST, POST } = await import('@/app/api/categories/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/categories/route');
 const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/categories/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {

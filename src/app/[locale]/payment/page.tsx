@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { useTranslations } from '@/i18n/useTranslations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, XCircle, Loader2, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -13,7 +12,7 @@ function PaymentContent() {
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params.locale as string) || 'zh';
-  const { t } = useTranslations();
+
 
   const orderNumber = searchParams.get('orderNumber') || '';
   const paymentId = searchParams.get('paymentId') || '';
@@ -46,7 +45,7 @@ function PaymentContent() {
           });
           setResult('failed');
         }
-      } catch (err) {
+      } catch {
         setResult('failed');
       } finally {
         setProcessing(false);

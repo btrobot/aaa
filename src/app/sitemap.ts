@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { db } from '@/lib/db/db';
-import { products, productDescriptions, categories, categoryDescriptions, pages, pageDescriptions, brands, currencies } from '@/lib/db/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { products, categories, pages, brands } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 const BASE_URL = process.env.COZE_PROJECT_DOMAIN_DEFAULT || 'https://nodecoda.com';
 const LOCALES = ['zh', 'en'];

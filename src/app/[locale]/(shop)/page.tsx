@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { ChevronRight, Shield, Truck, Gift, HeadphonesIcon, Star, Ruler, Cog } from 'lucide-react';
+import { ChevronRight, Shield, Truck, Gift, HeadphonesIcon, Cog } from 'lucide-react';
 
 function toApiLocale(locale: string) {
   return locale === 'en' ? 'en' : 'zh_cn';
@@ -18,7 +18,14 @@ function toApiLocale(locale: string) {
 export default function HomePage() {
   const { locale, t } = useTranslations();
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  
+interface CategoryData {
+  id: number;
+  name: string;
+  children?: { id: number }[];
+}
+
+const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

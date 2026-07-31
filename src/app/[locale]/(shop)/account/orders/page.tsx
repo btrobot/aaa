@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, ChevronRight } from 'lucide-react';
+import { Package } from 'lucide-react';
 
 const statusLabels: Record<string, string> = {
   pending: '待处理', confirmed: '已确认', shipped: '已发货',
@@ -19,9 +19,18 @@ const statusColors: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const { locale, t } = useTranslations();
-  const { user, loading: authLoading } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  const { t } = useTranslations();
+  const { user } = useAuth();
+  
+interface OrderData {
+  id: number;
+  number: string;
+  status: string;
+  total: string;
+  createdAt: string;
+}
+
+const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +46,7 @@ export default function OrdersPage() {
       }
     }
     load();
-  }, []);
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">

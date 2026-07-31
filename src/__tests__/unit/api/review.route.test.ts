@@ -45,7 +45,7 @@ vi.mock('@/lib/api-middleware', async () => {
 });
 
 // ─── 动态导入路由 ─────────────────────────────────────────────
-const { GET: GET_LIST, POST } = await import('@/app/api/reviews/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/reviews/route');
 const {
   GET: GET_BY_ID,
   PUT,

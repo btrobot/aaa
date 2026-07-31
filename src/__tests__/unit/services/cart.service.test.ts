@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ── Mock helpers ────────────────────────────────────────────────────────────
 
 function createChainMock(resolvedValue: unknown) {
-  const buildChain = (endValue: unknown): any =>
+  const buildChain = (endValue: unknown) =>
     new Proxy(() => Promise.resolve(endValue), {
       get(_, prop) {
-        if (prop === 'then') return (resolve: Function) => resolve(endValue);
+        if (prop === 'then') return (resolve: (value: unknown) => unknown) => resolve(endValue);
         if (prop === 'catch') return () => Promise.resolve(endValue);
         return () => buildChain(endValue);
       },
@@ -16,7 +16,7 @@ function createChainMock(resolvedValue: unknown) {
 }
 
 /** 可控的 select mock —— 每次调用前通过 mockDb.selectData 设置返回值 */
-let selectData: unknown[] = [];
+let _selectData: unknown[] = [];
 const mockDb = {
   insert: vi.fn(() => ({
     values: vi.fn(() => ({
@@ -38,7 +38,7 @@ vi.mock('@/lib/db/db', () => ({ db: mockDb }));
 
 // 用于精确控制 select 返回值的辅助函数
 function mockSelect(data: unknown[]) {
-  selectData = data;
+  _selectData = data;
   mockDb.select.mockReturnValue(createChainMock(data));
 }
 
@@ -50,7 +50,7 @@ const { NotFoundError, BusinessRuleError } = await import('@/lib/services/errors
 describe('CartService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    selectData = [];
+    _selectData = [];
   });
 
   // ===========================================================================
@@ -89,7 +89,7 @@ describe('CartService', () => {
         return createChainMock([{ id: 50, quantity: 3 }]);
       });
 
-      const result = await CartService.addItem(baseInput);
+      await CartService.addItem(baseInput);
       expect(mockDb.update).toHaveBeenCalled();
     });
 

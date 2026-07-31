@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { CartService } from '@/lib/services/cart.service';
 import { withAuth } from '@/lib/api-middleware';
 

@@ -37,7 +37,7 @@ vi.mock('@/lib/api-middleware', async () => {
 
   return {
     withAdmin:
-      (handler: Function) =>
+      (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) =>
       async (req: NextRequest, ctx: Record<string, unknown>) => {
         try {
           return await handler(req, ctx);
@@ -46,7 +46,7 @@ vi.mock('@/lib/api-middleware', async () => {
         }
       },
     withMiddleware:
-      (handler: Function) =>
+      (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) =>
       async (req: NextRequest, ctx: Record<string, unknown>) => {
         try {
           return await handler(req, ctx);
@@ -55,7 +55,7 @@ vi.mock('@/lib/api-middleware', async () => {
         }
       },
     withAuth:
-      (handler: Function) =>
+      (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) =>
       async (req: NextRequest, ctx: Record<string, unknown>) => {
         try {
           return await handler(req, ctx);
@@ -64,7 +64,7 @@ vi.mock('@/lib/api-middleware', async () => {
         }
       },
     withRateLimit:
-      (handler: Function) =>
+      (handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse) =>
       async (req: NextRequest, ctx: Record<string, unknown>) => {
         try {
           return await handler(req, ctx);
@@ -82,7 +82,7 @@ const { GET: GET_CUSTOMERS, POST: POST_CUSTOMER } = await import(
   '@/app/api/customers/route'
 );
 const {
-  GET: GET_WISHLIST,
+  GET: _GET_WISHLIST,
   POST: POST_WISHLIST,
   DELETE: DELETE_WISHLIST,
 } = await import('@/app/api/customers/wishlist/route');

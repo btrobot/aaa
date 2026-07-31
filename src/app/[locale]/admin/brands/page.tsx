@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
-import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 
@@ -19,9 +17,6 @@ interface Brand {
 }
 
 export default function AdminBrandsPage() {
-  const { t } = useTranslations();
-  const params = useParams();
-  const locale = (params.locale as string) || 'zh';
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +32,7 @@ export default function AdminBrandsPage() {
       const data = await api.brands.list();
       setBrands(data as Brand[]);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('加载品牌失败');
     } finally {
       setLoading(false);
@@ -82,7 +77,7 @@ export default function AdminBrandsPage() {
       }
       setShowModal(false);
       await loadBrands();
-    } catch (err) {
+    } catch {
       setError(editingBrand ? '更新品牌失败' : '创建品牌失败');
     } finally {
       setSaving(false);
@@ -94,7 +89,7 @@ export default function AdminBrandsPage() {
     try {
       await api.brands.delete(id);
       await loadBrands();
-    } catch (err) {
+    } catch {
       setError('删除品牌失败');
     }
   };

@@ -7,7 +7,7 @@ function createChainMock(resolvedValue: unknown) {
   const buildChain = (endValue: unknown): unknown => {
     return new Proxy(() => Promise.resolve(endValue), {
       get(_, prop) {
-        if (prop === 'then') return (resolve: Function) => resolve(endValue);
+        if (prop === 'then') return (resolve: (value: unknown) => unknown) => resolve(endValue);
         if (prop === 'catch') return () => Promise.resolve(endValue);
         return () => buildChain(endValue);
       },

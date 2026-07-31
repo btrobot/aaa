@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { CustomerService } from '@/lib/services/customer.service';
-import { withAuth, withAdmin, withMiddleware } from '@/lib/api-middleware';
+import { withAdmin, withMiddleware } from '@/lib/api-middleware';
 
 /**
  * GET /api/customers

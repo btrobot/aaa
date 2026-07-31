@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Loader2, CheckCircle, XCircle, Clock, RefreshCw, ArrowLeftRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Loader2, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Rma {
   id: number;
@@ -50,7 +50,7 @@ export default function AdminRmasPage() {
   const [newStatus, setNewStatus] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const loadRmas = async () => {
+  const loadRmas = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ pageSize: '100' });
@@ -58,14 +58,14 @@ export default function AdminRmasPage() {
       const res = await fetch(`/api/rmas?${params}`);
       const data = await res.json();
       setRmas(data.items || []);
-    } catch (e: unknown) {
+    } catch {
       setError('加载退换货单失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
-  useEffect(() => { loadRmas(); }, [statusFilter]);
+  useEffect(() => { loadRmas(); }, [loadRmas]);
 
   const openDialog = (rma: Rma) => {
     setSelectedRma(rma);
@@ -84,7 +84,7 @@ export default function AdminRmasPage() {
       });
       setDialogOpen(false);
       loadRmas();
-    } catch (e: unknown) {
+    } catch {
       setError('更新失败');
     }
   };

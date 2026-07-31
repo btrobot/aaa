@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { OrderService } from '@/lib/services/order.service';
 import { withAuth, withAdmin, withMiddleware, cacheResponse } from '@/lib/api-middleware';
 
