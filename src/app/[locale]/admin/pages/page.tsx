@@ -23,10 +23,6 @@ export default function AdminPages() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadPages();
-  }, [loadPages]);
-
   const loadPages = useCallback(async () => {
     try {
       const data = await api.pages.list({ locale: toApiLocale(locale) });
@@ -37,7 +33,11 @@ export default function AdminPages() {
     } finally {
       setLoading(false);
     }
-  }, [locale]);
+  }, [locale])
+
+  useEffect(() => {
+    loadPages();
+  }, [loadPages]);
 
   function openCreate() {
     setEditing(null);
