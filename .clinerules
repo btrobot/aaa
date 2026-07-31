@@ -1,0 +1,284 @@
+# NodeCoda 项目规则（面向 AI 代理）
+
+## 技术栈声明
+
+- **Framework**: Next.js 16 (App Router) — 使用 Turbopack
+- **Core**: React 19
+- **Language**: TypeScript 5 (strict mode)
+- **UI 组件**: shadcn/ui (Radix UI 基础)
+- **Styling**: Tailwind CSS 4 + `cn()` 工具函数
+- **数据库**: PostgreSQL + Drizzle ORM
+- **认证**: JWT (jose 库, HS256, 7天过期)
+- **国际化**: 自定义 i18n (11 语言, JSON 消息文件)
+- **测试**: Vitest + React Testing Library
+
+## 包管理
+
+- **仅允许 pnpm**，严禁 npm/yarn
+- 安装: `pnpm add <pkg>` / `pnpm add -D <pkg>`
+- 路径别名: `@/` = `src/`
+
+## 目录结构关键约定
+
+```
+src/
+├── app/
+│   ├── [locale]/           # 国际化路由
+│   │   ├── (shop)/         # 前台商城
+│   │   ├── admin/          # 管理后台
+│   │   └── (auth)/         # 登录注册
+│   └── api/v1/             # API 路由（版本化，无 locale）
+├── components/
+│   └── ui/                 # shadcn/ui 组件（预装）
+├── lib/
+│   ├── db/
+│   │   ├── db.ts           # Drizzle 数据库连接
+│   │   └── schema/         # 5 个领域文件
+│   ├── services/           # 18 个服务模块
+│   ├── api-middleware.ts   # withMiddleware/withAuth/withAdmin/withRateLimit
+│   ├── auth.ts             # JWT sign/verify/authenticate/requireAuth
+│   ├── rate-limit.ts       # 滑动窗口限流
+│   ├── api.ts              # 客户端 API 封装
+│   └── utils.ts            # cn() + cacheResponse()
+├── i18n/
+│   ├── config.ts           # locale 配置
+│   └── useTranslations.ts  # useTranslations hook
+└── messages/               # {locale}.json 翻译文件
+```
+
+## 架构模式（必须遵守）
+
+### 1. 服务层模式
+
+```
+Zod schema 校验 → 静态方法类 → 领域错误抛出
+```
+
+```typescript
+// ✅ 正确模式
+import { db } from '@/lib/db/db';
+import { brands } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { NotFoundError, BusinessRuleError } from './errors';
+
+export const createBrandSchema = z.object({
+  name: z.string().min(1).max(255),
+  status: z.boolean().optional().default(true),
+});
+export type CreateBrandInput = z.infer<typeof createBrandSchema>;
+
+export class BrandService {
+  static async create(data: CreateBrandInput) {
+    const validated = createBrandSchema.parse(data);
+    // 业务规则校验 → 抛 BusinessRuleError
+    // 数据库操作 → db.insert().returning()
+    // 返回结果
+  }
+  static async findById(id: number) {
+    // 不存在 → 抛 NotFoundError('品牌', id)
+  }
+  static async findAll(query = {}) {
+    // 分页 + 条件筛选
+  }
+  static async update(id: number, data: UpdateBrandInput) {
+    // 先 findById 确保存在
+  }
+  static async delete(id: number) {
+    // 先 findById + 检查关联
+  }
+}
+```
+
+### 2. API 路由模式
+
+```
+中间件包裹 → 不自行 try-catch → 统一响应格式
+```
+
+```typescript
+// ✅ 正确模式
+import { withMiddleware, withAdmin, withAuth, cacheResponse } from '@/lib/api-middleware';
+import { NextResponse } from 'next/server';
+
+// 公开接口（可选限流）
+export const GET = withMiddleware(async () => {
+  const brands = await BrandService.findAll();
+  return cacheResponse(NextResponse.json(brands), { maxAge: 60 });
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
+
+// 需要管理员
+export const POST = withAdmin(async (request) => {
+  const body = await request.json();
+  const brand = await BrandService.create(body);
+  return NextResponse.json(brand, { status: 201 });
+});
+
+// 需要登录
+export const GET = withAuth(async (request, { user }) => {
+  // user 一定有值（AuthPayload 类型）
+});
+
+// ❌ 禁止：在路由中自行 try-catch
+// ❌ 禁止：直接操作数据库
+```
+
+### 3. 中间件选择
+
+| 中间件 | 认证 | 限流 | 用途 |
+|--------|------|------|------|
+| `withMiddleware(handler, config)` | 可选 | 可选 | 通用 |
+| `withAuth(handler)` | ✅ customer/admin | ❌ | 需登录 |
+| `withAdmin(handler)` | ✅ admin | ❌ | 管理员 |
+| `withRateLimit(handler, config)` | ❌ | ✅ | 公开限流 |
+
+### 4. 错误处理
+
+```typescript
+// 服务层抛出 → 中间件统一捕获
+throw new NotFoundError('品牌', id);       // → 404
+throw new BusinessRuleError('品牌名已存在'); // → 422
+throw new ServiceError('CODE', 'msg', 400); // → 自定义
+```
+
+### 5. 页面组件模式
+
+```typescript
+'use client';
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '@/lib/api';
+
+export default function Page() {
+  const [data, setData] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const items = await api.products.list();
+      setData(items);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '加载失败');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+  return <ProductList products={data} />;
+}
+```
+
+### 6. 国际化
+
+```typescript
+'use client';
+import { useTranslations } from '@/i18n/useTranslations';
+
+function Component() {
+  const { t, locale } = useTranslations();
+  return <h1>{t('products.title')}</h1>;
+}
+```
+
+- 11 语言: zh/en/ja/ko/es/fr/de/ru/pt/ar/th
+- 翻译文件: `src/messages/{locale}.json`
+- 多语言数据库内容: `xxxDescriptions` 关联表
+
+### 7. 认证
+
+```typescript
+import { signToken, verifyToken, authenticate, requireAuth } from '@/lib/auth';
+
+// 登录后签发
+const token = await signToken({ id: 1, email: 'a@b.com', name: 'Admin', role: 'admin' });
+
+// API 路由中通过 withAuth/withAdmin 自动处理
+```
+
+## 代码生成规则
+
+### 必须遵守
+
+- ✅ 所有 API 路由放在 `src/app/api/v1/` 下（版本化）
+- ✅ 使用 `@/` 路径别名，禁止相对路径穿越
+- ✅ 服务层用 Zod schema 校验输入，`z.infer` 推导类型
+- ✅ 组件用 `cn()` 合并 Tailwind 类名
+- ✅ 服务端组件为默认，`'use client'` 只在必要时加
+- ✅ 客户端动态值必须 `useEffect` + `useState`
+- ✅ `useCallback` 稳定化函数引用，依赖数组完整
+- ✅ 图片设置 `width`/`height` 或 `aspect-ratio`
+- ✅ catch 块：需要错误信息用 `catch (err)` + `instanceof` 收窄；不需要用 `catch { }`
+- ✅ 页面组件处理 loading + error + data 三态
+- ✅ API 路由用中间件包裹，不自行 try-catch
+- ✅ 公共 GET 接口加 `cacheResponse()` 缓存头
+
+### 严禁
+
+- ❌ `as any`、`@ts-ignore`、`@ts-expect-error`、`eslint-disable`
+- ❌ 隐式 `any` 类型
+- ❌ 用 `Function` 代替具体函数签名
+- ❌ JSX 中直接使用 `typeof window`、`Date.now()`、`Math.random()`
+- ❌ `<head>` 标签（用 `metadata` API）
+- ❌ `<p>` 嵌套 `<div>`（非法 HTML 嵌套）
+- ❌ 在 API 路由中直接操作数据库
+- ❌ 使用 npm/yarn 安装依赖
+- ❌ 硬编码域名或端口
+
+## 常见反模式（从项目历史修复中提炼）
+
+### 服务层 Schema 不同步
+
+Schema 变更后（如新增/删除字段），必须同步更新：
+1. Service 层的 Zod schema 和 `CreateBrandInput` 类型
+2. `src/lib/api.ts` 中的客户端输入类型
+3. 测试文件中的 mock 数据
+
+### API 路由版本前缀
+
+所有路由在 `src/app/api/v1/` 下，客户端调用也用 `/api/v1/` 前缀。
+**不要**在 `src/app/api/` 下新建路由。
+
+### 数据库连接
+
+统一使用 `import { db } from '@/lib/db/db'`，不是 `@/lib/db/index`。
+Schema 从 `@/lib/db/schema`（统一导出 index）导入。
+
+### 测试 Mock 规范
+
+```typescript
+// ✅ 正确：用具体函数签名
+vi.mock('@/lib/api-middleware', async () => ({
+  withAdmin: (
+    handler: (req: NextRequest, ctx: Record<string, unknown>) => Promise<NextResponse> | NextResponse
+  ) => async (req: NextRequest, ctx: Record<string, unknown>) => {
+    try { return await handler(req, ctx); }
+    catch (error) { return getErrorResponse(error); }
+  },
+}));
+
+// ❌ 禁止：用 Function 类型
+vi.mock('@/lib/api-middleware', () => ({
+  withAdmin: (handler: Function) => ...,
+}));
+```
+
+## 数据库与 Drizzle ORM
+
+- Schema 位置: `src/lib/db/schema/`（5 个文件，index 统一导出）
+- 命名: snake_case 表名/列名 (`brands`, `created_at`)，camelCase 代码属性
+- 类型推导: `typeof brands.$inferSelect` / `typeof brands.$inferInsert`
+- 迁移: 修改 schema → `pnpm drizzle-kit generate` → `pnpm drizzle-kit migrate`
+- 查询: 类型安全的 `db.select().from(brands).where(eq(brands.id, id))`
+
+## 质量门禁
+
+提交前必须通过:
+1. `pnpm ts-check` — TypeScript 零错误
+2. `pnpm lint` — ESLint 零错误
+3. `pnpm test:run` — 所有测试通过
