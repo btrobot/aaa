@@ -45,12 +45,12 @@ vi.mock('@/lib/api-middleware', async () => {
 });
 
 // ─── 动态导入路由 ─────────────────────────────────────────────
-const { GET: _GET_LIST, POST } = await import('@/app/api/products/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/v1/products/route');
 const {
   GET: GET_BY_ID,
   PUT,
   DELETE: DELETE_BY_ID,
-} = await import('@/app/api/products/[id]/route');
+} = await import('@/app/api/v1/products/[id]/route');
 
 // ─── 工具函数 ─────────────────────────────────────────────────
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {

@@ -31,10 +31,6 @@ export default function AdminNewProduct() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Brand[]>([]);
 
-  useEffect(() => {
-    loadOptions();
-  }, [loadOptions]);
-
   const loadOptions = useCallback(async () => {
     try {
       const [brandsList, categoriesTree] = await Promise.all([
@@ -47,6 +43,10 @@ export default function AdminNewProduct() {
       console.error('加载选项失败:', err);
     }
   }, [locale]);
+
+  useEffect(() => {
+    loadOptions();
+  }, [loadOptions]);
 
   function toggleCategory(catId: number) {
     setCategoryIds(prev =>

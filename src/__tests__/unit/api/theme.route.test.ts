@@ -34,9 +34,9 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { GET: GET_PRESETS } = await import('@/app/api/theme/presets/route');
-const { GET: GET_THEME, PUT: PUT_THEME } = await import('@/app/api/theme/route');
-const { PUT: PUT_CUSTOMIZE } = await import('@/app/api/theme/customize/route');
+const { GET: GET_PRESETS } = await import('@/app/api/v1/theme/presets/route');
+const { GET: GET_THEME, PUT: PUT_THEME } = await import('@/app/api/v1/theme/route');
+const { PUT: PUT_CUSTOMIZE } = await import('@/app/api/v1/theme/customize/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {

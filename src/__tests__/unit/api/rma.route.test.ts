@@ -33,8 +33,8 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { GET: _GET_LIST, POST } = await import('@/app/api/rmas/route');
-const { GET: GET_BY_ID, PUT } = await import('@/app/api/rmas/[id]/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/v1/rmas/route');
+const { GET: GET_BY_ID, PUT } = await import('@/app/api/v1/rmas/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {
@@ -54,7 +54,7 @@ describe('RMA API Route — ServiceError 回归测试', () => {
       mockRmaService.create.mockRejectedValue(new NotFoundError('订单产品', 999));
       const res = await POST(
         makeRequest('/api/rmas', 'POST', { orderProductId: 999 }),
-        { params: Promise.resolve({}), user: { id: 1, role: 'customer' } }
+        { params: Promise.resolve({}), user: { id: 1, role: 'customer' } } as any
       );
       expect(res.status).toBe(404);
     });
@@ -63,7 +63,7 @@ describe('RMA API Route — ServiceError 回归测试', () => {
       mockRmaService.create.mockRejectedValue(new BusinessRuleError('订单状态必须为已完成才能申请退换货'));
       const res = await POST(
         makeRequest('/api/rmas', 'POST', { orderProductId: 10 }),
-        { params: Promise.resolve({}), user: { id: 1, role: 'customer' } }
+        { params: Promise.resolve({}), user: { id: 1, role: 'customer' } } as any
       );
       expect(res.status).toBe(422);
     });
@@ -72,7 +72,7 @@ describe('RMA API Route — ServiceError 回归测试', () => {
       mockRmaService.create.mockResolvedValue({ id: 1, status: 'pending' });
       const res = await POST(
         makeRequest('/api/rmas', 'POST', { orderProductId: 10, type: 'refund', reason: '质量问题' }),
-        { params: Promise.resolve({}), user: { id: 1, role: 'customer' } }
+        { params: Promise.resolve({}), user: { id: 1, role: 'customer' } } as any
       );
       expect(res.status).toBe(201);
     });
@@ -86,7 +86,7 @@ describe('RMA API Route — ServiceError 回归测试', () => {
       mockRmaService.findById.mockRejectedValue(new NotFoundError('退换货单', 999));
       const res = await GET_BY_ID(
         makeRequest('/api/rmas/999'),
-        { params: Promise.resolve({ id: '999' }), user: { id: 1, role: 'admin' } }
+        { params: Promise.resolve({ id: '999' }), user: { id: 1, role: 'admin' } } as any
       );
       expect(res.status).toBe(404);
     });
@@ -95,7 +95,7 @@ describe('RMA API Route — ServiceError 回归测试', () => {
       mockRmaService.findById.mockResolvedValue({ id: 1, customerId: 100, status: 'pending' });
       const res = await GET_BY_ID(
         makeRequest('/api/rmas/1'),
-        { params: Promise.resolve({ id: '1' }), user: { id: 1, role: 'admin' } }
+        { params: Promise.resolve({ id: '1' }), user: { id: 1, role: 'admin' } } as any
       );
       expect(res.status).toBe(200);
     });
@@ -104,7 +104,7 @@ describe('RMA API Route — ServiceError 回归测试', () => {
       mockRmaService.findById.mockResolvedValue({ id: 1, customerId: 200, status: 'pending' });
       const res = await GET_BY_ID(
         makeRequest('/api/rmas/1'),
-        { params: Promise.resolve({ id: '1' }), user: { id: 1, role: 'customer' } }
+        { params: Promise.resolve({ id: '1' }), user: { id: 1, role: 'customer' } } as any
       );
       expect(res.status).toBe(403);
     });

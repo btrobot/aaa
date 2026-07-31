@@ -33,8 +33,8 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { GET, POST } = await import('@/app/api/shipping-methods/route');
-const { PUT, DELETE } = await import('@/app/api/shipping-methods/[id]/route');
+const { GET, POST } = await import('@/app/api/v1/shipping-methods/route');
+const { PUT, DELETE } = await import('@/app/api/v1/shipping-methods/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {
@@ -52,7 +52,7 @@ describe('Shipping API Route — ServiceError 回归测试', () => {
   describe('GET /api/shipping-methods', () => {
     it('正常获取配送方式列表 → 200', async () => {
       mockShippingService.list.mockResolvedValue([{ id: 1, code: 'express', name: '快递' }]);
-      const res = await GET(makeRequest('/api/shipping-methods'));
+      const res = await GET(makeRequest('/api/shipping-methods'), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(200);
     });
   });
@@ -65,7 +65,7 @@ describe('Shipping API Route — ServiceError 回归测试', () => {
       mockShippingService.create.mockResolvedValue({ id: 1, code: 'express' });
       const res = await POST(makeRequest('/api/shipping-methods', 'POST', {
         code: 'express', baseFee: '10.00', descriptions: { zh_cn: { name: '快递' } },
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(201);
     });
 
@@ -73,7 +73,7 @@ describe('Shipping API Route — ServiceError 回归测试', () => {
       mockShippingService.create.mockRejectedValue(new BusinessRuleError('配送方式代码已存在'));
       const res = await POST(makeRequest('/api/shipping-methods', 'POST', {
         code: 'express', baseFee: '10.00', descriptions: { zh_cn: { name: '快递' } },
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(422);
     });
   });

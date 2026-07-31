@@ -7,7 +7,6 @@ import { NotFoundError, BusinessRuleError } from './errors';
 const pageDescSchema = z.object({
   title: z.string().min(1),
   content: z.string().optional(),
-  summary: z.string().optional(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
@@ -15,7 +14,6 @@ const pageDescSchema = z.object({
 
 
 export const createPageSchema = z.object({
-  slug: z.string().max(255).optional(),
   author: z.string().optional(),
   image: z.string().optional(),
   status: z.boolean().optional().default(true),
@@ -49,7 +47,6 @@ export class PageService {
 
     return rows.map((row) => ({
       id: row.pages.id,
-      slug: row.pages.slug,
       author: row.pages.author,
       image: row.pages.image,
       status: row.pages.status,
@@ -78,7 +75,6 @@ export class PageService {
     const row = rows[0];
     return {
       id: row.pages.id,
-      slug: row.pages.slug,
       author: row.pages.author,
       image: row.pages.image,
       status: row.pages.status,
@@ -86,7 +82,6 @@ export class PageService {
       createdAt: row.pages.createdAt,
       updatedAt: row.pages.updatedAt,
       title: row.page_descriptions?.title || null,
-      summary: row.page_descriptions?.summary || null,
       content: row.page_descriptions?.content || null,
       metaTitle: row.page_descriptions?.metaTitle || null,
       metaDescription: row.page_descriptions?.metaDescription || null,
@@ -97,15 +92,7 @@ export class PageService {
   async create(data: z.infer<typeof createPageSchema>) {
     const validated = createPageSchema.parse(data);
 
-    // pre: slug 唯一
-    if (validated.slug) {
-      const [existing] = await db.select({ id: pages.id })
-        .from(pages).where(eq(pages.slug, validated.slug)).limit(1);
-      if (existing) throw new BusinessRuleError(`slug "${validated.slug}" 已存在`);
-    }
-
     const [page] = await db.insert(pages).values({
-      slug: validated.slug ?? null,
       author: validated.author,
       image: validated.image,
       status: validated.status,
@@ -119,7 +106,6 @@ export class PageService {
           locale,
           title: desc.title,
           content: desc.content || null,
-          summary: desc.summary || null,
           metaTitle: desc.metaTitle || null,
           metaDescription: desc.metaDescription || null,
           metaKeywords: desc.metaKeywords || null,
@@ -134,8 +120,7 @@ export class PageService {
     await this.getById(id);
 
     const validated = updatePageSchema.parse(data);
-    const updateData: { slug?: string | null; author?: string; image?: string; status?: boolean; sortOrder?: number } = {};
-    if (validated.slug !== undefined) updateData.slug = validated.slug;
+    const updateData: { author?: string; image?: string; status?: boolean; sortOrder?: number } = {};
     if (validated.author !== undefined) updateData.author = validated.author;
     if (validated.image !== undefined) updateData.image = validated.image;
     if (validated.status !== undefined) updateData.status = validated.status;
@@ -157,7 +142,6 @@ export class PageService {
             .set({
               title: desc.title,
               content: desc.content || null,
-              summary: desc.summary || null,
               metaTitle: desc.metaTitle || null,
               metaDescription: desc.metaDescription || null,
               metaKeywords: desc.metaKeywords || null,
@@ -169,7 +153,6 @@ export class PageService {
             locale,
             title: desc.title,
             content: desc.content || null,
-            summary: desc.summary || null,
             metaTitle: desc.metaTitle || null,
             metaDescription: desc.metaDescription || null,
             metaKeywords: desc.metaKeywords || null,

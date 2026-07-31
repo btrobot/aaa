@@ -7,7 +7,6 @@ const MAX_DEPTH = 5;
 
 export interface CreateCategoryInput {
   parentId: number | null;
-  slug: string;
   sortOrder?: number;
   status?: boolean;
   descriptions: Record<string, { name: string; description?: string }>;
@@ -16,7 +15,6 @@ export interface CreateCategoryInput {
 export interface CategoryTreeItem {
   id: number;
   parentId: number | null;
-  slug: string;
   name: string;
   status: boolean;
   sortOrder: number;
@@ -26,18 +24,9 @@ export interface CategoryTreeItem {
 export const CategoryService = {
   /**
    * 创建分类
-   * pre: slug 唯一、parentId 存在或为 null、层级 ≤ 5
+   * pre: parentId 存在或为 null、层级 ≤ 5
    */
   async create(input: CreateCategoryInput) {
-    // pre: slug 唯一
-    const [existingSlug] = await db.select({ id: categories.id })
-      .from(categories)
-      .where(eq(categories.slug, input.slug))
-      .limit(1);
-    if (existingSlug) {
-      throw new BusinessRuleError(`slug "${input.slug}" 已存在`);
-    }
-
     // pre: parentId 存在或为 null
     if (input.parentId !== null && input.parentId !== undefined) {
       const [parent] = await db.select({ id: categories.id })
@@ -56,7 +45,6 @@ export const CategoryService = {
     // 创建分类
     const [category] = await db.insert(categories).values({
       parentId: input.parentId ?? null,
-      slug: input.slug,
       sortOrder: input.sortOrder ?? 0,
       status: input.status ?? true,
     }).returning();
@@ -98,7 +86,6 @@ export const CategoryService = {
       const item: CategoryTreeItem = {
         id: cat.id,
         parentId: cat.parentId,
-        slug: cat.slug ?? '',
         name: desc?.name || '',
         status: cat.status ?? true,
         sortOrder: cat.sortOrder ?? 0,
@@ -161,11 +148,10 @@ export const CategoryService = {
     }
 
     // 更新分类基本信息
-    if (input.parentId !== undefined || input.status !== undefined || input.slug !== undefined || input.sortOrder !== undefined) {
+    if (input.parentId !== undefined || input.status !== undefined || input.sortOrder !== undefined) {
       const updateData: Record<string, unknown> = {};
       if (input.parentId !== undefined) updateData.parentId = input.parentId;
       if (input.status !== undefined) updateData.status = input.status;
-      if (input.slug !== undefined) updateData.slug = input.slug;
       if (input.sortOrder !== undefined) updateData.sortOrder = input.sortOrder;
 
       if (Object.keys(updateData).length > 0) {
@@ -250,7 +236,6 @@ export const CategoryService = {
 
   /** 重建 CategoryPath（该节点到根的路径） */
   async rebuildPaths(categoryId: number, parentId: number | null) {
-    // 清除旧路径
     await db.delete(categoryPaths).where(eq(categoryPaths.categoryId, categoryId));
 
     // 自身

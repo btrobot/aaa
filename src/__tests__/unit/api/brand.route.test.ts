@@ -33,8 +33,8 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { GET: _GET_LIST, POST } = await import('@/app/api/brands/route');
-const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/brands/[id]/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/v1/brands/route');
+const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/v1/brands/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {

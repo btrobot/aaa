@@ -32,9 +32,9 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { GET: GET_CLASSES, POST: POST_CLASS } = await import('@/app/api/tax-classes/route');
-const { POST: POST_RATE } = await import('@/app/api/tax-rates/route');
-const { POST: POST_RULE } = await import('@/app/api/tax-rules/route');
+const { GET: GET_CLASSES, POST: POST_CLASS } = await import('@/app/api/v1/tax-classes/route');
+const { POST: POST_RATE } = await import('@/app/api/v1/tax-rates/route');
+const { POST: POST_RULE } = await import('@/app/api/v1/tax-rules/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {
@@ -54,7 +54,7 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       mockTaxService.listTaxClasses.mockResolvedValue([
         { id: 1, title: '标准税率', rates: [] },
       ]);
-      const res = await GET_CLASSES(makeRequest('/api/tax-classes'));
+      const res = await GET_CLASSES(makeRequest('/api/tax-classes'), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(200);
     });
   });
@@ -67,14 +67,14 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       mockTaxService.createTaxClass.mockResolvedValue({ id: 1, title: '标准税率' });
       const res = await POST_CLASS(makeRequest('/api/tax-classes', 'POST', {
         title: '标准税率',
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(201);
     });
 
     it('缺少 title → 400', async () => {
       const res = await POST_CLASS(makeRequest('/api/tax-classes', 'POST', {
         description: '无标题',
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(400);
     });
   });
@@ -89,7 +89,7 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       });
       const res = await POST_RATE(makeRequest('/api/tax-rates', 'POST', {
         taxClassId: 1, name: '增值税', rate: '0.1300',
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(201);
     });
 
@@ -97,14 +97,14 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       mockTaxService.createTaxRate.mockRejectedValue(new NotFoundError('税率类', 999));
       const res = await POST_RATE(makeRequest('/api/tax-rates', 'POST', {
         taxClassId: 999, name: '增值税', rate: '0.1300',
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(404);
     });
 
     it('缺少必填字段 → 400', async () => {
       const res = await POST_RATE(makeRequest('/api/tax-rates', 'POST', {
         name: '增值税',
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(400);
     });
   });
@@ -119,7 +119,7 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       });
       const res = await POST_RULE(makeRequest('/api/tax-rules', 'POST', {
         taxClassId: 1, taxRateId: 1,
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(201);
     });
 
@@ -127,7 +127,7 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       mockTaxService.createTaxRule.mockRejectedValue(new NotFoundError('税率类', 999));
       const res = await POST_RULE(makeRequest('/api/tax-rules', 'POST', {
         taxClassId: 999, taxRateId: 1,
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(404);
     });
 
@@ -135,14 +135,14 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       mockTaxService.createTaxRule.mockRejectedValue(new BusinessRuleError('税率和规则必须属于同一税率类'));
       const res = await POST_RULE(makeRequest('/api/tax-rules', 'POST', {
         taxClassId: 1, taxRateId: 10,
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(422);
     });
 
     it('缺少必填字段 → 400', async () => {
       const res = await POST_RULE(makeRequest('/api/tax-rules', 'POST', {
         basedOn: 'shipping',
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(400);
     });
 
@@ -150,7 +150,7 @@ describe('Tax API Route — ServiceError 回归测试', () => {
       mockTaxService.createTaxRule.mockRejectedValue(new Error('未知错误'));
       const res = await POST_RULE(makeRequest('/api/tax-rules', 'POST', {
         taxClassId: 1, taxRateId: 1,
-      }));
+      }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(500);
     });
   });

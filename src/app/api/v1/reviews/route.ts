@@ -16,7 +16,7 @@ export const GET = withRateLimit(async (request: NextRequest) => {
     return cacheResponse(NextResponse.json(items), { maxAge: 30 });
   }
 
-  const result = await ReviewService.getAll({ status, page, pageSize });
+  const result = await ReviewService.list({ status, page, pageSize });
   return cacheResponse(NextResponse.json(result), { maxAge: 30 });
 }, { maxRequests: 60, windowMs: 60_000 });
 

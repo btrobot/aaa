@@ -56,14 +56,15 @@ export function withMiddleware<TParams extends Record<string, string> = Record<s
     try {
       // 1. 速率限制
       if (config.rateLimit) {
-        const result = rateLimitMiddleware(request, config.rateLimit);
+        const result = await rateLimitMiddleware(request, config.rateLimit);
         if (!result.allowed) {
+          const resetAt = result.resetAt;
           return NextResponse.json(
             { error: '请求过于频繁，请稍后再试' },
             {
               status: 429,
               headers: {
-                'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+                'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
                 'X-RateLimit-Remaining': '0',
               },
             }

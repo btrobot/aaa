@@ -79,13 +79,13 @@ vi.mock('@/lib/api-middleware', async () => {
 // ─── Import routes after mocks ────────────────────────────────
 
 const { GET: GET_CUSTOMERS, POST: POST_CUSTOMER } = await import(
-  '@/app/api/customers/route'
+  '@/app/api/v1/customers/route'
 );
 const {
   GET: _GET_WISHLIST,
   POST: POST_WISHLIST,
   DELETE: DELETE_WISHLIST,
-} = await import('@/app/api/customers/wishlist/route');
+} = await import('@/app/api/v1/customers/wishlist/route');
 
 // ─── Helpers ──────────────────────────────────────────────────
 

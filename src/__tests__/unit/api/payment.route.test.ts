@@ -33,7 +33,7 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { POST } = await import('@/app/api/payment/route');
+const { POST } = await import('@/app/api/v1/payment/route');
 
 function makeRequest(body: unknown): NextRequest {
   return new NextRequest(new URL('/api/payment', 'http://localhost:9090'), {

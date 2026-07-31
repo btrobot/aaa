@@ -25,8 +25,8 @@ vi.mock('@/lib/api-middleware', async () => {
   return { withAdmin: wrap, withMiddleware: wrap, withAuth: wrap, cacheResponse: (res: NextResponse) => res };
 });
 
-const { GET: _GET_LIST, POST } = await import('@/app/api/categories/route');
-const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/categories/[id]/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/v1/categories/route');
+const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/v1/categories/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {

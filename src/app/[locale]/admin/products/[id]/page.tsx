@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from '@/i18n/useTranslations';
+import { useRouter } from 'next/navigation';
 import { useParams } from 'next/navigation';
 import { api, type Brand, type CategoryTreeNode, type ProductDescription } from '@/lib/api';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
@@ -37,15 +38,6 @@ export default function AdminEditProduct() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
 
-  useEffect(() => {
-    if (!id || isNaN(id)) {
-      setError('无效的产品ID');
-      setLoading(false);
-      return;
-    }
-    loadData();
-  }, [id, loadData]);
-
   const loadData = useCallback(async () => {
     try {
       const [product, brandsList, categoriesTree] = await Promise.all([
@@ -77,6 +69,15 @@ export default function AdminEditProduct() {
       setLoading(false);
     }
   }, [id, locale]);
+
+  useEffect(() => {
+    if (!id || isNaN(id)) {
+      setError('无效的产品ID');
+      setLoading(false);
+      return;
+    }
+    loadData();
+  }, [id, loadData]);
 
   function toggleCategory(catId: number) {
     setCategoryIds(prev =>

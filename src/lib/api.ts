@@ -371,97 +371,97 @@ export const api = {
       if (params?.locale) qs.set('locale', params.locale);
       if (params?.sortBy) qs.set('sortBy', params.sortBy);
       if (params?.sortOrder) qs.set('sortOrder', params.sortOrder);
-      return request<Product[]>(`/api/products?${qs.toString()}`);
+      return request<Product[]>(`/api/v1/products?${qs.toString()}`);
     },
-    get: (id: number) => request<Product>(`/api/products/${id}`),
+    get: (id: number) => request<Product>(`/api/v1/products/${id}`),
     create: (data: CreateProductInput) =>
-      request<Product>('/api/products', {
+      request<Product>('/api/v1/products', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
     update: (id: number, data: UpdateProductInput) =>
-      request<Product>(`/api/products/${id}`, {
+      request<Product>(`/api/v1/products/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: (id: number) =>
-      request<void>(`/api/products/${id}`, { method: 'DELETE' }),
+      request<void>(`/api/v1/products/${id}`, { method: 'DELETE' }),
   },
 
   // 分类
   categories: {
     list: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<CategoryTreeNode[]>(`/api/categories${qs}`);
+      return request<CategoryTreeNode[]>(`/api/v1/categories${qs}`);
     },
     create: (data: CreateCategoryInput) =>
-      request<CategoryTreeNode>('/api/categories', {
+      request<CategoryTreeNode>('/api/v1/categories', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
     update: (id: number, data: UpdateCategoryInput) =>
-      request<CategoryTreeNode>(`/api/categories/${id}`, {
+      request<CategoryTreeNode>(`/api/v1/categories/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: (id: number) =>
-      request<void>(`/api/categories/${id}`, { method: 'DELETE' }),
+      request<void>(`/api/v1/categories/${id}`, { method: 'DELETE' }),
   },
 
   // 品牌
   brands: {
-    list: () => request<Brand[]>('/api/brands'),
+    list: () => request<Brand[]>('/api/v1/brands'),
     create: (data: CreateBrandInput) =>
-      request<Brand>('/api/brands', {
+      request<Brand>('/api/v1/brands', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
     update: (id: number, data: UpdateBrandInput) =>
-      request<Brand>(`/api/brands/${id}`, {
+      request<Brand>(`/api/v1/brands/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: (id: number) =>
-      request<void>(`/api/brands/${id}`, { method: 'DELETE' }),
+      request<void>(`/api/v1/brands/${id}`, { method: 'DELETE' }),
   },
 
   // 购物车
   cart: {
     get: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<CartItem[]>(`/api/cart${qs}`);
+      return request<CartItem[]>(`/api/v1/cart${qs}`);
     },
     add: (productId: number, quantity: number) =>
-      request<CartItem>('/api/cart', {
+      request<CartItem>('/api/v1/cart', {
         method: 'POST',
         body: JSON.stringify({ productId, quantity }),
       }),
     update: (id: number, quantity: number) =>
-      request<CartItem>('/api/cart', {
+      request<CartItem>('/api/v1/cart', {
         method: 'PUT',
         body: JSON.stringify({ id, quantity }),
       }),
     remove: (id: number) =>
-      request<{ success: boolean }>(`/api/cart?id=${id}`, { method: 'DELETE' }),
+      request<{ success: boolean }>(`/api/v1/cart?id=${id}`, { method: 'DELETE' }),
   },
 
   // 订单
   orders: {
     list: () =>
-      request<Order[]>('/api/orders'),
+      request<Order[]>('/api/v1/orders'),
     getAll: () =>
-      request<Order[]>('/api/orders?admin=true'),
+      request<Order[]>('/api/v1/orders?admin=true'),
     getById: (id: number) =>
-      request<Order>(`/api/orders/${id}`),
+      request<Order>(`/api/v1/orders/${id}`),
     get: (number: string) =>
-      request<Order>(`/api/orders?number=${number}`),
+      request<Order>(`/api/v1/orders?number=${number}`),
     create: (data?: CreateOrderInput) =>
-      request<Order>('/api/orders', {
+      request<Order>('/api/v1/orders', {
         method: 'POST',
         body: JSON.stringify(data || {}),
       }),
     updateStatus: (id: number, status: string) =>
-      request<Order>(`/api/orders/${id}`, {
+      request<Order>(`/api/v1/orders/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ status }),
       }),
@@ -470,26 +470,26 @@ export const api = {
   // 认证
   auth: {
     login: (data: { email: string; password: string }) =>
-      request<AuthResponse>('/api/auth', {
+      request<AuthResponse>('/api/v1/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'login', ...data }),
       }),
     register: (data: { email: string; password: string; name: string; locale?: string }) =>
-      request<AuthResponse>('/api/auth', {
+      request<AuthResponse>('/api/v1/auth', {
         method: 'POST',
         body: JSON.stringify({ action: 'register', ...data }),
       }),
-    me: () => request<Customer>('/api/auth/me'),
+    me: () => request<Customer>('/api/v1/auth/me'),
   },
 
   // 客户
   customers: {
-    get: () => request<Customer>('/api/customers'),
-    getAll: () => request<Customer[]>('/api/customers?admin=true'),
-    wishlist: () => request<WishlistItem[]>('/api/customers/wishlist'),
-    removeWishlist: (productId: number) => request<{ success: boolean }>(`/api/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
+    get: () => request<Customer>('/api/v1/customers'),
+    getAll: () => request<Customer[]>('/api/v1/customers?admin=true'),
+    wishlist: () => request<WishlistItem[]>('/api/v1/customers/wishlist'),
+    removeWishlist: (productId: number) => request<{ success: boolean }>(`/api/v1/customers/wishlist?productId=${productId}`, { method: 'DELETE' }),
     update: (data: UpdateCustomerInput) =>
-      request<Customer>('/api/customers', {
+      request<Customer>('/api/v1/customers', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -499,7 +499,7 @@ export const api = {
   shipping: {
     list: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<ShippingMethod[]>(`/api/shipping-methods${qs}`);
+      return request<ShippingMethod[]>(`/api/v1/shipping-methods${qs}`);
     },
   },
 
@@ -509,48 +509,48 @@ export const api = {
       const qs = new URLSearchParams();
       if (params?.locale) qs.set('locale', params.locale);
       if (params?.status !== undefined) qs.set('status', String(params.status));
-      return request<Page[]>(`/api/pages?${qs.toString()}`);
+      return request<Page[]>(`/api/v1/pages?${qs.toString()}`);
     },
     getById: (id: number) =>
-      request<Page>(`/api/pages/${id}`),
+      request<Page>(`/api/v1/pages/${id}`),
     create: (data: CreatePageInput) =>
-      request<Page>('/api/pages', { method: 'POST', body: JSON.stringify(data) }),
+      request<Page>('/api/v1/pages', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: UpdatePageInput) =>
-      request<Page>(`/api/pages/${id}`, {
+      request<Page>(`/api/v1/pages/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: (id: number) =>
-      request<void>(`/api/pages/${id}`, { method: 'DELETE' }),
+      request<void>(`/api/v1/pages/${id}`, { method: 'DELETE' }),
   },
 
   // 系统设置
   settings: {
     getAll: (locale?: string) => {
       const qs = locale ? `?locale=${locale}` : '';
-      return request<Record<string, string>>(`/api/settings${qs}`);
+      return request<Record<string, string>>(`/api/v1/settings${qs}`);
     },
     update: (data: { settings: Record<string, string>; locale?: string }) =>
-      request<Record<string, string>>('/api/settings', {
+      request<Record<string, string>>('/api/v1/settings', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
   },
   attributes: {
     list: (locale: string) =>
-      request<AttributeGroup[]>(`/api/attributes?locale=${locale}`),
+      request<AttributeGroup[]>(`/api/v1/attributes?locale=${locale}`),
     create: (type: string, data: CreateAttributeInput) =>
-      request<Record<string, unknown>>('/api/attributes', {
+      request<Record<string, unknown>>('/api/v1/attributes', {
         method: 'POST',
         body: JSON.stringify({ type, data }),
       }),
     update: (type: string, id: number, data: UpdateAttributeInput) =>
-      request<Record<string, unknown>>('/api/attributes', {
+      request<Record<string, unknown>>('/api/v1/attributes', {
         method: 'PUT',
         body: JSON.stringify({ type, id, data }),
       }),
     delete: (type: string, id: number) =>
-      request<{ success: boolean }>(`/api/attributes?type=${type}&id=${id}`, {
+      request<{ success: boolean }>(`/api/v1/attributes?type=${type}&id=${id}`, {
         method: 'DELETE',
       }),
   },

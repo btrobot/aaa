@@ -40,8 +40,8 @@ vi.mock('@/lib/api-middleware', async () => {
 });
 
 // ── 动态导入路由 ───────────────────────────────────────────────
-const { GET: GET_LIST, POST } = await import('@/app/api/customer-groups/route');
-const { PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/customer-groups/[id]/route');
+const { GET: GET_LIST, POST } = await import('@/app/api/v1/customer-groups/route');
+const { PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/v1/customer-groups/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {

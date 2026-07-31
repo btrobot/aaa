@@ -25,7 +25,7 @@ app.prepare().then(() => {
 
   server.on('upgrade', (req, socket, head) => {
     const parsedUrl = parse(req.url!, true);
-    upgrade(req, socket, head, parsedUrl);
+    upgrade(req, socket, head);
   });
 
   server.once('error', (err) => {

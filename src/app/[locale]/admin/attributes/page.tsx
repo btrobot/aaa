@@ -128,14 +128,14 @@ export default function AdminAttributesPage() {
             await api.attributes.create('group', { descriptions });
             break;
           case 'attribute':
-            await api.attributes.create('attribute', { attributeGroupId: parentGroupId, descriptions });
+            await api.attributes.create('attribute', { attributeGroupId: parentGroupId ?? undefined, descriptions });
             break;
           case 'value':
-            await api.attributes.create('value', { attributeId: parentAttrId, descriptions });
+            await api.attributes.create('value', { attributeId: parentAttrId ?? undefined, descriptions });
             break;
         }
       } else {
-        const id = editingItem?.id;
+        const id = editingItem!.id;
         switch (modalMode) {
           case 'group':
             await api.attributes.update('group', id, { descriptions });

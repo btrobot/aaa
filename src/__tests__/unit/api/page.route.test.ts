@@ -36,8 +36,8 @@ vi.mock('@/lib/api-middleware', async () => {
   };
 });
 
-const { GET: GET_LIST, POST } = await import('@/app/api/pages/route');
-const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/pages/[id]/route');
+const { GET: GET_LIST, POST } = await import('@/app/api/v1/pages/route');
+const { GET: GET_BY_ID, PUT, DELETE: DELETE_BY_ID } = await import('@/app/api/v1/pages/[id]/route');
 
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:9090'), {
@@ -55,7 +55,7 @@ describe('Page API Route — ServiceError 回归测试', () => {
   describe('GET /api/pages', () => {
     it('正常列表 → 200', async () => {
       mockPageService.search.mockResolvedValue([]);
-      const res = await GET_LIST(makeRequest('/api/pages'));
+      const res = await GET_LIST(makeRequest('/api/pages'), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(200);
     });
   });
@@ -66,13 +66,13 @@ describe('Page API Route — ServiceError 回归测试', () => {
   describe('POST /api/pages', () => {
     it('slug 重复 → 422', async () => {
       mockPageService.create.mockRejectedValue(new BusinessRuleError('slug "dup" 已存在'));
-      const res = await POST(makeRequest('/api/pages', 'POST', { slug: 'dup' }), { params: Promise.resolve({}) });
+      const res = await POST(makeRequest('/api/pages', 'POST', { slug: 'dup' }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(422);
     });
 
     it('正常创建 → 201', async () => {
       mockPageService.create.mockResolvedValue({ id: 1, slug: 'new' });
-      const res = await POST(makeRequest('/api/pages', 'POST', { slug: 'new' }), { params: Promise.resolve({}) });
+      const res = await POST(makeRequest('/api/pages', 'POST', { slug: 'new' }), { params: Promise.resolve<Record<string, string>>({}) });
       expect(res.status).toBe(201);
     });
   });

@@ -45,13 +45,13 @@ vi.mock('@/lib/api-middleware', async () => {
 });
 
 // ─── 动态导入路由 ─────────────────────────────────────────────
-const { GET: _GET_LIST, POST } = await import('@/app/api/reviews/route');
+const { GET: _GET_LIST, POST } = await import('@/app/api/v1/reviews/route');
 const {
   GET: GET_BY_ID,
   PUT,
   DELETE: DELETE_BY_ID,
-} = await import('@/app/api/reviews/[id]/route');
-const { GET: GET_STATS } = await import('@/app/api/reviews/stats/route');
+} = await import('@/app/api/v1/reviews/[id]/route');
+const { GET: GET_STATS } = await import('@/app/api/v1/reviews/stats/route');
 
 // ─── 工具函数 ─────────────────────────────────────────────────
 function makeRequest(url: string, method = 'GET', body?: unknown): NextRequest {
@@ -76,7 +76,7 @@ describe('Review API Route — ServiceError 回归测试', () => {
       });
       const res = await POST(
         makeRequest('/api/reviews', 'POST', { productId: 1, rating: 5, content: '好评' }),
-        { user: { id: 1 } },
+        { params: Promise.resolve({}), user: { id: 1 } } as any,
       );
       expect(res.status).toBe(201);
     });
@@ -85,7 +85,7 @@ describe('Review API Route — ServiceError 回归测试', () => {
       mockReviewService.create.mockRejectedValue(new NotFoundError('产品', 999));
       const res = await POST(
         makeRequest('/api/reviews', 'POST', { productId: 999, rating: 5 }),
-        { user: { id: 1 } },
+        { params: Promise.resolve({}), user: { id: 1 } } as any,
       );
       expect(res.status).toBe(404);
     });
@@ -96,7 +96,7 @@ describe('Review API Route — ServiceError 回归测试', () => {
       );
       const res = await POST(
         makeRequest('/api/reviews', 'POST', { productId: 1, rating: 5 }),
-        { user: { id: 1 } },
+        { params: Promise.resolve({}), user: { id: 1 } } as any,
       );
       expect(res.status).toBe(422);
     });
@@ -107,7 +107,7 @@ describe('Review API Route — ServiceError 回归测试', () => {
       );
       const res = await POST(
         makeRequest('/api/reviews', 'POST', { productId: 1, rating: 5 }),
-        { user: { id: 1 } },
+        { params: Promise.resolve({}), user: { id: 1 } } as any,
       );
       expect(res.status).toBe(422);
     });
@@ -116,7 +116,7 @@ describe('Review API Route — ServiceError 回归测试', () => {
       mockReviewService.create.mockRejectedValue(new Error('数据库连接失败'));
       const res = await POST(
         makeRequest('/api/reviews', 'POST', { productId: 1, rating: 5 }),
-        { user: { id: 1 } },
+        { params: Promise.resolve({}), user: { id: 1 } } as any,
       );
       expect(res.status).toBe(500);
     });
@@ -190,13 +190,13 @@ describe('Review API Route — ServiceError 回归测试', () => {
   // ─── GET /api/reviews/stats ──────────────────────────────
   describe('GET /api/reviews/stats', () => {
     it('缺少 productId → 400', async () => {
-      const res = await GET_STATS(makeRequest('/api/reviews/stats'));
+      const res = await GET_STATS(makeRequest('/api/reviews/stats'), { params: Promise.resolve({}) });
       expect(res.status).toBe(400);
     });
 
     it('产品不存在 → 404', async () => {
       mockReviewService.getStats.mockRejectedValue(new NotFoundError('产品', 999));
-      const res = await GET_STATS(makeRequest('/api/reviews/stats?productId=999'));
+      const res = await GET_STATS(makeRequest('/api/reviews/stats?productId=999'), { params: Promise.resolve({}) });
       expect(res.status).toBe(404);
     });
 
@@ -204,7 +204,7 @@ describe('Review API Route — ServiceError 回归测试', () => {
       mockReviewService.getStats.mockResolvedValue({
         average: 4.5, total: 10, distribution: { 1: 0, 2: 0, 3: 1, 4: 3, 5: 6 },
       });
-      const res = await GET_STATS(makeRequest('/api/reviews/stats?productId=1'));
+      const res = await GET_STATS(makeRequest('/api/reviews/stats?productId=1'), { params: Promise.resolve({}) });
       expect(res.status).toBe(200);
     });
   });
