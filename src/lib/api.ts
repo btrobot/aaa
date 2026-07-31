@@ -103,6 +103,7 @@ export interface CreateOrderInput {
 export interface AuthResponse {
   customer: Customer;
   token: string;
+  role: 'customer' | 'admin';
 }
 
 export interface Customer {

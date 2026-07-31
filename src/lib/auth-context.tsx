@@ -57,7 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 用 token 向后端验证并获取最新用户信息
     api.auth.me()
       .then((data) => {
-        const authUser: AuthUser = { id: data.id, email: data.email, name: data.name, role: data.role || 'customer', phone: data.phone, avatar: data.avatar };
+        const role = (data.role === 'admin' ? 'admin' : 'customer') as 'customer' | 'admin';
+        const authUser: AuthUser = { id: data.id, email: data.email, name: data.name, role, phone: data.phone, avatar: data.avatar };
         setUser(authUser);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
       })
@@ -76,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: res.customer.id,
       email: res.customer.email,
       name: res.customer.name,
-      role: res.token.split('.')[1] ? JSON.parse(atob(res.token.split('.')[1])).role : 'customer',
+      role: res.role || 'customer',
       phone: res.customer.phone,
       avatar: res.customer.avatar,
     };

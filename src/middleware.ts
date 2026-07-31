@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-const locales = ['zh', 'en'];
-const defaultLocale = 'zh';
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/lib/locales';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if pathname already has a locale
-  const pathnameHasLocale = locales.some(
+  const pathnameHasLocale = SUPPORTED_LOCALES.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
 
   if (pathnameHasLocale) return;
 
   // Redirect to default locale
-  const newUrl = new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url);
+  const newUrl = new URL(`/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`, request.url);
   return NextResponse.redirect(newUrl);
 }
 

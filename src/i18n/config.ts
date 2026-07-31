@@ -1,8 +1,10 @@
-export type Locale = 'zh' | 'en' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'ru' | 'pt' | 'ar' | 'th';
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from '@/lib/locales';
 
-export const defaultLocale: Locale = 'zh';
+export type Locale = SupportedLocale;
 
-export const locales: Locale[] = ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'ru', 'pt', 'ar', 'th'];
+export const defaultLocale: Locale = DEFAULT_LOCALE;
+
+export const locales: Locale[] = [...SUPPORTED_LOCALES];
 
 export const localeNames: Record<Locale, string> = {
   zh: '中文',

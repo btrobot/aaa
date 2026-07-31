@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
 import type { Product } from '@/lib/api';
+import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ export default function ProductDetailPage({
 }) {
   const { locale, t } = useTranslations();
   const { id } = use(params);
+  const { refreshCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,7 @@ export default function ProductDetailPage({
     setAddingToCart(true);
     try {
       await api.cart.add(Number(id), quantity);
+      await refreshCart();
       alert(t('products.addedToCart'));
     } catch (err) {
       console.error('Failed to add to cart:', err);

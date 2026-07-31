@@ -23,7 +23,7 @@ export const POST = withRateLimit(async (request) => {
       try {
         const customer = await CustomerService.login({ email, password });
         const token = await signToken({ id: customer.id, email: customer.email, role: 'customer' });
-        return NextResponse.json({ customer, token });
+        return NextResponse.json({ customer, token, role: 'customer' });
       } catch (error) {
         if (error instanceof BusinessRuleError && error.message === '账户已被禁用') {
           return NextResponse.json({ error: '账户已被禁用' }, { status: 403 });
@@ -45,7 +45,7 @@ export const POST = withRateLimit(async (request) => {
       }
       const { password: _, ...safeAdmin } = admin;
       const token = await signToken({ id: admin.id, email: admin.email, name: admin.name, role: 'admin' });
-      return NextResponse.json({ customer: safeAdmin, token });
+      return NextResponse.json({ customer: safeAdmin, token, role: 'admin' });
     }
 
     case 'register': {
@@ -62,7 +62,7 @@ export const POST = withRateLimit(async (request) => {
           phone: body.phone || undefined,
         });
         const token = await signToken({ id: customer.id, email: customer.email, role: 'customer' });
-        return NextResponse.json({ customer, token }, { status: 201 });
+        return NextResponse.json({ customer, token, role: 'customer' }, { status: 201 });
       } catch (error) {
         if (error instanceof BusinessRuleError && error.message === '邮箱已被注册') {
           return NextResponse.json({ error: '该邮箱已注册' }, { status: 409 });

@@ -69,10 +69,8 @@ export function AllProviders({
           value={{
             items: [],
             totalItems: cartItems,
-            addItem: () => {},
-            removeItem: () => {},
-            updateQuantity: () => {},
-            clearCart: () => {},
+            loading: false,
+            refreshCart: async () => {},
           }}
         >
           {children}
