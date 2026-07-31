@@ -300,7 +300,7 @@ describe('CartService', () => {
       mockDb.update = vi.fn(() => ({
         set: vi.fn(() => ({
           where: vi.fn(() => ({
-            returning: vi.fn(() => Promise.resolve([{ id: 1, selected: false }])),
+            returning: vi.fn(() => Promise.resolve([{ id: 1, quantity: 1, selected: false }] as any)),
           })),
         })),
       }));

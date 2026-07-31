@@ -127,7 +127,8 @@ describe('PageService', () => {
   // ===========================================================================
   describe('create', () => {
     const createData = {
-      slug: 'new-page',
+      status: true,
+      sortOrder: 0,
       descriptions: { zh_cn: { title: '新页面' } },
     };
 
@@ -149,12 +150,12 @@ describe('PageService', () => {
     it('无 slug 时应跳过唯一性检查', async () => {
       mockSelect([]);
 
-      const result = await svc.create({ descriptions: { zh_cn: { title: '无 slug' } } });
+      const result = await svc.create({ status: true, sortOrder: 0, descriptions: { zh_cn: { title: '无 slug' } } });
       expect(result).toHaveProperty('id', 1);
     });
 
     it('应校验 zod schema — descriptions.title 为空', async () => {
-      await expect(svc.create({ descriptions: { zh_cn: { title: '' } } }))
+      await expect(svc.create({ status: true, sortOrder: 0, descriptions: { zh_cn: { title: '' } } }))
         .rejects.toThrow();
     });
   });
@@ -166,14 +167,14 @@ describe('PageService', () => {
     it('应能更新页面（happy path）', async () => {
       mockSelect([pageRow({ id: 1, slug: 'updated' })]);
 
-      const result = await svc.update(1, { slug: 'updated' });
+      const result = await svc.update(1, { status: false });
       expect(result).toHaveProperty('slug', 'updated');
     });
 
     it('页面不存在时应抛出 NotFoundError（pre 违反）', async () => {
       mockSelect([]);
 
-      await expect(svc.update(999, { slug: 'x' }))
+      await expect(svc.update(999, { status: false }))
         .rejects.toThrow(NotFoundError);
     });
 

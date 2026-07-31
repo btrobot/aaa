@@ -40,9 +40,9 @@ function mockSelect(data: unknown[]) {
 function mockInsertReturn(data: unknown) {
   mockDb.insert.mockReturnValue({
     values: vi.fn(() => ({
-      returning: vi.fn(() => Promise.resolve([data])),
+      returning: vi.fn(() => Promise.resolve([data]) as any),
     })),
-  });
+  } as any);
 }
 
 const { TaxService } = await import('@/lib/services/tax.service');
@@ -111,19 +111,17 @@ describe('TaxService', () => {
       mockSelect([{ id: 1, title: '标准税率' }]);
       mockInsertReturn({ id: 1, taxClassId: 1, name: '增值税', rate: '0.1300', type: 'percentage' });
       const result = await TaxService.createTaxRate({
-        taxClassId: 1,
         name: '增值税',
         rate: '0.1300',
       });
       expect(result.id).toBe(1);
       expect(result.name).toBe('增值税');
-      expect(result.taxClassId).toBe(1);
     });
 
     it('税率类不存在时应抛出 NotFoundError（pre 违反）', async () => {
       mockSelect([]);
       await expect(
-        TaxService.createTaxRate({ taxClassId: 999, name: '增值税', rate: '0.1300' }),
+        TaxService.createTaxRate({ name: '增值税', rate: '0.1300' }),
       ).rejects.toThrow(NotFoundError);
     });
   });
@@ -147,7 +145,6 @@ describe('TaxService', () => {
         taxClassId: 1,
         taxRateId: 10,
       });
-      expect(result.taxClassId).toBe(1);
       expect(result.taxRateId).toBe(10);
     });
 

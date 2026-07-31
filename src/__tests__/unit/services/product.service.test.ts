@@ -126,6 +126,9 @@ describe('ProductService', () => {
         ProductService.create({
           sku: '',
           price: '100.00',
+          status: true,
+          quantity: 0,
+          sortOrder: 0,
           descriptions: { zh_cn: { name: '测试' } },
         })
       ).rejects.toThrow('SKU 不能为空');

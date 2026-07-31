@@ -132,14 +132,14 @@ describe('CategoryService', () => {
         [{ categories: { id: 1 }, category_descriptions: { name: '旧' } }], // findById
       );
 
-      const result = await CategoryService.update(1, { slug: 'new-slug' });
+      const result = await CategoryService.update(1, { descriptions: { zh_cn: { name: 'new-name' } } });
       expect(result).toHaveProperty('id', 1);
     });
 
     it('分类不存在时应抛出 NotFoundError（pre 违反）', async () => {
       mockSelectSequence([]);
 
-      await expect(CategoryService.update(999, { slug: 'x' }))
+      await expect(CategoryService.update(999, { descriptions: { zh_cn: { name: 'x' } } }))
         .rejects.toThrow(NotFoundError);
     });
 

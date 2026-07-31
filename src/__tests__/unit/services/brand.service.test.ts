@@ -56,7 +56,7 @@ describe('BrandService', () => {
   // create
   // ===========================================================================
   describe('create', () => {
-    const brandData = { name: 'Test Brand', description: 'A test brand', website: 'https://test.com' };
+    const brandData = { name: 'Test Brand', description: 'A test brand', website: 'https://test.com', sortOrder: 0, status: true };
 
     it('应能创建品牌（happy path）', async () => {
       mockSelect([]); // 品牌名不存在
@@ -75,7 +75,7 @@ describe('BrandService', () => {
     });
 
     it('应校验 zod schema — name 为空字符串', async () => {
-      await expect(BrandService.create({ name: '' }))
+      await expect(BrandService.create({ name: '', sortOrder: 0, status: true }))
         .rejects.toThrow();
     });
   });
