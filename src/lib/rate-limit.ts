@@ -38,22 +38,32 @@ class MemoryStore implements RateLimitStore {
 // ============================================================
 class RedisStore implements RateLimitStore {
   private client: any;
+  private initPromise: Promise<void> | null = null;
 
   constructor(redisUrl?: string) {
-    // 延迟加载 Redis 客户端，避免在不需要时引入依赖
-    if (typeof require !== 'undefined') {
-      try {
-        // 使用动态导入，支持 CommonJS 和 ES Module
-        const Redis = require('ioredis');
-        this.client = new Redis(redisUrl || process.env.REDIS_URL || 'redis://localhost:6379');
-      } catch (err) {
-        console.warn('[RateLimit] Redis not available, falling back to memory store');
-        throw err;
-      }
+    this.initPromise = this.initClient(redisUrl);
+  }
+
+  private async initClient(redisUrl?: string) {
+    try {
+      // 使用变量避免 Next.js 构建时解析 ioredis 依赖
+      const redisModule = 'ioredis';
+      const { default: Redis } = await import(redisModule);
+      this.client = new Redis(redisUrl || process.env.REDIS_URL || 'redis://localhost:6379');
+    } catch (err) {
+      console.warn('[RateLimit] Redis not available, falling back to memory store');
+      throw err;
+    }
+  }
+
+  private async ensureClient() {
+    if (!this.client && this.initPromise) {
+      await this.initPromise;
     }
   }
 
   async get(key: string): Promise<{ count: number; resetAt: number } | null> {
+    await this.ensureClient();
     const data = await this.client.get(key);
     if (!data) return null;
     try {
@@ -64,6 +74,7 @@ class RedisStore implements RateLimitStore {
   }
 
   async set(key: string, value: { count: number; resetAt: number }, ttlMs: number): Promise<void> {
+    await this.ensureClient();
     const ttlSeconds = Math.ceil(ttlMs / 1000);
     await this.client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
   }

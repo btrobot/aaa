@@ -24,7 +24,7 @@ function toCreateInput(body: Record<string, unknown>) {
 export const GET = withMiddleware(async (request: NextRequest) => {
   const locale = request.nextUrl.searchParams.get('locale') || 'zh_cn';
   const categories = await CategoryService.getTree(locale);
-  return cacheResponse(NextResponse.json(categories), { maxAge: 60 });
+  return cacheResponse(NextResponse.json(categories), { maxAge: 30 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 export const POST = withAdmin(async (request) => {

@@ -9,7 +9,7 @@ export const GET = withMiddleware(async (request: NextRequest) => {
     ? searchParams.get('status') === 'true'
     : undefined;
   const methods = await ShippingService.list({ locale, status });
-  return cacheResponse(NextResponse.json(methods), { maxAge: 60 });
+  return cacheResponse(NextResponse.json(methods), { maxAge: 30 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 export const POST = withAdmin(async (request) => {

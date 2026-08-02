@@ -29,7 +29,7 @@ export const GET = withMiddleware(async (request, { user }) => {
   requireAuth(user!, ['customer']);
   const orders = await OrderService.getCustomerOrders(user!.id);
   return NextResponse.json(orders);
-}, { auth: true });
+}, { auth: true, rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * POST /api/orders — 登录用户可创建订单
@@ -38,7 +38,7 @@ export const POST = withAuth(async (request, { user }) => {
   const body = await request.json();
   const order = await OrderService.create({ ...body, customerId: user.id });
   return NextResponse.json(order, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 10, windowMs: 60_000 } });
 
 /**
  * PUT /api/orders — 仅管理员可更新订单状态
@@ -51,4 +51,4 @@ export const PUT = withAdmin(async (request) => {
   }
   const order = await OrderService.updateStatus(id, status);
   return NextResponse.json(order);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

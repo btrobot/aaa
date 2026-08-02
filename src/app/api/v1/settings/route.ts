@@ -5,7 +5,7 @@ import { withMiddleware, withAdmin, cacheResponse } from '@/lib/api-middleware';
 export const GET = withMiddleware(async (request: NextRequest) => {
   const locale = request.nextUrl.searchParams.get('locale') || undefined;
   const data = await SettingsService.getAll(locale);
-  return cacheResponse(NextResponse.json(data), { maxAge: 60 });
+  return cacheResponse(NextResponse.json(data), { maxAge: 300 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 export const PUT = withAdmin(async (request) => {

@@ -49,7 +49,10 @@ export const countries = pgTable('countries', {
   code: varchar('code', { length: 2 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   status: boolean('status').default(true),
-});
+}, (table) => ({
+  countryCodeIdx: index('countries_code_idx').on(table.code),
+  countryStatusIdx: index('countries_status_idx').on(table.status),
+}));
 
 // ============================================================
 // 区域/州
@@ -59,7 +62,9 @@ export const zones = pgTable('zones', {
   countryId: integer('country_id').notNull().references(() => countries.id),
   code: varchar('code', { length: 50 }),
   name: varchar('name', { length: 255 }).notNull(),
-});
+}, (table) => ({
+  zoneCountryIdx: index('zones_country_idx').on(table.countryId),
+}));
 
 // ============================================================
 // 系统设置
@@ -125,7 +130,11 @@ export const pages = pgTable('pages', {
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  pageCategoryIdx: index('pages_category_idx').on(table.categoryId),
+  pageStatusIdx: index('pages_status_idx').on(table.status),
+}));
 
 export const pageDescriptions = pgTable('page_descriptions', {
   id: serial('id').primaryKey(),
@@ -187,7 +196,10 @@ export const shippingMethods = pgTable('shipping_methods', {
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  shippingStatusIdx: index('shipping_methods_status_idx').on(table.status),
+}));
 
 export const shippingMethodDescriptions = pgTable('shipping_method_descriptions', {
   id: serial('id').primaryKey(),

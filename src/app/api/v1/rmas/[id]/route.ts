@@ -16,7 +16,7 @@ export const GET = withAuth(async (
     return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
   return NextResponse.json(rma);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * PUT /api/rmas/[id] — 管理员可更新退换货状态
@@ -29,4 +29,4 @@ export const PUT = withAdmin(async (
   const body = await request.json();
   const result = await RmaService.updateStatus(parseInt(id), body);
   return NextResponse.json(result);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

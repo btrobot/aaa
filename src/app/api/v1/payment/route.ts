@@ -30,4 +30,4 @@ export const POST = withAuth(async (request, { user }) => {
     default:
       throw new BusinessRuleError('未知操作');
   }
-});
+}, { rateLimit: { maxRequests: 10, windowMs: 60_000 } });

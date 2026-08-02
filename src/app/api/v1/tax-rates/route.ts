@@ -9,4 +9,4 @@ export const POST = withAdmin(async (request: NextRequest) => {
   }
   const rate = await TaxService.createTaxRate(body);
   return NextResponse.json(rate, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

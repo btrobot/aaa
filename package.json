@@ -22,7 +22,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "validate": "pnpm dlx concurrently --group --names lint-tsc,lint-build,lint-style \"pnpm ts-check\" \"pnpm lint:build\" \"pnpm lint:style\"",
+    "validate": "pnpm dlx concurrently --group --names lint-tsc,lint-build,lint-style,coverage \"pnpm ts-check\" \"pnpm lint:build\" \"pnpm lint:style\" \"pnpm test:coverage\"",
     "gate:commit": "pnpm validate && pnpm test",
     "gate:deploy": "pnpm test:coverage && pnpm test:e2e"
   },
@@ -89,6 +89,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.12",
     "@playwright/test": "^1.62.0",
     "@react-dev-inspector/babel-plugin": "^2.0.1",
     "@react-dev-inspector/middleware": "^2.0.1",

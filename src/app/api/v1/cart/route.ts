@@ -10,7 +10,7 @@ export const GET = withAuth(async (request, { user }) => {
   const locale = request.nextUrl.searchParams.get('locale') || 'zh_cn';
   const items = await CartService.getCart(user.id, locale);
   return NextResponse.json(items);
-});
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 /**
  * POST /api/cart — 向当前登录用户的购物车添加商品
@@ -19,7 +19,7 @@ export const POST = withAuth(async (request, { user }) => {
   const body = await request.json();
   const item = await CartService.addItem({ ...body, customerId: user.id });
   return NextResponse.json(item, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * PUT /api/cart — 更新购物车商品数量（需验证所有权）
@@ -28,7 +28,7 @@ export const PUT = withAuth(async (request, { user }) => {
   const body = await request.json();
   const item = await CartService.updateQuantity(body.id, body.quantity, user.id);
   return NextResponse.json(item);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * DELETE /api/cart — 删除购物车商品（需验证所有权）
@@ -40,4 +40,4 @@ export const DELETE = withAuth(async (request, { user }) => {
   }
   await CartService.removeItem(user.id, id);
   return NextResponse.json({ success: true });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

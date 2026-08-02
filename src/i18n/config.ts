@@ -44,6 +44,31 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): stri
   return typeof result === 'string' ? result : path;
 }
 
-export function getStaticMessages(_locale: Locale): Record<string, string> {
-  return {};
+import zhMessages from '../messages/zh.json';
+import enMessages from '../messages/en.json';
+
+/** 将嵌套的 JSON 消息拍平为 `site.title` → 值 的键值对 */
+function flattenMessages(
+  nested: Record<string, unknown>,
+  prefix = ''
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(nested)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      Object.assign(result, flattenMessages(value as Record<string, unknown>, fullKey));
+    } else {
+      result[fullKey] = String(value ?? '');
+    }
+  }
+  return result;
+}
+
+const staticMessageMap: Record<string, Record<string, string>> = {
+  zh: flattenMessages(zhMessages as Record<string, unknown>),
+  en: flattenMessages(enMessages as Record<string, unknown>),
+};
+
+export function getStaticMessages(locale: Locale): Record<string, string> {
+  return staticMessageMap[locale] || staticMessageMap[DEFAULT_LOCALE] || {};
 }

@@ -103,11 +103,12 @@ export function withMiddleware<TParams extends Record<string, string> = Record<s
  * 需要登录（customer 或 admin 均可）
  */
 export function withAuth<TParams extends Record<string, string> = Record<string, string>>(
-  handler: AdminHandler<TParams>
+  handler: AdminHandler<TParams>,
+  config?: { rateLimit?: { maxRequests: number; windowMs: number } }
 ): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<NextResponse | Response> {
   return withMiddleware(
     handler as MixedHandler<TParams>,
-    { auth: true }
+    { auth: true, rateLimit: config?.rateLimit }
   );
 }
 
@@ -115,11 +116,12 @@ export function withAuth<TParams extends Record<string, string> = Record<string,
  * 需要管理员权限
  */
 export function withAdmin<TParams extends Record<string, string> = Record<string, string>>(
-  handler: AdminHandler<TParams>
+  handler: AdminHandler<TParams>,
+  config?: { rateLimit?: { maxRequests: number; windowMs: number } }
 ): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<NextResponse | Response> {
   return withMiddleware(
     handler as MixedHandler<TParams>,
-    { auth: true, roles: ['admin'] }
+    { auth: true, roles: ['admin'], rateLimit: config?.rateLimit }
   );
 }
 

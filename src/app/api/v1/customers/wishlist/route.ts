@@ -9,7 +9,7 @@ export const GET = withAuth(async (request, { user }) => {
   
   const items = await CustomerService.getWishlist(user.id);
   return NextResponse.json(items);
-});
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 /**
  * POST /api/customers/wishlist — 添加到收藏夹
@@ -18,7 +18,7 @@ export const POST = withAuth(async (request, { user }) => {
   const body = await request.json();
   const item = await CustomerService.addToWishlist(user.id, body.productId);
   return NextResponse.json(item, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * DELETE /api/customers/wishlist — 从收藏夹移除
@@ -30,4 +30,4 @@ export const DELETE = withAuth(async (request, { user }) => {
   }
   await CustomerService.removeFromWishlist(user.id, productId);
   return NextResponse.json({ success: true });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

@@ -38,8 +38,11 @@ export const customers = pgTable('customers', {
   lastLogin: timestamp('last_login'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 }, (table) => ({
   emailIdx: uniqueIndex('customers_email_idx').on(table.email),
+  groupIdx: index('customers_group_idx').on(table.groupId),
+  statusIdx: index('customers_status_idx').on(table.status),
 }));
 
 // ============================================================

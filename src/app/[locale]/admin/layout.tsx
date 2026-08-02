@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from '@/i18n/useTranslations';
+import { SUPPORTED_LOCALES } from '@/lib/locales';
 import {
   LayoutDashboard,
   Package,
@@ -48,7 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { t } = useTranslations();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const locale = pathname.startsWith('/en') ? 'en' : 'zh';
+  const locale = SUPPORTED_LOCALES.find(l => pathname.startsWith(`/${l}`)) || 'zh';
 
   return (
     <div className="min-h-screen bg-gray-50">

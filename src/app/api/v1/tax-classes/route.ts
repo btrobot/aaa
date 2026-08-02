@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TaxService } from '@/lib/services/tax.service';
-import { withAdmin } from '@/lib/api-middleware';
+import { withAdmin, cacheResponse } from '@/lib/api-middleware';
 
 export const GET = withAdmin(async () => {
   const items = await TaxService.listTaxClasses();
-  return NextResponse.json(items);
+  return cacheResponse(NextResponse.json(items), { maxAge: 300 });
 });
 
 export const POST = withAdmin(async (request: NextRequest) => {
@@ -14,4 +14,4 @@ export const POST = withAdmin(async (request: NextRequest) => {
   }
   const cls = await TaxService.createTaxClass(body);
   return NextResponse.json(cls, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

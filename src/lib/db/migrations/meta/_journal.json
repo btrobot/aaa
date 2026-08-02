@@ -22,6 +22,20 @@
       "when": 1785412502447,
       "tag": "0002_eminent_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785639000000,
+      "tag": "0003_updated_at_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785639100000,
+      "tag": "0004_soft_delete_and_indexes",
+      "breakpoints": true
     }
   ]
 }

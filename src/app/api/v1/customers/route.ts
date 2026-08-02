@@ -31,7 +31,7 @@ export const GET = withMiddleware(async (request, { user }) => {
   // findById 在客户不存在时抛出 NotFoundError，由中间件统一处理为 404
   const customer = await CustomerService.findById(customerId);
   return NextResponse.json(customer);
-}, { auth: true });
+}, { auth: true, rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * POST /api/customers — 仅管理员可创建客户
@@ -40,4 +40,4 @@ export const POST = withAdmin(async (request) => {
   const body = await request.json();
   const customer = await CustomerService.register(body);
   return NextResponse.json(customer, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

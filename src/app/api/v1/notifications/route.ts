@@ -13,7 +13,7 @@ export const GET = withAuth(async (request, { user }) => {
     unreadOnly: unreadOnly || undefined,
   });
   return NextResponse.json(result);
-});
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 /**
  * POST /api/notifications — 仅管理员可创建通知
@@ -27,4 +27,4 @@ export const POST = withAdmin(async (request) => {
     notifiableType: body.notifiableType,
   });
   return NextResponse.json(notification, { status: 201 });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

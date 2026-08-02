@@ -23,7 +23,7 @@ export const GET = withMiddleware(async (request, { user }) => {
   // 管理员查看所有
   const result = await RmaService.getAll({ status, page, pageSize });
   return NextResponse.json(result);
-}, { auth: true });
+}, { auth: true, rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * POST /api/rmas — 登录用户可创建退换货申请
@@ -33,4 +33,4 @@ export const POST = withMiddleware(async (request, { user }) => {
   const body = await request.json();
   const rma = await RmaService.create(user.id, body);
   return NextResponse.json(rma, { status: 201 });
-}, { auth: true });
+}, { auth: true, rateLimit: { maxRequests: 10, windowMs: 60_000 } });

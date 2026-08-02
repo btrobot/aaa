@@ -16,7 +16,7 @@ export const GET = withAuth(async (
     return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
   return NextResponse.json(notification);
-});
+}, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 export const PUT = withAuth(async (
   request: NextRequest,
@@ -31,7 +31,7 @@ export const PUT = withAuth(async (
   }
   const updated = await NotificationService.markAsRead(Number(id), user.id);
   return NextResponse.json(updated);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 export const DELETE = withAuth(async (
   _request: NextRequest,
@@ -45,4 +45,4 @@ export const DELETE = withAuth(async (
   }
   await NotificationService.delete(Number(id), user.id);
   return NextResponse.json({ success: true });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

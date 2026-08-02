@@ -40,6 +40,7 @@ export const orders = pgTable('orders', {
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 }, (table) => ({
   numberIdx: uniqueIndex('orders_number_idx').on(table.number),
   customerIdx: index('orders_customer_idx').on(table.customerId),
@@ -104,7 +105,9 @@ export const orderShipments = pgTable('order_shipments', {
   trackingNumber: varchar('tracking_number', { length: 255 }),
   shippedAt: timestamp('shipped_at'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  shipmentOrderIdx: index('shipment_order_idx').on(table.orderId),
+}));
 
 // ============================================================
 // 支付信息
@@ -119,7 +122,9 @@ export const orderPayments = pgTable('order_payments', {
   status: varchar('status', { length: 50 }).default('pending'),
   responseData: jsonb('response_data'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  paymentOrderIdx: index('payment_order_idx').on(table.orderId),
+}));
 
 // ============================================================
 // 退换货
@@ -137,4 +142,9 @@ export const rmas = pgTable('rmas', {
   adminNote: text('admin_note'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  rmaOrderIdx: index('rmas_order_idx').on(table.orderId),
+  rmaCustomerIdx: index('rmas_customer_idx').on(table.customerId),
+  rmaStatusIdx: index('rmas_status_idx').on(table.status),
+}));

@@ -17,7 +17,7 @@ export const GET = withAuth(async (
     return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
   return NextResponse.json(order);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 /**
  * PUT /api/orders/[id] — 仅管理员可更新订单状态
@@ -34,4 +34,4 @@ export const PUT = withAdmin(async (
   }
   const updated = await OrderService.updateStatus(Number(id), status);
   return NextResponse.json(updated);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

@@ -10,7 +10,7 @@ export const PUT = withAdmin(async (
   const body = await request.json();
   const group = await CustomerGroupService.update(Number(id), body);
   return NextResponse.json(group);
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });
 
 export const DELETE = withAdmin(async (
   _request: NextRequest,
@@ -19,4 +19,4 @@ export const DELETE = withAdmin(async (
   const { id } = await params;
   await CustomerGroupService.delete(Number(id));
   return NextResponse.json({ success: true });
-});
+}, { rateLimit: { maxRequests: 30, windowMs: 60_000 } });

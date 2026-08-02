@@ -2,12 +2,11 @@ import type { NextConfig } from 'next';
 
 const isDev = process.env.NODE_ENV === 'development';
 
-const nextConfig: NextConfig = {
+let nextConfig: NextConfig = {
   allowedDevOrigins: ['*.dev.coze.site', '175.178.17.101'],
+  serverExternalPackages: ['sharp'],
   images: {
-    // 仅在开发环境禁用图片优化，生产环境启用优化以提升 LCP 和带宽
     unoptimized: isDev,
-    // 生产环境配置远程图片域名白名单（按需添加）
     remotePatterns: isDev ? undefined : [
       {
         protocol: 'https',
@@ -15,6 +14,41 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // 安全头配置
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+        ],
+      },
+    ];
+  },
+  // 请求体大小限制
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
 };
+
+// 启用 Bundle Analyzer: ANALYZE=true pnpm build
+if (process.env.ANALYZE === 'true') {
+  const withBundleAnalyzer = require('@next/bundle-analyzer').default();
+  nextConfig = withBundleAnalyzer(nextConfig);
+}
 
 export default nextConfig;

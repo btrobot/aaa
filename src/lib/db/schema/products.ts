@@ -25,6 +25,7 @@ export const brands = pgTable('brands', {
   status: boolean('status').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 });
 
 // ============================================================
@@ -38,8 +39,10 @@ export const categories = pgTable('categories', {
   status: boolean('status').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 }, (table) => ({
   parentIdx: index('categories_parent_idx').on(table.parentId),
+  statusIdx: index('categories_status_idx').on(table.status),
 }));
 
 export const categoryDescriptions = pgTable('category_descriptions', {
@@ -125,10 +128,12 @@ export const products = pgTable('products', {
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 }, (table) => ({
   skuIdx: uniqueIndex('products_sku_idx').on(table.sku),
   brandIdx: index('products_brand_idx').on(table.brandId),
   statusIdx: index('products_status_idx').on(table.status),
+  createdAtIdx: index('products_created_at_idx').on(table.createdAt),
 }));
 
 export const productDescriptions = pgTable('product_descriptions', {
@@ -189,7 +194,10 @@ export const productRelations = pgTable('product_relations', {
   id: serial('id').primaryKey(),
   productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   relatedProductId: integer('related_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-});
+}, (table) => ({
+  relationProductIdx: index('relation_product_idx').on(table.productId),
+  relationRelatedIdx: index('relation_related_idx').on(table.relatedProductId),
+}));
 
 // ============================================================
 // 评价
@@ -202,4 +210,10 @@ export const reviews = pgTable('reviews', {
   content: text('content'),
   status: boolean('status').default(true),
   createdAt: timestamp('created_at').defaultNow(),
-});
+  updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  reviewProductIdx: index('reviews_product_idx').on(table.productId),
+  reviewCustomerIdx: index('reviews_customer_idx').on(table.customerId),
+  reviewStatusIdx: index('reviews_status_idx').on(table.status),
+}));

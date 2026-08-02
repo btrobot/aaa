@@ -4,7 +4,7 @@ import { withMiddleware, withAdmin, cacheResponse } from '@/lib/api-middleware';
 
 export const GET = withMiddleware(async () => {
   const groups = await CustomerGroupService.list();
-  return cacheResponse(NextResponse.json(groups), { maxAge: 60 });
+  return cacheResponse(NextResponse.json(groups), { maxAge: 30 });
 }, { rateLimit: { maxRequests: 60, windowMs: 60_000 } });
 
 export const POST = withAdmin(async (request) => {
