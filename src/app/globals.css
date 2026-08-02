@@ -1,4 +1,3 @@
-@import "https://fonts.googleapis.cn/css2?family=Rubik:wght@400;500;600;700;800&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;1,6..12,400&display=swap";
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -43,45 +42,48 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-sans: 'Rubik', 'Nunito Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-sans:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', ui-sans-serif,
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.98 0.01 90); /* warm off-white */
-  --foreground: oklch(0.25 0.02 260); /* soft dark */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.02 260);
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.02 260);
-  /* Warm primary - navy but lighter */
-  --primary: oklch(0.4 0.08 255); /* warm navy */
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.55 0.2 260); /* Blue primary */
   --primary-foreground: oklch(0.985 0 0);
-  /* Vibrant accent - teal */
-  --secondary: oklch(0.6 0.18 210); /* teal-500 */
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.95 0.01 80);
-  --muted-foreground: oklch(0.55 0.02 260);
-  --accent: oklch(0.65 0.2 35); /* warm orange */
-  --accent-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.01 80);
-  --input: oklch(0.92 0.01 80);
-  --ring: oklch(0.6 0.18 210);
-  --chart-1: oklch(0.6 0.18 210);
-  --chart-2: oklch(0.65 0.2 35);
-  --chart-3: oklch(0.55 0.15 160);
-  --chart-4: oklch(0.7 0.15 280);
-  --chart-5: oklch(0.65 0.18 330);
-  --sidebar: oklch(0.98 0.01 90);
-  --sidebar-foreground: oklch(0.25 0.02 260);
-  --sidebar-primary: oklch(0.4 0.08 255);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.55 0.2 260);
+  --chart-1: oklch(0.55 0.2 260);
+  --chart-2: oklch(0.6 0.18 185);
+  --chart-3: oklch(0.398 0.07 227);
+  --chart-4: oklch(0.828 0.189 84);
+  --chart-5: oklch(0.769 0.188 70);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.55 0.2 260);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.95 0.01 80);
-  --sidebar-accent-foreground: oklch(0.25 0.02 260);
-  --sidebar-border: oklch(0.92 0.01 80);
-  --sidebar-ring: oklch(0.6 0.18 210);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 @layer base {
@@ -89,19 +91,15 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Rubik', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    @apply bg-background text-foreground;
   }
 }
 
-/* ─── Custom Animations ──────────────────────────────────────── */
-
+/* Custom animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -111,22 +109,7 @@
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.08); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  50% { transform: translateY(-10px); }
 }
 
 .animate-fade-in-up {
@@ -137,39 +120,7 @@
   animation: float 3s ease-in-out infinite;
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 4s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
-}
-
-.animate-delay-100 { animation-delay: 100ms; }
-.animate-delay-200 { animation-delay: 200ms; }
-.animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-400 { animation-delay: 400ms; }
-.animate-delay-500 { animation-delay: 500ms; }
-
-/* ─── Custom Utilities ───────────────────────────────────────── */
-
-.text-gradient {
-  background: linear-gradient(135deg, #1E3A5F 0%, #0D9488 50%, #F59E0B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-gradient {
-  background: linear-gradient(135deg, #1E3A5F 0%, #0D9488 60%, #0EA5E9 100%);
-}
-
-.hero-gradient-light {
-  background: linear-gradient(135deg, #1E40AF 0%, #0D9488 50%, #0EA5E9 100%);
-}
-
-/* ─── Scrollbar Styling ───────────────────────────────────────── */
-
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -186,11 +137,10 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
-
-/* ─── Focus Styles (Accessibility) ────────────────────────────── */
+/* ─── P1-6: Focus Styles (Accessibility) ───────────────────────── */
 
 :focus-visible {
-  outline: 2px solid #0D9488;
+  outline: 2px solid #2563eb;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -200,12 +150,12 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid #0D9488;
+  outline: 2px solid #2563eb;
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
-/* ─── Cursor Pointer ──────────────────────────────────────────── */
+/* ─── P1-7: Cursor Pointer ──────────────────────────────────────── */
 
 button,
 a,
@@ -219,7 +169,7 @@ input[type="radio"],
   cursor: pointer;
 }
 
-/* ─── Micro-interactions ──────────────────────────────────────── */
+/* ─── P2-10: Micro-interactions ──────────────────────────────────── */
 
 .btn-press:active {
   transform: scale(0.97);
@@ -235,7 +185,7 @@ input[type="radio"],
   transform: translateY(-2px);
 }
 
-/* ─── Reduced Motion ──────────────────────────────────────────── */
+/* ─── P2-12: Reduced Motion ──────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   *,
