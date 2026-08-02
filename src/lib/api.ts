@@ -392,7 +392,7 @@ export const api = {
       if (params?.locale) qs.set('locale', params.locale);
       if (params?.sortBy) qs.set('sortBy', params.sortBy);
       if (params?.sortOrder) qs.set('sortOrder', params.sortOrder);
-      return request<Product[]>(`/api/v1/products?${qs.toString()}`);
+      return request<PaginatedResponse<Product>>(`/api/v1/products?${qs.toString()}`);
     },
     get: (id: number) => request<Product>(`/api/v1/products/${id}`),
     create: (data: CreateProductInput) =>

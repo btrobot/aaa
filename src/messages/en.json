@@ -1,7 +1,7 @@
 {
   "site": {
     "title": "NodeCoda",
-    "description": "Open-source cross-border e-commerce platform"
+    "description": "Leading manufacturer of amusement rides, roller coasters, and water park attractions"
   },
   "nav": {
     "home": "Home",
@@ -309,6 +309,29 @@
     "technicalSupport": "Technical Support",
     "faq": "FAQ",
     "support": "Support"
+  },
+  "about": {
+    "heroTitle": "Your Trusted Partner in Amusement Ride Manufacturing",
+    "heroDesc": "With over 20 years of experience, NodeCoda designs and manufactures world-class amusement rides for theme parks, water parks, and entertainment venues worldwide.",
+    "missionTitle": "Our Mission",
+    "missionDesc": "To create unforgettable moments of joy and excitement through safe, innovative, and high-quality amusement rides that exceed our clients' expectations.",
+    "statsTitle": "NodeCoda by the Numbers",
+    "statsProducts": "Ride Models",
+    "statsProjects": "Projects Delivered",
+    "statsYears": "Years of Experience",
+    "statsCountries": "Countries Served",
+    "valuesTitle": "What Drives Us",
+    "valueSafety": "Safety First",
+    "valueSafetyDesc": "All our rides comply with international safety standards including ASTM, EN, and TUV certifications.",
+    "valueInnovation": "Innovation",
+    "valueInnovationDesc": "Our R&D team continuously pushes boundaries to create next-generation ride experiences.",
+    "valueQuality": "Uncompromising Quality",
+    "valueQualityDesc": "From material selection to final assembly, every step follows strict quality control protocols.",
+    "valueGlobal": "Global Service",
+    "valueGlobalDesc": "We provide end-to-end support from initial consultation to installation and ongoing maintenance.",
+    "ctaTitle": "Ready to Start Your Project?",
+    "ctaDesc": "Contact our team today for a free consultation and quote.",
+    "ctaButton": "Contact Us"
   },
   "common": {
     "loading": "Loading...",

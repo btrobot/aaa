@@ -1,7 +1,7 @@
 {
   "site": {
     "title": "NodeCoda",
-    "description": "开源跨境电商平台，助力全球卖家"
+    "description": "领先的游乐设施与景区设备制造商，专注高品质游乐设备研发与生产"
   },
   "nav": {
     "home": "首页",
@@ -305,6 +305,29 @@
     "technicalSupport": "技术支持",
     "faq": "常见问题",
     "support": "支持中心"
+  },
+  "about": {
+    "heroTitle": "您值得信赖的游乐设备制造伙伴",
+    "heroDesc": "拥有 20 余年行业经验，NodeCoda 为全球主题公园、水上乐园和娱乐场所设计制造世界级游乐设施。",
+    "missionTitle": "我们的使命",
+    "missionDesc": "通过安全、创新、高品质的游乐设备，为客户创造难忘的欢乐与惊喜体验。",
+    "statsTitle": "NodeCoda 数据一览",
+    "statsProducts": "设备型号",
+    "statsProjects": "交付项目",
+    "statsYears": "行业经验",
+    "statsCountries": "服务国家",
+    "valuesTitle": "我们的驱动力",
+    "valueSafety": "安全至上",
+    "valueSafetyDesc": "所有设备均符合 ASTM、EN、TUV 等国际安全标准。",
+    "valueInnovation": "持续创新",
+    "valueInnovationDesc": "研发团队不断突破技术边界，打造下一代游乐体验。",
+    "valueQuality": "品质不妥协",
+    "valueQualityDesc": "从材料选择到最终装配，每道工序都遵循严格质控体系。",
+    "valueGlobal": "全球服务",
+    "valueGlobalDesc": "从前期咨询到安装交付再到后期维护，提供端到端支持。",
+    "ctaTitle": "准备好启动您的项目了吗？",
+    "ctaDesc": "立即联系我们的团队，获取免费咨询和报价。",
+    "ctaButton": "联系我们"
   },
   "common": {
     "loading": "加载中...",

@@ -7,20 +7,21 @@ const SITE_URL = process.env.COZE_PROJECT_DOMAIN_DEFAULT || 'https://nodecoda.co
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'NodeCoda | 游乐设备制造与跨境电商平台',
+    default: 'NodeCoda | 游乐设备制造商 — Amusement Ride Manufacturer',
     template: '%s | NodeCoda',
   },
   description:
-    'NodeCoda - 专业游乐设备制造与跨境电商平台，为全球主题乐园提供高品质游乐设施。支持多语言、多货币。Amusement ride manufacturing and cross-border e-commerce platform.',
+    'NodeCoda — 专业游乐设备制造商，为全球主题乐园、景区、文旅项目提供高品质游乐设施与整体解决方案。Leading amusement ride manufacturer for theme parks and attractions worldwide.',
   keywords: [
     '游乐设备',
     '主题乐园',
     '游乐设施',
-    '跨境电商',
+    '游乐设备制造商',
     'NodeCoda',
     'amusement rides',
     'theme park',
-    'e-commerce',
+    'roller coaster',
+    'water park',
   ],
   authors: [{ name: 'NodeCoda', url: SITE_URL }],
   creator: 'NodeCoda',
@@ -29,9 +30,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'zh_CN',
     siteName: 'NodeCoda',
-    title: 'NodeCoda | 游乐设备制造与跨境电商平台',
+    title: 'NodeCoda | 游乐设备制造商',
     description:
-      '专业游乐设备制造与跨境电商平台，为全球主题乐园提供高品质游乐设施。',
+      '专业游乐设备制造商，为全球主题乐园提供高品质游乐设施与整体解决方案。',
     url: SITE_URL,
   },
   twitter: {

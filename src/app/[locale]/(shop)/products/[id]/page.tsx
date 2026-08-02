@@ -61,7 +61,7 @@ export default function ProductDetailPage({
           pageSize: 5,
           category: String(prod.categoryIds[0] || ''),
         });
-        setRelated(all.filter((p) => p.id !== prod.id).slice(0, 4));
+        setRelated(all.items.filter((p) => p.id !== prod.id).slice(0, 4));
       } catch (err) {
         console.error('Failed to load product:', err);
       } finally {

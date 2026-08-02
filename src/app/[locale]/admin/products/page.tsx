@@ -20,7 +20,7 @@ export default function AdminProducts() {
     async function load() {
       try {
         const data = await api.products.list({ locale: toApiLocale(locale), pageSize: 100 });
-        setProducts(data);
+        setProducts(data.items);
       } catch (err) {
         console.error('Failed to load products:', err);
       } finally {
