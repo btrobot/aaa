@@ -2,12 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ArrowRight, Shield, Ship, HeadphonesIcon, Building2, Newspaper, ChevronRight, Mail, FileText, CheckCircle } from 'lucide-react';
+import { ArrowRight, Shield, Ship, HeadphonesIcon, Building2, Newspaper, ChevronRight, Mail, FileText, CheckCircle, Cog, FerrisWheel, Blocks, Rocket, Star, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
-import { api, type Product, type Brand, type Page } from '@/lib/api';
+import { api, type Product, type Brand, type Page, type CategoryTreeNode } from '@/lib/api';
 
 interface HomePageClientProps {
   initialProducts: Product[];
@@ -15,6 +15,15 @@ interface HomePageClientProps {
   initialNews: Page[];
   locale: string;
 }
+
+const categoryIcons = [
+  { icon: Cog, color: 'from-blue-500 to-cyan-500' },
+  { icon: Star, color: 'from-purple-500 to-pink-500' },
+  { icon: Gamepad2, color: 'from-amber-500 to-orange-500' },
+  { icon: Blocks, color: 'from-emerald-500 to-teal-500' },
+  { icon: FerrisWheel, color: 'from-rose-500 to-red-500' },
+  { icon: Rocket, color: 'from-indigo-500 to-violet-500' },
+];
 
 export default function HomePageClient({
   initialProducts,
@@ -27,10 +36,15 @@ export default function HomePageClient({
   const [products] = useState<Product[]>(initialProducts);
   const [brands] = useState<Brand[]>(initialBrands);
   const [news] = useState<Page[]>(initialNews);
+  const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     setLoaded(true);
+    // Load categories for showcase
+    api.categories.list().then((cats) => {
+      setCategories(cats || []);
+    }).catch(() => {});
   }, []);
 
   const inquirySteps = [
@@ -95,8 +109,53 @@ export default function HomePageClient({
         </div>
       </section>
 
+      {/* Category Showcase Section */}
+      {categories.length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-gray-900">{t('home.productCategories')}</h2>
+              <p className="mt-2 text-gray-500">{t('home.productCategoriesDesc')}</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.slice(0, 6).map((cat, idx) => {
+                const iconDef = categoryIcons[idx % categoryIcons.length];
+                const Icon = iconDef.icon;
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/${locale}/products?category=${cat.id}`}
+                    className="group"
+                  >
+                    <Card className="p-6 text-center hover:shadow-xl transition-all duration-300 border-0 bg-white hover:-translate-y-1 cursor-pointer">
+                      <div className={`w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${iconDef.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
+                        {cat.name}
+                      </h3>
+                      {cat.children && cat.children.length > 0 && (
+                        <p className="text-xs text-gray-400 mt-1">{cat.children.length} {t('home.subcategories')}</p>
+                      )}
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="text-center mt-8">
+              <Link href={`/${locale}/categories`}>
+                <Button variant="outline">
+                  {t('home.viewAllCategories')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Products Section */}
-      <section className={`py-16 bg-gray-50 transition-all duration-700 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <section className={`py-16 bg-white transition-all duration-700 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-10">
             <div>
@@ -116,7 +175,7 @@ export default function HomePageClient({
                 <Card className="group overflow-hidden border-0 shadow-sm hover:shadow-xl transition-all duration-300 h-full">
                   <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-50 relative overflow-hidden">
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-4xl opacity-30">🎢</div>
+                      <Cog className="w-20 h-20 text-blue-200" />
                     </div>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
@@ -144,7 +203,7 @@ export default function HomePageClient({
       </section>
 
       {/* Brands Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900">{t('home.brands')}</h2>
@@ -153,7 +212,7 @@ export default function HomePageClient({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {brands.slice(0, 4).map((brand) => (
               <Link key={brand.id} href={`/${locale}/brands`}>
-                <Card className="p-6 text-center hover:shadow-lg transition-all duration-300 border-0 bg-gray-50 hover:bg-white group cursor-pointer">
+                <Card className="p-6 text-center hover:shadow-lg transition-all duration-300 border-0 bg-white hover:bg-white group cursor-pointer">
                   <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                     <Building2 className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform" />
                   </div>
@@ -167,7 +226,7 @@ export default function HomePageClient({
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -188,7 +247,7 @@ export default function HomePageClient({
       </section>
 
       {/* Inquiry Process Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">
@@ -222,7 +281,7 @@ export default function HomePageClient({
       </section>
 
       {/* News Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-10">
             <div>

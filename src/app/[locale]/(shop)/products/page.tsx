@@ -10,10 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Image from 'next/image';
-import { Search, SlidersHorizontal, Grid3X3, List, Cog } from 'lucide-react';
+import { Search, SlidersHorizontal, Grid3X3, List, Cog, Mail, Ruler, Weight, Package } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { toApiLocale } from '@/lib/locales';
 import type { CategoryData } from '@/lib/types';
+import { InquiryModal } from '@/components/InquiryModal';
 
 export default function ProductsPage() {
   const locale = useLocale();
@@ -27,6 +28,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
+  const [inquiryProduct, setInquiryProduct] = useState<{ name: string; sku: string } | null>(null);
 
   const apiLocale = toApiLocale(locale);
 
@@ -215,72 +217,131 @@ export default function ProductsPage() {
 
                   if (viewMode === 'list') {
                     return (
-                      <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
+                      <div key={product.id}>
                         <Card className="overflow-hidden hover:shadow-lg transition-all">
                           <div className="flex gap-4 p-4">
-                            <div style={{ position: "relative" }} className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                              {product.images && product.images.length > 0 ? (
-                                <Image
-                                  src={product.images[0].image}
-                                  alt={name}
-                                  fill
-                                  sizes="128px"
-                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                  <Cog className="w-10 h-10" />
-                                </div>
-                              )}
-                            </div>
+                            <Link href={`/${locale}/products/${product.id}`} className="shrink-0">
+                              <div style={{ position: "relative" }} className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden">
+                                {product.images && product.images.length > 0 ? (
+                                  <Image
+                                    src={product.images[0].image}
+                                    alt={name}
+                                    fill
+                                    sizes="128px"
+                                    className="object-cover hover:scale-105 transition-transform duration-500"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                    <Cog className="w-10 h-10" />
+                                  </div>
+                                )}
+                              </div>
+                            </Link>
                             <div className="flex-1 min-w-0">
-                              {product.brand && (
-                                <p className="text-xs text-gray-500 mb-1">{product.brand.name}</p>
-                              )}
-                              <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{name}</h3>
+                              <Link href={`/${locale}/products/${product.id}`}>
+                                {product.brand && (
+                                  <p className="text-xs text-gray-500 mb-1">{product.brand.name}</p>
+                                )}
+                                <h3 className="font-medium text-gray-900 hover:text-blue-600 transition-colors">{name}</h3>
+                              </Link>
                               <p className="text-sm text-gray-500 mt-1 line-clamp-2">{descText.replace(/[#*`]/g, '').slice(0, 100)}</p>
                               <div className="flex items-center justify-between mt-2">
                                 <span className="text-lg font-bold text-blue-600">¥{Number(product.price).toLocaleString()}</span>
                                 <span className="text-xs text-gray-400">SKU: {product.sku}</span>
                               </div>
+                              <div className="mt-3">
+                                <Button
+                                  size="sm"
+                                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setInquiryProduct({ name, sku: product.sku });
+                                  }}
+                                >
+                                  <Mail className="w-3.5 h-3.5 mr-1.5" />
+                                  {t('products.sendInquiry')}
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </Card>
-                      </Link>
+                      </div>
                     );
                   }
 
                   return (
-                    <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
-                      <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
-                        <div style={{ position: "relative" }} className="aspect-square bg-gray-100 overflow-hidden">
-                          {product.images && product.images.length > 0 ? (
-                            <Image
-                              src={product.images[0].image}
-                              alt={name}
-                              fill
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                              className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                              <Cog className="w-16 h-16" />
+                    <div key={product.id} className="group relative">
+                      <Link href={`/${locale}/products/${product.id}`}>
+                        <Card className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
+                          <div style={{ position: "relative" }} className="aspect-square bg-gray-100 overflow-hidden">
+                            {product.images && product.images.length > 0 ? (
+                              <Image
+                                src={product.images[0].image}
+                                alt={name}
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <Cog className="w-16 h-16" />
+                              </div>
+                            )}
+
+                            {/* Hover Overlay with Specs */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                              <div className="space-y-1.5 text-white text-xs">
+                                <div className="flex items-center gap-1.5">
+                                  <Package className="w-3 h-3 text-blue-300" />
+                                  <span className="text-white/90">SKU: {product.sku}</span>
+                                </div>
+                                {product.brand && (
+                                  <div className="flex items-center gap-1.5">
+                                    <Ruler className="w-3 h-3 text-blue-300" />
+                                    <span className="text-white/90">{product.brand.name}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-1.5">
+                                  <Weight className="w-3 h-3 text-blue-300" />
+                                  <span className="text-white/90">{product.weight}kg</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-blue-300 font-bold">¥</span>
+                                  <span className="text-white/90 font-semibold">{Number(product.price).toLocaleString()}</span>
+                                </div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3 sm:p-4">
-                          {product.brand && (
-                            <p className="text-xs text-gray-500 mb-1">{product.brand.name}</p>
-                          )}
-                          <h3 className="font-medium text-sm sm:text-base text-gray-900 line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
-                            {name}
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-blue-600">¥{Number(product.price).toLocaleString()}</span>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                          <CardContent className="p-3 sm:p-4">
+                            {product.brand && (
+                              <p className="text-xs text-gray-500 mb-1">{product.brand.name}</p>
+                            )}
+                            <h3 className="font-medium text-sm sm:text-base text-gray-900 line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
+                              {name}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-bold text-blue-600">¥{Number(product.price).toLocaleString()}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+
+                      {/* Inquiry Button on hover (absolute positioned at bottom) */}
+                      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10">
+                        <Button
+                          size="sm"
+                          className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg whitespace-nowrap"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setInquiryProduct({ name, sku: product.sku });
+                          }}
+                        >
+                          <Mail className="w-3.5 h-3.5 mr-1.5" />
+                          {t('products.sendInquiry')}
+                        </Button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -288,6 +349,16 @@ export default function ProductsPage() {
           </div>
         </div>
       </div>
+
+      {/* Inquiry Modal */}
+      {inquiryProduct && (
+        <InquiryModal
+          open={!!inquiryProduct}
+          onOpenChange={(open) => { if (!open) setInquiryProduct(null); }}
+          productName={inquiryProduct.name}
+          productSku={inquiryProduct.sku}
+        />
+      )}
     </div>
   );
 }

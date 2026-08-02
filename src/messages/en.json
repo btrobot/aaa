@@ -60,7 +60,11 @@
     "inquiryStep2Desc": "Our team responds within 24 hours with a tailored quote",
     "inquiryStep3": "Manufacturing & Delivery",
     "inquiryStep3Desc": "Custom manufacturing with global shipping worldwide",
-    "startInquiry": "Start Your Inquiry"
+    "startInquiry": "Start Your Inquiry",
+    "productCategories": "Product Categories",
+    "productCategoriesDesc": "Explore our range of amusement ride categories",
+    "subcategories": "subcategories",
+    "viewAllCategories": "View All Categories"
   },
   "products": {
     "title": "All Products",
@@ -80,6 +84,9 @@
     "searchResults": "Search Results",
     "noProducts": "No products found",
     "noProductsHint": "Try adjusting your filters or search keywords",
+    "notFound": "Product Not Found",
+    "notFoundDesc": "The product you are looking for does not exist or has been removed.",
+    "backToProducts": "Back to Products",
     "viewDetails": "View Details",
     "addToCart": "Add to Cart",
     "soldOut": "Sold Out",
@@ -88,7 +95,7 @@
     "description": "Description",
     "reviews": "Reviews",
     "relatedProducts": "You May Also Like",
-    "sku": "Options",
+    "sku": "SKU",
     "quantity": "Qty",
     "total": "Total",
     "share": "Share",
@@ -97,7 +104,17 @@
     "sendInquiry": "Send Inquiry",
     "weight": "Weight",
     "sales": "Sold",
-    "brand": "Brand"
+    "brand": "Brand",
+    "viewAllProducts": "View All Products",
+    "inquirySent": "Inquiry Sent!",
+    "inquirySentDesc": "Thank you for your interest. Our sales team will respond within 24 hours.",
+    "inquiryFormDesc": "Fill in the form below and our team will get back to you with a customized quote.",
+    "inquiryName": "Name",
+    "inquiryEmail": "Email",
+    "inquiryPhone": "Phone",
+    "inquiryCompany": "Company",
+    "inquiryMessage": "Message",
+    "inquiryMessagePlaceholder": "Tell us about your requirements, quantity, and any special requests..."
   },
   "product": {
     "description": "Product Details",
@@ -105,12 +122,15 @@
     "reviews": "Customer Reviews",
     "writeReview": "Write a Review",
     "noReviews": "No reviews yet",
+    "noDescription": "No description available yet.",
     "addToCart": "Add to Cart",
     "buyNow": "Buy Now",
     "soldOut": "Out of Stock",
     "sku": "Select Options",
     "quantity": "Quantity",
-    "relatedProducts": "You May Also Like"
+    "relatedProducts": "You May Also Like",
+    "updatedAt": "Updated",
+    "price": "Price"
   },
   "cart": {
     "title": "Shopping Cart",

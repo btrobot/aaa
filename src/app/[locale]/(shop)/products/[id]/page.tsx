@@ -10,10 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { Mail, Cog } from 'lucide-react';
+import { Mail, Cog, Ruler, Weight, Package, BarChart3, Calendar, Truck, Shield } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { ProductReviews } from '@/components/ProductReviews';
 import { toApiLocale } from '@/lib/locales';
+import { InquiryModal } from '@/components/InquiryModal';
 
 export default function ProductDetailPage({
   params,
@@ -29,6 +30,7 @@ export default function ProductDetailPage({
   const [selectedImage, setSelectedImage] = useState(0);
   const [productName, setProductName] = useState('');
   const [productDesc, setProductDesc] = useState('');
+  const [inquiryOpen, setInquiryOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -69,12 +71,6 @@ export default function ProductDetailPage({
     load();
   }, [id, locale]);
 
-  const handleInquiry = () => {
-    const name = product?.description?.name || product?.sku || '';
-    const subject = encodeURIComponent(`Inquiry: ${name} (SKU: ${product?.sku})`);
-    window.location.href = `mailto:sales@nodecoda.com?subject=${subject}`;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -112,6 +108,15 @@ export default function ProductDetailPage({
   const desc = product.description?.description || '';
   const images = product.images && product.images.length > 0 ? product.images : [{ image: '', sortOrder: 0 }];
 
+  const specItems = [
+    { icon: Package, label: t('products.sku'), value: product.sku },
+    { icon: BarChart3, label: t('products.price'), value: `¥${Number(product.price).toLocaleString()}` },
+    { icon: Weight, label: t('products.weight'), value: `${product.weight}kg` },
+    { icon: Ruler, label: t('products.sales'), value: String(product.sales) },
+    { icon: Shield, label: t('products.brand'), value: product.brand?.name || '-' },
+    { icon: Calendar, label: t('products.updatedAt'), value: new Date(product.updatedAt).toLocaleDateString() },
+  ];
+
   return (
     <>
       {/* Product JSON-LD */}
@@ -143,10 +148,10 @@ export default function ProductDetailPage({
         ]} />
 
         {/* Product Main */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Images */}
           <div className="space-y-4">
-            <div style={{ position: "relative" }} className="aspect-square bg-white rounded-2xl overflow-hidden border">
+            <div style={{ position: "relative" }} className="aspect-square bg-white rounded-2xl overflow-hidden border shadow-sm">
               {images[0].image ? (
                 <Image
                   src={images[selectedImage]?.image || images[0].image}
@@ -154,6 +159,7 @@ export default function ProductDetailPage({
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
+                  priority
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-200">
@@ -162,14 +168,14 @@ export default function ProductDetailPage({
               )}
             </div>
             {images.length > 1 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {images.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
                     style={{ position: "relative" }}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
-                      selectedImage === i ? 'border-blue-500' : 'border-transparent'
+                    className={`w-16 h-16 shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${
+                      selectedImage === i ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <Image src={img.image} alt="" fill sizes="64px" className="object-cover" />
@@ -199,45 +205,53 @@ export default function ProductDetailPage({
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>{t('products.sales')}: {product.sales}</span>
-              <span>{t('products.weight')}: {product.weight}kg</span>
+            {/* Quick Specs */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500">{t('products.sales')}</p>
+                <p className="text-sm font-semibold text-gray-900 mt-0.5">{product.sales}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500">{t('products.weight')}</p>
+                <p className="text-sm font-semibold text-gray-900 mt-0.5">{product.weight}kg</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500">{t('products.brand')}</p>
+                <p className="text-sm font-semibold text-gray-900 mt-0.5">{product.brand?.name || '-'}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500">{t('products.sku')}</p>
+                <p className="text-sm font-semibold text-gray-900 mt-0.5">{product.sku}</p>
+              </div>
             </div>
 
-            {/* Inquiry Button */}
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
+            {/* Inquiry CTA */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
                   <Mail className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {t('products.inquiryTitle')}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {t('products.inquiryDesc')}
-                  </p>
-                  <Button
-                    size="lg"
-                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white"
-                    onClick={handleInquiry}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    {t('products.sendInquiry')}
-                  </Button>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('products.inquiryTitle')}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{t('products.inquiryDesc')}</p>
+                  <div className="flex flex-wrap gap-3 mt-4">
+                    <Button
+                      size="lg"
+                      className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-200"
+                      onClick={() => setInquiryOpen(true)}
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      {t('products.sendInquiry')}
+                    </Button>
+                    <Link href={`/${locale}/products`}>
+                      <Button variant="outline" size="lg">
+                        {t('products.viewAllProducts')}
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Specs */}
-            {desc && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">{t('products.specs')}</h3>
-                <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
-                  {desc.replace(/[*#`]/g, '')}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -261,17 +275,16 @@ export default function ProductDetailPage({
               </div>
             </TabsContent>
             <TabsContent value="specifications" className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { label: t('products.sku'), value: product.sku },
-                  { label: t('products.price'), value: `¥${Number(product.price).toLocaleString()}` },
-                  { label: t('products.weight'), value: `${product.weight}kg` },
-                  { label: t('products.sales'), value: String(product.sales) },
-                  { label: t('products.brand'), value: product.brand?.name || '-' },
-                ].map((spec) => (
-                  <div key={spec.label} className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-500">{spec.label}</p>
-                    <p className="text-sm font-medium text-gray-900 mt-0.5">{spec.value}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {specItems.map((spec) => (
+                  <div key={spec.label} className="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                      <spec.icon className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">{spec.label}</p>
+                      <p className="text-sm font-medium text-gray-900">{spec.value}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -322,6 +335,14 @@ export default function ProductDetailPage({
         )}
       </div>
     </div>
+
+      {/* Inquiry Modal */}
+      <InquiryModal
+        open={inquiryOpen}
+        onOpenChange={setInquiryOpen}
+        productName={name}
+        productSku={product.sku}
+      />
     </>
   );
 }

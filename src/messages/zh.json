@@ -60,7 +60,11 @@
     "inquiryStep2Desc": "专业团队24小时内为您提供定制报价方案",
     "inquiryStep3": "生产与交付",
     "inquiryStep3Desc": "定制生产，全球物流配送直达您的手中",
-    "startInquiry": "开始询盘"
+    "startInquiry": "开始询盘",
+    "productCategories": "产品分类",
+    "productCategoriesDesc": "浏览我们的游乐设备产品线",
+    "subcategories": "个子分类",
+    "viewAllCategories": "查看全部分类"
   },
   "products": {
     "title": "全部商品",
@@ -97,7 +101,20 @@
     "sendInquiry": "发送询盘",
     "weight": "重量",
     "sales": "已售",
-    "brand": "品牌"
+    "brand": "品牌",
+    "viewAllProducts": "查看全部产品",
+    "inquirySent": "询盘已发送！",
+    "inquirySentDesc": "感谢您的关注，我们的销售团队将在24小时内与您联系。",
+    "inquiryFormDesc": "填写以下表单，我们的团队将为您提供定制报价。",
+    "inquiryName": "姓名",
+    "inquiryEmail": "邮箱",
+    "inquiryPhone": "电话",
+    "inquiryCompany": "公司名称",
+    "inquiryMessage": "留言内容",
+    "inquiryMessagePlaceholder": "请描述您的需求、数量及其他特殊要求...",
+    "notFound": "产品未找到",
+    "notFoundDesc": "您查找的产品不存在或已被移除。",
+    "backToProducts": "返回产品列表"
   },
   "product": {
     "description": "商品详情",
@@ -105,12 +122,15 @@
     "reviews": "用户评价",
     "writeReview": "写评价",
     "noReviews": "暂无评价",
+    "noDescription": "暂无描述信息。",
     "addToCart": "加入购物车",
     "buyNow": "立即购买",
     "soldOut": "暂时缺货",
     "sku": "选择规格",
     "quantity": "购买数量",
-    "relatedProducts": "相关推荐"
+    "relatedProducts": "相关推荐",
+    "updatedAt": "更新时间",
+    "price": "价格"
   },
   "cart": {
     "title": "购物车",
