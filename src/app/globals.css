@@ -49,39 +49,39 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.98 0.01 90); /* warm off-white */
+  --foreground: oklch(0.25 0.02 260); /* soft dark */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.25 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  /* Industrial slate-based primary */
-  --primary: oklch(0.37 0.013 285); /* slate-700 - industrial */
+  --popover-foreground: oklch(0.25 0.02 260);
+  /* Warm primary - navy but lighter */
+  --primary: oklch(0.4 0.08 255); /* warm navy */
   --primary-foreground: oklch(0.985 0 0);
-  /* Sky blue accent */
-  --secondary: oklch(0.55 0.15 250); /* sky-600 */
+  /* Vibrant accent - teal */
+  --secondary: oklch(0.6 0.18 210); /* teal-500 */
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.55 0.15 250); /* sky-600 */
+  --muted: oklch(0.95 0.01 80);
+  --muted-foreground: oklch(0.55 0.02 260);
+  --accent: oklch(0.65 0.2 35); /* warm orange */
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.55 0.15 250);
-  --chart-1: oklch(0.55 0.15 250);
-  --chart-2: oklch(0.6 0.18 185);
-  --chart-3: oklch(0.398 0.07 227);
-  --chart-4: oklch(0.828 0.189 84);
-  --chart-5: oklch(0.769 0.188 70);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.37 0.013 285);
+  --border: oklch(0.92 0.01 80);
+  --input: oklch(0.92 0.01 80);
+  --ring: oklch(0.6 0.18 210);
+  --chart-1: oklch(0.6 0.18 210);
+  --chart-2: oklch(0.65 0.2 35);
+  --chart-3: oklch(0.55 0.15 160);
+  --chart-4: oklch(0.7 0.15 280);
+  --chart-5: oklch(0.65 0.18 330);
+  --sidebar: oklch(0.98 0.01 90);
+  --sidebar-foreground: oklch(0.25 0.02 260);
+  --sidebar-primary: oklch(0.4 0.08 255);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.95 0.01 80);
+  --sidebar-accent-foreground: oklch(0.25 0.02 260);
+  --sidebar-border: oklch(0.92 0.01 80);
+  --sidebar-ring: oklch(0.6 0.18 210);
 }
 
 @layer base {
@@ -115,13 +115,18 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.08); }
 }
 
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-fade-in-up {
@@ -136,6 +141,10 @@
   animation: pulse-glow 4s ease-in-out infinite;
 }
 
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
 .animate-delay-100 { animation-delay: 100ms; }
 .animate-delay-200 { animation-delay: 200ms; }
 .animate-delay-300 { animation-delay: 300ms; }
@@ -145,14 +154,18 @@
 /* ─── Custom Utilities ───────────────────────────────────────── */
 
 .text-gradient {
-  background: linear-gradient(135deg, #0F172A 0%, #334155 50%, #0369A1 100%);
+  background: linear-gradient(135deg, #1E3A5F 0%, #0D9488 50%, #F59E0B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .hero-gradient {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0C4A6E 100%);
+  background: linear-gradient(135deg, #1E3A5F 0%, #0D9488 60%, #0EA5E9 100%);
+}
+
+.hero-gradient-light {
+  background: linear-gradient(135deg, #1E40AF 0%, #0D9488 50%, #0EA5E9 100%);
 }
 
 /* ─── Scrollbar Styling ───────────────────────────────────────── */
@@ -177,7 +190,7 @@
 /* ─── Focus Styles (Accessibility) ────────────────────────────── */
 
 :focus-visible {
-  outline: 2px solid #0369A1;
+  outline: 2px solid #0D9488;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -187,9 +200,9 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid #0369A1;
+  outline: 2px solid #0D9488;
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.15);
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
 }
 
 /* ─── Cursor Pointer ──────────────────────────────────────────── */

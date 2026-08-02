@@ -50,17 +50,17 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       {/* Top Bar */}
-      <div className="hidden lg:block border-b border-slate-100 bg-slate-50">
+      <div className="hidden lg:block border-b border-slate-100 bg-amber-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
-          <div className="flex items-center justify-end gap-4 text-xs text-slate-400">
-            <Link href={`/${locale}/account`} className="hover:text-sky-600 transition-colors inline-flex items-center gap-1">
+          <div className="flex items-center justify-end gap-4 text-xs text-slate-500">
+            <Link href={`/${locale}/account`} className="hover:text-teal-600 transition-colors inline-flex items-center gap-1">
               <User className="h-3 w-3" />
               {t('nav.account')}
             </Link>
-            <Link href={`/${locale}/account/orders`} className="hover:text-sky-600 transition-colors">
+            <Link href={`/${locale}/account/orders`} className="hover:text-teal-600 transition-colors">
               {t('nav.orders')}
             </Link>
-            <Link href={`/${locale}/account/wishlist`} className="hover:text-sky-600 transition-colors inline-flex items-center gap-1">
+            <Link href={`/${locale}/account/wishlist`} className="hover:text-teal-600 transition-colors inline-flex items-center gap-1">
               <Heart className="h-3 w-3" />
               {t('nav.wishlist')}
             </Link>
@@ -73,10 +73,10 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href={`/${locale}`} className="flex items-center gap-2 shrink-0 group">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center group-hover:from-sky-700 group-hover:to-slate-800 transition-all duration-300">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center group-hover:from-amber-500 group-hover:to-teal-600 transition-all duration-300">
               <Cog className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-slate-900 hidden sm:block font-sans">{t('site.title')}</span>
+            <span className="text-lg font-bold text-slate-800 hidden sm:block font-sans">{t('site.title')}</span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -88,7 +88,7 @@ export default function Navbar() {
                 placeholder={t('nav.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-10 rounded-full bg-slate-50 border-slate-200 focus:bg-white focus:border-sky-300 transition-colors"
+                className="pl-10 pr-4 h-10 rounded-full bg-amber-50/50 border-slate-200 focus:bg-white focus:border-teal-300 transition-colors"
               />
             </div>
           </form>
@@ -102,7 +102,7 @@ export default function Navbar() {
 
             {/* Language Switcher */}
             <div className="relative">
-              <Button variant="ghost" size="sm" onClick={() => setLangOpen(!langOpen)} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 hover:bg-slate-50">
+              <Button variant="ghost" size="sm" onClick={() => setLangOpen(!langOpen)} className="flex items-center gap-1 text-slate-500 hover:text-teal-600 hover:bg-amber-50">
                 <Globe className="h-4 w-4" />
                 <span className="hidden sm:inline text-sm">{localeNames[locale as keyof typeof localeNames]}</span>
               </Button>
@@ -113,7 +113,7 @@ export default function Navbar() {
                       key={l}
                       onClick={() => { setLocale(l); setLangOpen(false); }}
                       className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                        locale === l ? 'bg-sky-50 text-sky-700 font-medium' : 'text-slate-600 hover:bg-slate-50'
+                        locale === l ? 'bg-teal-50 text-teal-700 font-medium' : 'text-slate-600 hover:bg-amber-50'
                       }`}
                     >
                       {localeNames[l as keyof typeof localeNames]}
@@ -125,7 +125,7 @@ export default function Navbar() {
 
             {/* Currency Selector */}
             <div className="relative">
-              <Button variant="ghost" size="sm" className="text-slate-500 gap-1 hover:text-slate-700 hover:bg-slate-50" onClick={() => setCurrOpen(!currOpen)}>
+              <Button variant="ghost" size="sm" className="text-slate-500 gap-1 hover:text-teal-600 hover:bg-amber-50" onClick={() => setCurrOpen(!currOpen)}>
                 <span className="text-sm">{currencySymbols[currency]}</span>
                 <ChevronDown className="h-3 w-3" />
               </Button>
@@ -136,7 +136,7 @@ export default function Navbar() {
                       key={c}
                       onClick={() => { setCurrency(c); setCurrOpen(false); }}
                       className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                        currency === c ? 'bg-sky-50 text-sky-700 font-medium' : 'text-slate-600 hover:bg-slate-50'
+                        currency === c ? 'bg-teal-50 text-teal-700 font-medium' : 'text-slate-600 hover:bg-amber-50'
                       }`}
                     >
                       {currencySymbols[c]} {c}
@@ -148,10 +148,10 @@ export default function Navbar() {
 
             {/* Cart */}
             <Link href={`/${locale}/cart`}>
-              <Button variant="ghost" size="sm" className="relative text-slate-500 hover:text-slate-700 hover:bg-slate-50">
+              <Button variant="ghost" size="sm" className="relative text-slate-500 hover:text-teal-600 hover:bg-amber-50">
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-sky-500 text-white text-xs flex items-center justify-center font-medium">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center font-medium">
                     {totalItems > 99 ? '99+' : totalItems}
                   </span>
                 )}
@@ -174,14 +174,14 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-sky-600 rounded-md hover:bg-sky-50 transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-teal-600 rounded-md hover:bg-amber-50 transition-colors"
               >
                 {link.label}
               </Link>
             ))}
             <Link
               href={`/${locale}/account`}
-              className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-sky-600 rounded-md hover:bg-sky-50 transition-colors ml-auto"
+              className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-teal-600 rounded-md hover:bg-amber-50 transition-colors ml-auto"
             >
               <User className="h-3.5 w-3.5 inline-block mr-1" />
               {t('nav.account')}
@@ -200,7 +200,7 @@ export default function Navbar() {
               placeholder={t('nav.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-10 rounded-full bg-slate-50"
+              className="pl-10 h-10 rounded-full bg-amber-50/50"
               autoFocus
             />
           </form>
@@ -216,7 +216,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-slate-700 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"
+                className="block px-3 py-2 text-sm font-medium text-slate-700 hover:text-teal-600 hover:bg-amber-50 rounded-md transition-colors"
               >
                 {link.label}
               </Link>
@@ -225,7 +225,7 @@ export default function Navbar() {
               <Link
                 href={`/${locale}/account`}
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-slate-700 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"
+                className="block px-3 py-2 text-sm font-medium text-slate-700 hover:text-teal-600 hover:bg-amber-50 rounded-md transition-colors"
               >
                 <User className="h-3.5 w-3.5 inline-block mr-2" />
                 {t('nav.account')}
@@ -233,7 +233,7 @@ export default function Navbar() {
               <Link
                 href={`/${locale}/account/wishlist`}
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-slate-700 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"
+                className="block px-3 py-2 text-sm font-medium text-slate-700 hover:text-teal-600 hover:bg-amber-50 rounded-md transition-colors"
               >
                 <Heart className="h-3.5 w-3.5 inline-block mr-2" />
                 {t('nav.wishlist')}
@@ -247,7 +247,7 @@ export default function Navbar() {
                     key={l}
                     onClick={() => { setLocale(l); setMobileOpen(false); }}
                     className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                      locale === l ? 'bg-sky-50 text-sky-700 font-medium' : 'text-slate-600 hover:bg-slate-50'
+                      locale === l ? 'bg-teal-50 text-teal-700 font-medium' : 'text-slate-600 hover:bg-amber-50'
                     }`}
                   >
                     {localeNames[l as keyof typeof localeNames]}
