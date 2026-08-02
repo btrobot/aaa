@@ -4,22 +4,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { useCurrency } from '@/i18n/CurrencyProvider';
 import { routing, localeNames } from '@/i18n/routing';
-import { Menu, X, ChevronDown, Globe, User, Search, Mail } from 'lucide-react';
+import { Menu, X, Globe, User, Search, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { currencies as allCurrencies, currencySymbols } from '@/i18n/CurrencyProvider';
+
 
 export default function Navbar() {
   const locale = useLocale();
   const t = useTranslations();
   const router = useRouter();
-  const { currency, setCurrency } = useCurrency();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-  const [currOpen, setCurrOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -47,26 +44,6 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-      {/* Top Bar */}
-      <div className="hidden lg:block border-b bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
-          <div className="flex items-center justify-end gap-4 text-xs text-gray-500">
-            <Link href={`/${locale}/account`} className="hover:text-blue-600 transition-colors inline-flex items-center gap-1">
-              <User className="h-3 w-3" />
-              {t('nav.account')}
-            </Link>
-            <Link href={`/${locale}/account/orders`} className="hover:text-blue-600 transition-colors">
-              {t('nav.orders')}
-            </Link>
-            <span className="text-gray-300">|</span>
-            <a href={`/${locale}/products?inquiry=1`} className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
-              <Mail className="h-3 w-3" />
-              {t('nav.inquiry')}
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Main Nav */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
@@ -116,29 +93,6 @@ export default function Navbar() {
                       }`}
                     >
                       {localeNames[l as keyof typeof localeNames]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Currency Selector */}
-            <div className="relative">
-              <Button variant="ghost" size="sm" className="text-gray-600 gap-1" onClick={() => setCurrOpen(!currOpen)}>
-                <span className="text-sm">{currencySymbols[currency]}</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-              {currOpen && (
-                <div className="absolute right-0 mt-1 w-28 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                  {allCurrencies.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => { setCurrency(c); setCurrOpen(false); }}
-                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                        currency === c ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {currencySymbols[c]} {c}
                     </button>
                   ))}
                 </div>

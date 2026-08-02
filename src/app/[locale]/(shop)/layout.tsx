@@ -1,7 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { CurrencyProvider } from '@/i18n/CurrencyProvider';
-import { CartProvider } from '@/lib/cart-context';
 import { AuthProvider } from '@/lib/auth-context';
 import { ThemeProvider } from '@/lib/theme/ThemeProvider';
 import Navbar from '@/components/Navbar';
@@ -14,15 +12,11 @@ async function ClientProviders({ children, locale }: { children: React.ReactNode
 
   return (
     <AuthProvider>
-      <CurrencyProvider>
-        <CartProvider>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ThemeProvider>
-              {children}
-            </ThemeProvider>
-          </NextIntlClientProvider>
-        </CartProvider>
-      </CurrencyProvider>
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </NextIntlClientProvider>
     </AuthProvider>
   );
 }

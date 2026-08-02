@@ -38,22 +38,6 @@ describe('Navbar', () => {
     expect(searchInput).toBeDefined();
   });
 
-  it('should show cart badge when items exist', () => {
-    renderWithProviders(<Navbar />, { cartItems: 3 });
-    expect(screen.getByText('3')).toBeDefined();
-  });
-
-  it('should not show cart badge when cart is empty', () => {
-    renderWithProviders(<Navbar />, { cartItems: 0 });
-    // 购物车图标在，但不应有数字徽标
-    expect(screen.queryByText('0')).toBeNull();
-  });
-
-  it('should show cart badge as 99+ when over 99', () => {
-    renderWithProviders(<Navbar />, { cartItems: 100 });
-    expect(screen.getByText('99+')).toBeDefined();
-  });
-
   it('should show language switcher with current locale name', () => {
     renderWithProviders(<Navbar />, { locale: 'en' });
     // English locale 的显示名
