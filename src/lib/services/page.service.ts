@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/db';
 import { pages, pageDescriptions, pageCategories, pageCategoryDescriptions } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, count } from 'drizzle-orm';
 import { z } from 'zod';
 import { NotFoundError, BusinessRuleError } from './errors';
 
@@ -34,6 +34,11 @@ export const PageService = {
     const conditions = [];
     if (status !== undefined) conditions.push(eq(pages.status, status));
 
+    const [totalResult] = await db.select({ count: count() })
+      .from(pages)
+      .where(and(...conditions));
+    const total = Number(totalResult.count);
+
     const rows = await db.select()
       .from(pages)
       .leftJoin(pageDescriptions, and(
@@ -45,7 +50,7 @@ export const PageService = {
       .limit(pageSize)
       .offset((page - 1) * pageSize);
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       id: row.pages.id,
       author: row.pages.author,
       image: row.pages.image,
@@ -59,6 +64,8 @@ export const PageService = {
       metaDescription: row.page_descriptions?.metaDescription || null,
       metaKeywords: row.page_descriptions?.metaKeywords || null,
     }));
+
+    return { items, total };
   },
 
   async getById(id: number, locale: string = 'zh_cn') {

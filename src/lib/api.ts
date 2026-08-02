@@ -248,6 +248,11 @@ export interface Order {
   items: OrderItem[];
 }
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+}
+
 export interface Brand {
   id: number;
   name: string;
@@ -410,7 +415,7 @@ export const api = {
 
   // 品牌
   brands: {
-    list: () => request<Brand[]>('/api/v1/brands'),
+    list: () => request<PaginatedResponse<Brand>>('/api/v1/brands'),
     create: (data: CreateBrandInput) =>
       request<Brand>('/api/v1/brands', {
         method: 'POST',
@@ -509,7 +514,7 @@ export const api = {
       const qs = new URLSearchParams();
       if (params?.locale) qs.set('locale', params.locale);
       if (params?.status !== undefined) qs.set('status', String(params.status));
-      return request<Page[]>(`/api/v1/pages?${qs.toString()}`);
+      return request<PaginatedResponse<Page>>(`/api/v1/pages?${qs.toString()}`);
     },
     getById: (id: number) =>
       request<Page>(`/api/v1/pages/${id}`),

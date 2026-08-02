@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/db';
 import { brands, products as productsTable } from '@/lib/db/schema';
-import { eq, desc, asc } from 'drizzle-orm';
+import { eq, desc, asc, and, count } from 'drizzle-orm';
 import { z } from 'zod';
 import { NotFoundError, BusinessRuleError } from './errors';
 
@@ -86,14 +86,23 @@ export const BrandService = {
       conditions.push(eq(brands.status, status));
     }
 
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(brands)
+      .where(and(...conditions));
+    const total = Number(totalResult.count);
+
     const orderByClause = sort === 'asc' ? asc(brands.sortOrder) : desc(brands.sortOrder);
 
-    return db
+    const items = await db
       .select()
       .from(brands)
+      .where(and(...conditions))
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
+
+    return { items, total };
   },
 
   /**

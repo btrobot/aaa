@@ -69,8 +69,8 @@ describe('PageService', () => {
       mockSelect([pageRow(), pageRow({ id: 2, slug: 'page-2' })]);
 
       const result = await PageService.search({ locale: 'zh_cn' });
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('title', '测试页面');
+      expect(result.items).toHaveLength(2);
+      expect(result.items[0]).toHaveProperty('title', '测试页面');
       expect(mockDb.select).toHaveBeenCalled();
     });
 
@@ -78,7 +78,7 @@ describe('PageService', () => {
       mockSelect([pageRow()]);
 
       const result = await PageService.search({ status: true });
-      expect(result).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
     });
 
     it('应支持分页参数', async () => {

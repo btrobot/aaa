@@ -30,7 +30,7 @@ export default function AdminBrandsPage() {
     try {
       setLoading(true);
       const data = await api.brands.list();
-      setBrands(data as Brand[]);
+      setBrands(data.items as Brand[]);
       setError(null);
     } catch {
       setError('加载品牌失败');

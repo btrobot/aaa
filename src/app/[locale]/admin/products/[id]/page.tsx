@@ -60,7 +60,7 @@ export default function AdminEditProduct() {
       if (enDesc) { setNameEn(enDesc.name); setDescEn(enDesc.description || ''); }
 
       setCategoryIds(product.categoryIds || []);
-      setBrands(Array.isArray(brandsList) ? brandsList : []);
+      setBrands(Array.isArray(brandsList.items) ? brandsList.items : []);
       setCategories(Array.isArray(categoriesTree) ? categoriesTree : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载产品失败');

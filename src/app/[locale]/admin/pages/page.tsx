@@ -25,7 +25,7 @@ export default function AdminPages() {
   const loadPages = useCallback(async () => {
     try {
       const data = await api.pages.list({ locale: toApiLocale(locale) });
-      setPages(Array.isArray(data) ? data : []);
+      setPages(Array.isArray(data.items) ? data.items : []);
     } catch (err) {
       console.error('Failed to load pages:', err);
       setPages([]);

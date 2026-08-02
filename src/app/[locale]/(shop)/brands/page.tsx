@@ -17,7 +17,7 @@ export default function BrandsPage() {
     async function load() {
       try {
         const data = await api.brands.list();
-        setBrands(data);
+        setBrands(data.items);
       } catch (err) {
         console.error('Failed to load brands:', err);
       } finally {

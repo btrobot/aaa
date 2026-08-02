@@ -36,7 +36,7 @@ export default function AdminNewProduct() {
         api.brands.list(),
         api.categories.list(toApiLocale(locale)),
       ]);
-      setBrands(Array.isArray(brandsList) ? brandsList : []);
+      setBrands(Array.isArray(brandsList.items) ? brandsList.items : []);
       setCategories(Array.isArray(categoriesTree) ? categoriesTree : []);
     } catch (err) {
       console.error('加载选项失败:', err);

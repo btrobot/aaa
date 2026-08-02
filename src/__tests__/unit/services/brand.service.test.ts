@@ -110,14 +110,14 @@ describe('BrandService', () => {
       ]);
 
       const result = await BrandService.findAll();
-      expect(result).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
     });
 
     it('应支持按 status 筛选', async () => {
       mockSelect([{ id: 1, name: 'Active Brand', status: true }]);
 
       const result = await BrandService.findAll({ status: true });
-      expect(result).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
     });
 
     it('应支持 asc/desc 排序', async () => {

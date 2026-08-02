@@ -43,11 +43,11 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type AddressInput = z.infer<typeof addressSchema>;
 
-export class CustomerService {
+export const CustomerService = {
   /**
    * Register a new customer
    */
-  static async register(data: RegisterInput) {
+  async register(data: RegisterInput) {
     const validated = registerSchema.parse(data);
 
     // pre: 邮箱未被注册
@@ -77,12 +77,12 @@ export class CustomerService {
     // Don't return password
     const { password: _, ...safeCustomer } = customer;
     return safeCustomer;
-  }
+  },
 
   /**
    * Login with email and password
    */
-  static async login(data: LoginInput) {
+  async login(data: LoginInput) {
     const validated = loginSchema.parse(data);
 
     // pre: 客户存在
@@ -115,20 +115,20 @@ export class CustomerService {
     // Don't return password
     const { password: _, ...safeCustomer } = customer;
     return safeCustomer;
-  }
+  },
 
   /**
    * Find all customers (without password)
    */
-  static async findAll() {
+  async findAll() {
     const rows = await db.select().from(customers);
     return rows.map(({ password: _, ...safe }) => safe);
-  }
+  },
 
   /**
    * Find customer by ID — throws NotFoundError when missing
    */
-  static async findById(id: number) {
+  async findById(id: number) {
     const [customer] = await db
       .select()
       .from(customers)
@@ -140,12 +140,12 @@ export class CustomerService {
 
     const { password: _, ...safeCustomer } = customer;
     return safeCustomer;
-  }
+  },
 
   /**
    * Update customer profile — pre: 客户存在
    */
-  static async updateProfile(id: number, data: UpdateProfileInput) {
+  async updateProfile(id: number, data: UpdateProfileInput) {
     const validated = updateProfileSchema.parse(data);
 
     // pre: 客户存在
@@ -172,14 +172,14 @@ export class CustomerService {
 
     const { password: _, ...safeCustomer } = customer;
     return safeCustomer;
-  }
+  },
 
   // ========== Address Management ==========
 
   /**
    * Add a new address for customer — pre: 客户存在
    */
-  static async addAddress(customerId: number, data: AddressInput) {
+  async addAddress(customerId: number, data: AddressInput) {
     const validated = addressSchema.parse(data);
 
     // pre: 客户存在
@@ -217,22 +217,22 @@ export class CustomerService {
       .returning();
 
     return address;
-  }
+  },
 
   /**
    * Get all addresses for a customer
    */
-  static async getAddresses(customerId: number) {
+  async getAddresses(customerId: number) {
     return db
       .select()
       .from(customerAddresses)
       .where(eq(customerAddresses.customerId, customerId));
-  }
+  },
 
   /**
    * Delete an address
    */
-  static async deleteAddress(customerId: number, addressId: number) {
+  async deleteAddress(customerId: number, addressId: number) {
     const [existing] = await db
       .select({ id: customerAddresses.id })
       .from(customerAddresses)
@@ -257,7 +257,7 @@ export class CustomerService {
       );
 
     return true;
-  }
+  },
 
   // ========== Wishlist Management ==========
 
@@ -265,7 +265,7 @@ export class CustomerService {
    * Add a product to customer's wishlist — 幂等，重复添加不报错
    * pre: 产品存在
    */
-  static async addToWishlist(customerId: number, productId: number) {
+  async addToWishlist(customerId: number, productId: number) {
     // pre: 产品存在
     const [existingProduct] = await db
       .select({ id: products.id })
@@ -297,13 +297,13 @@ export class CustomerService {
       .returning();
 
     return item;
-  }
+  },
 
   /**
    * Remove a product from customer's wishlist
    * pre: 收藏记录存在
    */
-  static async removeFromWishlist(customerId: number, productId: number) {
+  async removeFromWishlist(customerId: number, productId: number) {
     // pre: 收藏记录存在
     const [existing] = await db
       .select()
@@ -329,15 +329,15 @@ export class CustomerService {
       );
 
     return true;
-  }
+  },
 
   /**
    * Get customer's wishlist
    */
-  static async getWishlist(customerId: number) {
+  async getWishlist(customerId: number) {
     return db
       .select()
       .from(customerWishlists)
       .where(eq(customerWishlists.customerId, customerId));
   }
-}
+};
