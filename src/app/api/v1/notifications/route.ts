@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { notificationService } from '@/lib/services/notification.service';
+import { NotificationService } from '@/lib/services/notification.service';
 import { withAuth, withAdmin } from '@/lib/api-middleware';
 
 /**
@@ -7,7 +7,7 @@ import { withAuth, withAdmin } from '@/lib/api-middleware';
  */
 export const GET = withAuth(async (request, { user }) => {
   const unreadOnly = request.nextUrl.searchParams.get('unreadOnly') === 'true';
-  const result = await notificationService.list({
+  const result = await NotificationService.list({
     notifiableId: user.id,
     notifiableType: 'customer',
     unreadOnly: unreadOnly || undefined,
@@ -20,7 +20,7 @@ export const GET = withAuth(async (request, { user }) => {
  */
 export const POST = withAdmin(async (request) => {
   const body = await request.json();
-  const notification = await notificationService.create({
+  const notification = await NotificationService.create({
     type: body.type,
     data: body.data,
     notifiableId: body.notifiableId,

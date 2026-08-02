@@ -9,7 +9,7 @@ const mockSettingsService = {
 };
 
 vi.mock('@/lib/services/settings.service', () => ({
-  settingsService: mockSettingsService,
+  SettingsService: mockSettingsService,
 }));
 
 vi.mock('@/lib/api-middleware', async () => {

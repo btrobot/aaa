@@ -239,11 +239,12 @@ export const ProductService = {
           eq(products.id, productDescriptions.productId),
           eq(productDescriptions.locale, validated.locale)
         ))
+        .leftJoin(brands, eq(products.brandId, brands.id))
         .orderBy(orderBy)
         .limit(validated.pageSize)
         .offset((validated.page - 1) * validated.pageSize);
 
-      return rows.map(r => ({ ...r.products, description: r.product_descriptions }));
+      return rows.map(r => ({ ...r.products, description: r.product_descriptions, brand: r.brands }));
     }
 
     const rows = await db.select()
@@ -253,11 +254,12 @@ export const ProductService = {
         eq(products.id, productDescriptions.productId),
         eq(productDescriptions.locale, validated.locale)
       ))
+      .leftJoin(brands, eq(products.brandId, brands.id))
       .orderBy(orderBy)
       .limit(validated.pageSize)
       .offset((validated.page - 1) * validated.pageSize);
 
-    return rows.map(r => ({ ...r.products, description: r.product_descriptions }));
+    return rows.map(r => ({ ...r.products, description: r.product_descriptions, brand: r.brands }));
   },
 
   /**

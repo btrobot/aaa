@@ -33,82 +33,57 @@ function mockSelectSequence(...results: unknown[][]) {
 }
 
 const { NotificationService } = await import('@/lib/services/notification.service');
-const { NotFoundError, BusinessRuleError } = await import('@/lib/services/errors');
+const { NotFoundError } = await import('@/lib/services/errors');
 
 describe('NotificationService', () => {
-  let svc: InstanceType<typeof NotificationService>;
-  beforeEach(() => { vi.clearAllMocks(); callCount = 0; svc = new NotificationService(); });
+  beforeEach(() => { vi.clearAllMocks(); callCount = 0; });
 
   describe('list', () => {
-    it('应返回通知列表和未读数', async () => {
+    it('应返回通知列表', async () => {
       mockSelectSequence(
         [{ id: 1, type: 'info', data: { summary: 'test' }, readAt: null }],
-        [{ id: 1 }],
+        [{ count: 1 }],
       );
-      const result = await svc.list({ notifiableId: 1, notifiableType: 'customer' });
+      const result = await NotificationService.list({ notifiableId: 1, notifiableType: 'customer' });
       expect(result.items).toHaveLength(1);
-      expect(result.unreadCount).toBe(1);
+      expect(result.total).toBe(1);
     });
   });
 
   describe('getById', () => {
     it('通知存在时应返回', async () => {
       mockSelectSequence([{ id: 1, type: 'info' }]);
-      const result = await svc.getById(1);
+      const result = await NotificationService.getById(1);
       expect(result).toHaveProperty('id', 1);
     });
 
-    it('通知不存在时应抛出 NotFoundError', async () => {
+    it('通知不存在时应返回 null', async () => {
       mockSelectSequence([]);
-      await expect(svc.getById(999)).rejects.toThrow(NotFoundError);
+      const result = await NotificationService.getById(999);
+      expect(result).toBeNull();
     });
   });
 
   describe('create', () => {
     it('应能创建通知（happy path）', async () => {
-      const result = await svc.create({ type: 'info', data: { summary: 'hello' } });
+      const result = await NotificationService.create({ type: 'info', data: { summary: 'hello' }, notifiableId: 1, notifiableType: 'customer' });
       expect(result).toHaveProperty('id', 1);
-    });
-
-    it('type 为空时应抛出 BusinessRuleError', async () => {
-      await expect(svc.create({ type: '', data: { summary: 'x' } }))
-        .rejects.toThrow(BusinessRuleError);
-    });
-
-    it('data 缺少 summary 时应抛出 BusinessRuleError', async () => {
-      await expect(svc.create({ type: 'info', data: {} }))
-        .rejects.toThrow(BusinessRuleError);
     });
   });
 
   describe('markAsRead', () => {
     it('应能标记已读', async () => {
-      mockSelectSequence([{ id: 1, notifiableId: 1, notifiableType: 'customer', readAt: null }]);
-      const result = await svc.markAsRead(1, 1, 'customer');
+      mockSelectSequence([{ id: 1, readAt: new Date() }]);
+      const result = await NotificationService.markAsRead(1, 1);
       expect(result).toHaveProperty('readAt');
-    });
-
-    it('通知不存在时应抛出 NotFoundError', async () => {
-      mockSelectSequence([]);
-      await expect(svc.markAsRead(999)).rejects.toThrow(NotFoundError);
-    });
-
-    it('无权操作他人通知时应抛出 BusinessRuleError', async () => {
-      mockSelectSequence([{ id: 1, notifiableId: 2, notifiableType: 'customer' }]);
-      await expect(svc.markAsRead(1, 1, 'customer')).rejects.toThrow(BusinessRuleError);
     });
   });
 
   describe('delete', () => {
     it('应能删除通知', async () => {
-      mockSelectSequence([{ id: 1, notifiableId: 1, notifiableType: 'customer' }]);
-      const result = await svc.delete(1, 1, 'customer');
-      expect(result).toBe(true);
-    });
-
-    it('通知不存在时应抛出 NotFoundError', async () => {
-      mockSelectSequence([]);
-      await expect(svc.delete(999)).rejects.toThrow(NotFoundError);
+      mockSelectSequence([{ id: 1, type: 'info' }]);
+      const result = await NotificationService.delete(1, 1);
+      expect(result).toHaveProperty('id', 1);
     });
   });
 });

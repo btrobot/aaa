@@ -23,7 +23,7 @@ export const createPageSchema = z.object({
 
 export const updatePageSchema = createPageSchema.partial();
 
-export class PageService {
+export const PageService = {
   async search(params: {
     locale?: string;
     status?: boolean;
@@ -59,7 +59,7 @@ export class PageService {
       metaDescription: row.page_descriptions?.metaDescription || null,
       metaKeywords: row.page_descriptions?.metaKeywords || null,
     }));
-  }
+  },
 
   async getById(id: number, locale: string = 'zh_cn') {
     const rows = await db.select()
@@ -87,7 +87,7 @@ export class PageService {
       metaDescription: row.page_descriptions?.metaDescription || null,
       metaKeywords: row.page_descriptions?.metaKeywords || null,
     };
-  }
+  },
 
   async create(data: z.infer<typeof createPageSchema>) {
     const validated = createPageSchema.parse(data);
@@ -113,11 +113,11 @@ export class PageService {
       }
     }
     return page;
-  }
+  },
 
   async update(id: number, data: z.infer<typeof updatePageSchema>) {
     // pre: 文章存在
-    await this.getById(id);
+    await PageService.getById(id);
 
     const validated = updatePageSchema.parse(data);
     const updateData: { author?: string; image?: string; status?: boolean; sortOrder?: number } = {};
@@ -160,16 +160,16 @@ export class PageService {
         }
       }
     }
-    return this.getById(id);
-  }
+    return PageService.getById(id);
+  },
 
   async delete(id: number) {
     // pre: 文章存在
-    await this.getById(id);
+    await PageService.getById(id);
     await db.delete(pageDescriptions).where(eq(pageDescriptions.pageId, id));
     await db.delete(pages).where(eq(pages.id, id));
     return true;
-  }
+  },
 
   // ─── Page Categories ─────────────────────────────────────────────
 
@@ -191,7 +191,5 @@ export class PageService {
       name: row.page_category_descriptions?.name || null,
       description: row.page_category_descriptions?.description || null,
     }));
-  }
-}
-
-export const pageService = new PageService();
+  },
+};

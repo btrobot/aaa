@@ -20,7 +20,7 @@ const mockSettingsService = {
 };
 
 vi.mock('@/lib/services/settings.service', () => ({
-  settingsService: mockSettingsService,
+  SettingsService: mockSettingsService,
 }));
 
 const { ThemeService, PRESET_NAMES: _PRESET_NAMES } = await import('@/lib/services/theme.service');

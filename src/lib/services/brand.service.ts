@@ -26,12 +26,12 @@ export interface BrandQuery {
   status?: boolean;
 }
 
-export class BrandService {
+export const BrandService = {
   /**
    * 创建品牌
    * pre: 品牌名唯一
    */
-  static async create(data: CreateBrandInput) {
+  async create(data: CreateBrandInput) {
     const validated = createBrandSchema.parse(data);
 
     // pre: 品牌名唯一
@@ -57,13 +57,13 @@ export class BrandService {
       .returning();
 
     return brand;
-  }
+  },
 
   /**
    * 按 ID 查找品牌
    * pre: 品牌存在
    */
-  static async findById(id: number) {
+  async findById(id: number) {
     const [brand] = await db
       .select()
       .from(brands)
@@ -72,12 +72,12 @@ export class BrandService {
 
     if (!brand) throw new NotFoundError('品牌', id);
     return brand;
-  }
+  },
 
   /**
    * 查找所有品牌（分页 + 筛选）
    */
-  static async findAll(query: BrandQuery = {}) {
+  async findAll(query: BrandQuery = {}) {
     const { page = 1, limit = 20, sort = 'desc', status } = query;
     const offset = (page - 1) * limit;
 
@@ -94,13 +94,13 @@ export class BrandService {
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
-  }
+  },
 
   /**
    * 更新品牌
    * pre: 品牌存在
    */
-  static async update(id: number, data: UpdateBrandInput) {
+  async update(id: number, data: UpdateBrandInput) {
     const validated = updateBrandSchema.parse(data);
 
     // pre: 品牌存在
@@ -122,13 +122,13 @@ export class BrandService {
       .returning();
 
     return brand;
-  }
+  },
 
   /**
    * 删除品牌
    * pre: 品牌存在 + 无关联产品
    */
-  static async delete(id: number): Promise<boolean> {
+  async delete(id: number): Promise<boolean> {
     // pre-1: 品牌存在
     await BrandService.findById(id);
 
@@ -147,5 +147,5 @@ export class BrandService {
       .where(eq(brands.id, id));
 
     return (result.rowCount ?? 0) > 0;
-  }
-}
+  },
+};

@@ -1,123 +1,88 @@
 import { db } from '@/lib/db/db';
 import { customerGroups, customers } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { NotFoundError, BusinessRuleError } from './errors';
 
-export interface CreateCustomerGroupInput {
-  name: string;
-  description?: string;
-  discount?: string;
-}
+export const createGroupSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().optional(),
+  discount: z.string().optional(),
+});
 
-export interface UpdateCustomerGroupInput {
-  name?: string;
-  description?: string;
-  discount?: string;
-}
+export const updateGroupSchema = createGroupSchema.partial();
 
-export class CustomerGroupService {
+export const CustomerGroupService = {
+  /**
+   * 创建客户分组
+   */
+  async create(data: z.infer<typeof createGroupSchema>) {
+    const validated = createGroupSchema.parse(data);
+    const [group] = await db.insert(customerGroups).values({
+      name: validated.name,
+      description: validated.description ?? null,
+      discount: validated.discount ?? null,
+    }).returning();
+    return group;
+  },
+
+  /**
+   * 获取所有客户分组
+   */
   async list() {
-    const items = await db.select().from(customerGroups).orderBy(customerGroups.id);
-    return { items };
-  }
+    return await db
+      .select()
+      .from(customerGroups)
+      .orderBy(customerGroups.id);
+  },
 
-  async getById(id: number) {
-    const [group] = await db
+  /**
+   * 获取单个分组
+   */
+  async findById(id: number) {
+    const [row] = await db
       .select()
       .from(customerGroups)
       .where(eq(customerGroups.id, id))
       .limit(1);
-    if (!group) {
-      throw new NotFoundError('客户分组', id);
+    if (!row) throw new NotFoundError('客户分组', id);
+    return row;
+  },
+
+  /**
+   * 更新分组
+   */
+  async update(id: number, data: z.infer<typeof updateGroupSchema>) {
+    await CustomerGroupService.findById(id);
+    const validated = updateGroupSchema.parse(data);
+    const updateData: Record<string, string | null | undefined> = {};
+    if (validated.name !== undefined) updateData.name = validated.name;
+    if (validated.description !== undefined) updateData.description = validated.description;
+    if (validated.discount !== undefined) updateData.discount = validated.discount;
+
+    if (Object.keys(updateData).length > 0) {
+      await db.update(customerGroups).set(updateData).where(eq(customerGroups.id, id));
     }
-    return group;
-  }
+    return CustomerGroupService.findById(id);
+  },
 
-  async create(input: CreateCustomerGroupInput) {
-    // pre: 分组名唯一
-    const [existing] = await db
-      .select({ id: customerGroups.id })
-      .from(customerGroups)
-      .where(eq(customerGroups.name, input.name))
-      .limit(1);
-    if (existing) {
-      throw new BusinessRuleError('客户分组名已存在');
-    }
-
-    // rule: 折扣率 0-100
-    if (input.discount !== undefined) {
-      const discount = parseFloat(input.discount);
-      if (Number.isNaN(discount) || discount < 0 || discount > 100) {
-        throw new BusinessRuleError('折扣率必须在 0-100 之间');
-      }
-    }
-
-    const [group] = await db
-      .insert(customerGroups)
-      .values({
-        name: input.name,
-        description: input.description ?? null,
-        discount: input.discount ?? '0.00',
-      })
-      .returning();
-    return group;
-  }
-
-  async update(id: number, input: UpdateCustomerGroupInput) {
-    // pre: 分组存在
-    const [existing] = await db
-      .select({ id: customerGroups.id })
-      .from(customerGroups)
-      .where(eq(customerGroups.id, id))
-      .limit(1);
-    if (!existing) {
-      throw new NotFoundError('客户分组', id);
-    }
-
-    // rule: 折扣率 0-100
-    if (input.discount !== undefined) {
-      const discount = parseFloat(input.discount);
-      if (Number.isNaN(discount) || discount < 0 || discount > 100) {
-        throw new BusinessRuleError('折扣率必须在 0-100 之间');
-      }
-    }
-
-    const [group] = await db
-      .update(customerGroups)
-      .set({
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.description !== undefined && { description: input.description }),
-        ...(input.discount !== undefined && { discount: input.discount }),
-      })
-      .where(eq(customerGroups.id, id))
-      .returning();
-    return group;
-  }
-
+  /**
+   * 删除分组
+   */
   async delete(id: number) {
-    // pre: 分组存在
-    const [existing] = await db
-      .select({ id: customerGroups.id })
-      .from(customerGroups)
-      .where(eq(customerGroups.id, id))
-      .limit(1);
-    if (!existing) {
-      throw new NotFoundError('客户分组', id);
-    }
+    await CustomerGroupService.findById(id);
 
-    // pre: 分组无关联客户
-    const [customer] = await db
+    // 关联客户检查
+    const relatedCustomers = await db
       .select({ id: customers.id })
       .from(customers)
       .where(eq(customers.groupId, id))
       .limit(1);
-    if (customer) {
-      throw new BusinessRuleError('该分组下存在客户，无法删除');
+    if (relatedCustomers.length > 0) {
+      throw new BusinessRuleError('该分组下仍有客户，无法删除');
     }
 
     await db.delete(customerGroups).where(eq(customerGroups.id, id));
     return true;
-  }
-}
-
-export const customerGroupService = new CustomerGroupService();
+  },
+};

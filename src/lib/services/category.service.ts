@@ -21,7 +21,39 @@ export interface CategoryTreeItem {
   children: CategoryTreeItem[];
 }
 
+export interface CategorySearchResult {
+  id: number;
+  name: string;
+  status: boolean;
+  sortOrder: number;
+}
+
 export const CategoryService = {
+  /**
+   * 搜索分类列表（扁平结构，用于下拉/首页）
+   */
+  async search(params?: { locale?: string; status?: boolean }): Promise<CategorySearchResult[]> {
+    const locale = params?.locale || 'zh_cn';
+    const conditions = [eq(categoryDescriptions.locale, locale)];
+    if (params?.status !== undefined) {
+      conditions.push(eq(categories.status, params.status));
+    }
+
+    const rows = await db.select()
+      .from(categories)
+      .leftJoin(categoryDescriptions, eq(categories.id, categoryDescriptions.categoryId))
+      .where(and(...conditions))
+      .orderBy(categories.sortOrder);
+
+    return rows.map(r => ({
+      id: r.categories.id,
+      name: r.category_descriptions?.name || '',
+      status: r.categories.status ?? true,
+      sortOrder: r.categories.sortOrder ?? 0,
+    }));
+  },
+
+  /**
   /**
    * 创建分类
    * pre: parentId 存在或为 null、层级 ≤ 5

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BusinessRuleError } from './errors';
-import { settingsService } from './settings.service';
+import { SettingsService } from './settings.service';
 
 // ─── Preset Definition ─────────────────────────────────────────
 
@@ -186,20 +186,20 @@ export type CustomizeThemeInput = z.infer<typeof customizeThemeSchema>;
 
 // ─── Service ───────────────────────────────────────────────────
 
-export class ThemeService {
+export const ThemeService = {
   /**
    * 返回内置的 6 套预设, 不查数据库
    */
-  static listPresets(): ThemePreset[] {
+  listPresets(): ThemePreset[] {
     return Object.values(BUILTIN_PRESETS);
-  }
+  },
 
   /**
    * 从 settings 表读取 active_theme 配置
    * 若不存在则返回默认配置
    */
-  static async getCurrentTheme(): Promise<ThemeConfig> {
-    const raw = await settingsService.get(SETTINGS_KEY);
+  async getCurrentTheme(): Promise<ThemeConfig> {
+    const raw = await SettingsService.get(SETTINGS_KEY);
     if (!raw) return { ...DEFAULT_CONFIG };
 
     try {
@@ -213,13 +213,13 @@ export class ThemeService {
     } catch {
       return { ...DEFAULT_CONFIG };
     }
-  }
+  },
 
   /**
    * 应用预设主题
    * pre: preset 必须是预设名称之一
    */
-  static async applyPreset(input: ApplyPresetInput): Promise<ThemeConfig> {
+  async applyPreset(input: ApplyPresetInput): Promise<ThemeConfig> {
     const validated = applyPresetSchema.parse(input);
 
     const preset = BUILTIN_PRESETS[validated.preset];
@@ -234,18 +234,18 @@ export class ThemeService {
       darkMode: validated.darkMode ?? preset.mode === 'dark',
     };
 
-    await settingsService.updateAll({
+    await SettingsService.updateAll({
       [SETTINGS_KEY]: JSON.stringify(config),
     });
 
     return config;
-  }
+  },
 
   /**
    * 自定义主题颜色
    * 保存自定义颜色到 settings, 覆盖预设对应变量
    */
-  static async customizeTheme(input: CustomizeThemeInput): Promise<ThemeConfig> {
+  async customizeTheme(input: CustomizeThemeInput): Promise<ThemeConfig> {
     const validated = customizeThemeSchema.parse(input);
 
     const current = await ThemeService.getCurrentTheme();
@@ -257,10 +257,10 @@ export class ThemeService {
       darkMode: current.darkMode,
     };
 
-    await settingsService.updateAll({
+    await SettingsService.updateAll({
       [SETTINGS_KEY]: JSON.stringify(config),
     });
 
     return config;
-  }
-}
+  },
+};
