@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
+import { toApiLocale } from '@/lib/locales';
 import {
   Plus, Pencil, Trash2, ChevronDown, ChevronRight,
   Loader2, ListTree,
@@ -15,8 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-const toApiLocale = (locale: string) => (locale === 'zh' ? 'zh_cn' : 'en');
 
 interface ValueItem {
   id: number;
@@ -44,8 +43,7 @@ type ModalMode = 'group' | 'attribute' | 'value' | null;
 type ModalAction = 'create' | 'edit';
 
 export default function AdminAttributesPage() {
-  const params = useParams();
-  const locale = (params.locale as string) || 'zh';
+  const locale = useLocale();
   const apiLocale = toApiLocale(locale);
 
   const [groups, setGroups] = useState<GroupItem[]>([]);

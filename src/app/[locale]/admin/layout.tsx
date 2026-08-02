@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { SUPPORTED_LOCALES } from '@/lib/locales';
 import {
   LayoutDashboard,
@@ -46,7 +46,7 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { t } = useTranslations();
+  const t = useTranslations();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const locale = SUPPORTED_LOCALES.find(l => pathname.startsWith(`/${l}`)) || 'zh';

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api, type WishlistItem } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,8 @@ import Image from 'next/image';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 
 export default function WishlistPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
 
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const { user } = useAuth();

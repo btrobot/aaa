@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { api, type Order } from '@/lib/api';
 import { ShoppingCart, DollarSign, Users, Package } from 'lucide-react';
@@ -17,7 +17,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
   const [stats, setStats] = useState({ orders: 0, revenue: 0, customers: 0, products: 0 });

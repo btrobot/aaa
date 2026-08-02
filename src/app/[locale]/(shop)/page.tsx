@@ -1,37 +1,69 @@
 import { Suspense } from 'react';
 import { ProductService } from '@/lib/services/product.service';
-import { CategoryService } from '@/lib/services/category.service';
-import { db } from '@/lib/db/db';
-import { productImages } from '@/lib/db/schema';
-import { eq, inArray } from 'drizzle-orm';
-import { HomePageClient } from './home-page-client';
+import { BrandService } from '@/lib/services/brand.service';
+import { PageService } from '@/lib/services/page.service';
 import { Skeleton } from '@/components/ui/skeleton';
+import HomePageClient from './home-page-client';
 
-async function FeaturedProducts({ locale, apiLocale }: { locale: string; apiLocale: string }) {
-  const [rawProducts, categories] = await Promise.all([
+async function HomePageContent({ locale }: { locale: string }) {
+  const apiLocale = locale === 'en' ? 'en' : 'zh_cn';
+
+  const [rawProducts, brandResult, newsResult] = await Promise.all([
     ProductService.search({ locale: apiLocale, pageSize: 8, page: 1, sortBy: 'sortOrder', sortOrder: 'desc' }),
-    CategoryService.search({ locale: apiLocale }),
+    BrandService.findAll({}),
+    PageService.search({ locale: apiLocale, pageSize: 3, page: 1 }),
   ]);
 
-  const productIds = rawProducts.map(p => p.id);
-  const images = productIds.length > 0
-    ? await db.select()
-        .from(productImages)
-        .where(inArray(productImages.productId, productIds))
-        .orderBy(productImages.sortOrder)
-    : [];
+  const brands = brandResult.items.map(b => ({
+    id: b.id,
+    name: b.name,
+    logo: b.logo,
+    description: b.description,
+    website: b.website,
+    sortOrder: b.sortOrder,
+    status: b.status,
+  }));
 
   const products = rawProducts.map(p => ({
     id: p.id,
+    sku: p.sku,
     price: p.price,
     sales: p.sales,
     quantity: p.quantity,
-    description: p.description ? { name: p.description.name } as { name: string } : undefined,
-    images: images.filter(i => i.productId === p.id).map(i => ({ url: i.image, sortOrder: i.sortOrder ?? 0 })),
+    sortOrder: p.sortOrder,
+    status: p.status,
+    brandId: p.brandId,
+    costPrice: p.costPrice,
+    weight: p.weight,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+    description: p.description ? { name: p.description.name } as { name: string } : null,
+    descriptions: [],
+    images: [],
+    categoryIds: [],
     brand: p.brand,
   }));
 
-  return <HomePageClient products={products} categories={categories} locale={locale} />;
+  const news = newsResult.items.map(n => ({
+    id: n.id,
+    title: n.title,
+    content: n.content,
+    image: n.image,
+    author: n.author,
+    status: n.status,
+    sortOrder: n.sortOrder,
+    createdAt: n.createdAt,
+    updatedAt: n.updatedAt,
+  }));
+
+  return (
+    <HomePageClient
+      initialProducts={products as any}
+      initialBrands={brands as any}
+      initialNews={news as any}
+      locale={locale}
+    />
+  );
 }
 
 function HomePageSkeleton() {
@@ -60,11 +92,10 @@ export default async function HomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const apiLocale = locale === 'en' ? 'en' : 'zh_cn';
 
   return (
     <Suspense fallback={<HomePageSkeleton />}>
-      <FeaturedProducts locale={locale} apiLocale={apiLocale} />
+      <HomePageContent locale={locale} />
     </Suspense>
   );
 }

@@ -1,4 +1,5 @@
-import { I18nProvider } from '@/i18n/I18nProvider';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { CurrencyProvider } from '@/i18n/CurrencyProvider';
 import { CartProvider } from '@/lib/cart-context';
 import { AuthProvider } from '@/lib/auth-context';
@@ -8,16 +9,18 @@ import Footer from '@/components/Footer';
 
 const SITE_URL = process.env.COZE_PROJECT_DOMAIN_DEFAULT || 'https://nodecoda.com';
 
-function ClientProviders({ children }: { children: React.ReactNode }) {
+async function ClientProviders({ children, locale }: { children: React.ReactNode; locale: string }) {
+  const messages = await getMessages();
+
   return (
     <AuthProvider>
       <CurrencyProvider>
         <CartProvider>
-          <I18nProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <ThemeProvider>
               {children}
             </ThemeProvider>
-          </I18nProvider>
+          </NextIntlClientProvider>
         </CartProvider>
       </CurrencyProvider>
     </AuthProvider>
@@ -26,9 +29,12 @@ function ClientProviders({ children }: { children: React.ReactNode }) {
 
 export default async function LocaleLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
   const organizationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -44,7 +50,7 @@ export default async function LocaleLayout({
   };
 
   return (
-    <ClientProviders>
+    <ClientProviders locale={locale}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

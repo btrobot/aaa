@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { api, type Page } from '@/lib/api';
 import { Search, Plus, Edit2, Trash2, Globe, CheckCircle, XCircle } from 'lucide-react';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 
 export default function AdminPages() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
   const [pages, setPages] = useState<Page[]>([]);

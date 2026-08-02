@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +58,8 @@ interface OrderItem {
   total: string;
 }
 export default function CustomerRmasPage({ params: _params }: { params: { locale: string } }) {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const [rmas, setRmas] = useState<RmaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);

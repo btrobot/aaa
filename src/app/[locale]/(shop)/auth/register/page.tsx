@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,7 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Cookie, Lock, Mail, User } from 'lucide-react';
 
 export default function RegisterPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const router = useRouter();
   const { register } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });

@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import { Cog } from 'lucide-react';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 import type { CategoryData } from '@/lib/types';
 
 export default function CategoriesPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);

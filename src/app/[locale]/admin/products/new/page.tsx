@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { useRouter, useParams } from 'next/navigation';
 import { api, type Brand, type CategoryTreeNode } from '@/lib/api';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 
 export default function AdminNewProduct() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const router = useRouter();
   const params = useParams();
   const locale = (params.locale as string)?.startsWith('en') ? 'en' : 'zh';

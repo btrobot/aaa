@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const isDev = process.env.NODE_ENV === 'development';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 let nextConfig: NextConfig = {
   allowedDevOrigins: ['*.dev.coze.site', '175.178.17.101'],
@@ -51,4 +54,4 @@ if (process.env.ANALYZE === 'true') {
   nextConfig = withBundleAnalyzer(nextConfig);
 }
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

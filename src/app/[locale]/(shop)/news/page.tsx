@@ -2,16 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import type { Page } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, ChevronRight, Newspaper } from 'lucide-react';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 
 export default function NewsPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

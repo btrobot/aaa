@@ -3,17 +3,18 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft } from 'lucide-react';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 import type { CartItemData } from '@/lib/types';
 
 export default function CartPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const { user, loading: authLoading } = useAuth();
   
   const [cartItems, setCartItems] = useState<CartItemData[]>([]);

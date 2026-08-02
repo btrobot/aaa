@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import type { Product } from '@/lib/api';
 import { useCart } from '@/lib/cart-context';
@@ -14,14 +14,15 @@ import Image from 'next/image';
 import { ShoppingCart, Heart, Minus, Plus, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { ProductReviews } from '@/components/ProductReviews';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 
 export default function ProductDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const { id } = use(params);
   const { refreshCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);

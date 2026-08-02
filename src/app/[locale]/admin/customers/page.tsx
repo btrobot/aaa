@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { Search, Mail } from 'lucide-react';
 
@@ -14,7 +14,7 @@ interface Customer {
 }
 
 export default function AdminCustomers() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

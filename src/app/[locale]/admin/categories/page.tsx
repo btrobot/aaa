@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { api } from '@/lib/api';
+import { toApiLocale } from '@/lib/locales';
 import { Plus, Pencil, Trash2, ChevronDown, Loader2 } from 'lucide-react';
 
 interface Category {
@@ -13,11 +14,8 @@ interface Category {
   children: Category[];
 }
 
-const toApiLocale = (locale: string) => (locale === 'zh' ? 'zh_cn' : 'en');
-
 export default function AdminCategoriesPage() {
-  const params = useParams();
-  const locale = (params.locale as string) || 'zh';
+  const locale = useLocale();
   const apiLocale = toApiLocale(locale);
 
   const [categories, setCategories] = useState<Category[]>([]);

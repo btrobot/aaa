@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import { Search } from 'lucide-react';
 
@@ -28,7 +28,7 @@ interface AdminOrder {
 }
 
 export default function AdminOrders() {
-  const { t, locale } = useTranslations();
+  const t = useTranslations(); const locale = useLocale();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

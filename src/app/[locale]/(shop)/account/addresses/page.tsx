@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ interface Address {
 }
 
 export default function AddressesPage() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const [addresses, setAddresses] = useState<Address[]>([
     { id: 1, name: '张三', phone: '13800138000', address: '北京市朝阳区建国路88号 100022', isDefault: true },
     { id: 2, name: '张三', phone: '13900139000', address: '上海市浦东新区陆家嘴金融区 200120', isDefault: false },

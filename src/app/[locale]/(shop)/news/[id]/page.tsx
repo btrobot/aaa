@@ -3,14 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import type { Page } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Calendar, ArrowLeft, User, Newspaper } from 'lucide-react';
 
 export default function NewsDetailPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const params = useParams();
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);

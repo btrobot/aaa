@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import type { Product } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Image from 'next/image';
 import { Search, SlidersHorizontal, Grid3X3, List, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 import type { CategoryData } from '@/lib/types';
 
 export default function ProductsPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const [products, setProducts] = useState<Product[]>([]);
   
   const [categories, setCategories] = useState<CategoryData[]>([]);

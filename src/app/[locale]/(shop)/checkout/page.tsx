@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ChevronRight, CreditCard, Building, Wallet, Truck, ShoppingBag } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 import type { CartItemData } from '@/lib/types';
 
 interface ShippingMethod {
@@ -28,7 +28,8 @@ interface ShippingMethod {
 }
 
 export default function CheckoutPage() {
-  const { locale, t } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [cartItems, setCartItems] = useState<CartItemData[]>([]);

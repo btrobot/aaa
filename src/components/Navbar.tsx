@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { useCart } from '@/lib/cart-context';
 import { useCurrency } from '@/i18n/CurrencyProvider';
-import { locales, localeNames } from '@/i18n/config';
+import { routing, localeNames } from '@/i18n/routing';
 import { Menu, X, ShoppingCart, ChevronDown, Globe, User, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,9 @@ import { Input } from '@/components/ui/input';
 import { currencies as allCurrencies, currencySymbols } from '@/i18n/CurrencyProvider';
 
 export default function Navbar() {
-  const { locale, t, setLocale } = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations();
+  const router = useRouter();
   const { totalItems } = useCart();
   const { currency, setCurrency } = useCurrency();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -21,6 +24,12 @@ export default function Navbar() {
   const [currOpen, setCurrOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { locales } = routing;
+
+  const setLocale = (newLocale: string) => {
+    router.replace('/', { locale: newLocale });
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +104,7 @@ export default function Navbar() {
             <div className="relative">
               <Button variant="ghost" size="sm" onClick={() => setLangOpen(!langOpen)} className="flex items-center gap-1 text-gray-600">
                 <Globe className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">{localeNames[locale]}</span>
+                <span className="hidden sm:inline text-sm">{localeNames[locale as keyof typeof localeNames]}</span>
               </Button>
               {langOpen && (
                 <div className="absolute right-0 top-full mt-1 w-32 rounded-lg border bg-white shadow-lg p-1 z-50">
@@ -107,7 +116,7 @@ export default function Navbar() {
                         locale === l ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      {localeNames[l]}
+                      {localeNames[l as keyof typeof localeNames]}
                     </button>
                   ))}
                 </div>
@@ -241,7 +250,7 @@ export default function Navbar() {
                       locale === l ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    {localeNames[l]}
+                    {localeNames[l as keyof typeof localeNames]}
                   </button>
                 ))}
               </div>

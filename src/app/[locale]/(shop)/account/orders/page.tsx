@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const { user } = useAuth();
   
 interface OrderData {

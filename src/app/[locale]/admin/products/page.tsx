@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTranslations } from '@/i18n/useTranslations';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { api, type Product } from '@/lib/api';
 import { Search, Plus, Edit2, Eye, Star } from 'lucide-react';
-import { toApiLocale } from '@/i18n/utils';
+import { toApiLocale } from '@/lib/locales';
 
 export default function AdminProducts() {
-  const { t } = useTranslations();
+  const t = useTranslations();
   const pathname = usePathname();
   const locale = pathname.startsWith('/en') ? 'en' : 'zh';
   const [products, setProducts] = useState<Product[]>([]);
