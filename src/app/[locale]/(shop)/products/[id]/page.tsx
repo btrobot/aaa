@@ -342,6 +342,7 @@ export default function ProductDetailPage({
         onOpenChange={setInquiryOpen}
         productName={name}
         productSku={product.sku}
+        productId={product.id}
       />
     </>
   );

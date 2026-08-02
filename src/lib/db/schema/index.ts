@@ -12,5 +12,8 @@ export * from './customers';
 // 订单体系
 export * from './orders';
 
+// 询盘体系
+export * from './inquiries';
+
 // 系统体系
 export * from './system';

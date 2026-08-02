@@ -13,16 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Mail, Send, CheckCircle } from 'lucide-react';
+import { Mail, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface InquiryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   productName: string;
   productSku: string;
+  productId: number;
 }
 
-export function InquiryModal({ open, onOpenChange, productName, productSku }: InquiryModalProps) {
+export function InquiryModal({ open, onOpenChange, productName, productSku, productId }: InquiryModalProps) {
   const t = useTranslations();
   const [formData, setFormData] = useState({
     name: '',
@@ -33,30 +35,34 @@ export function InquiryModal({ open, onOpenChange, productName, productSku }: In
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const body = [
-      `Product: ${productName}`,
-      `SKU: ${productSku}`,
-      `---`,
-      `Name: ${formData.name}`,
-      `Email: ${formData.email}`,
-      `Phone: ${formData.phone}`,
-      `Company: ${formData.company}`,
-      `Quantity: ${formData.quantity}`,
-      `---`,
-      `Message:`,
-      formData.message,
-    ].join('\n');
+    setSending(true);
+    setError('');
 
-    const subject = encodeURIComponent(`Inquiry: ${productName} (${productSku})`);
-    window.location.href = `mailto:sales@nodecoda.com?subject=${subject}&body=${encodeURIComponent(body)}`;
-    setSubmitted(true);
+    try {
+      await api.inquiries.create({
+        productId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        company: formData.company || undefined,
+        quantity: parseInt(formData.quantity) || 1,
+        message: formData.message || undefined,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(t('common.error'));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -155,8 +161,15 @@ export function InquiryModal({ open, onOpenChange, productName, productSku }: In
                   placeholder={t('products.inquiryMessagePlaceholder')}
                 />
               </div>
-              <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                <Send className="w-4 h-4 mr-2" />
+              {error && (
+                <p className="text-sm text-red-500">{error}</p>
+              )}
+              <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white" disabled={sending}>
+                {sending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
                 {t('products.sendInquiry')}
               </Button>
             </form>

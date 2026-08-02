@@ -194,6 +194,32 @@
     "continueShopping": "Continue Shopping",
     "viewOrder": "View Order"
   },
+  "inquiry": {
+    "sendInquiry": "Send Inquiry",
+    "pending": "Pending",
+    "replied": "Replied",
+    "closed": "Closed",
+    "noInquiries": "No inquiries yet",
+    "noInquiriesDesc": "Browse our products and send an inquiry to get started",
+    "browseProducts": "Browse Products",
+    "productSku": "Product",
+    "inquirySuccess": "Inquiry sent successfully!",
+    "inquirySuccessDesc": "Our team will get back to you within 24 hours.",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "quantity": "Quantity",
+    "message": "Message",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "Your email",
+    "phonePlaceholder": "Your phone number",
+    "companyPlaceholder": "Company name",
+    "messagePlaceholder": "Tell us your requirements...",
+    "quantityPlaceholder": "Quantity needed",
+    "submitError": "Failed to send inquiry. Please try again.",
+    "loginRequired": "Please log in to send an inquiry"
+  },
   "account": {
     "title": "My Account",
     "dashboard": "Dashboard",
@@ -205,8 +231,14 @@
     "addressList": "Address Management",
     "profile": "Profile",
     "settings": "Account Settings",
+    "myInquiries": "My Inquiries",
+    "recentInquiries": "Recent Inquiries",
     "noOrders": "No orders yet",
     "noWishlist": "Your wishlist is empty",
+    "myAccount": "My Account",
+    "myOrders": "My Orders",
+    "myAddresses": "My Addresses",
+    "myWishlist": "My Wishlist",
     "orderStatus": {
       "pending": "Pending Payment",
       "confirmed": "Confirmed",
@@ -295,7 +327,8 @@
     "confirm": "Confirm",
     "submit": "Submit",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "logout": "Logout"
   },
   "admin": {
     "dashboard": "Dashboard",

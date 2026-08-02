@@ -253,6 +253,22 @@ export interface PaginatedResponse<T> {
   total: number;
 }
 
+export interface InquiryType {
+  id: number;
+  productId: number;
+  customerId: number | null;
+  name: string;
+  email: string;
+  phone: string | null;
+  company: string | null;
+  quantity: number;
+  message: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  productSku?: string | null;
+}
+
 export interface Brand {
   id: number;
   name: string;
@@ -541,6 +557,17 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+  // 询盘
+  inquiries: {
+    create: (data: { productId: number; name: string; email: string; phone?: string; company?: string; quantity: number; message?: string }) =>
+      request<InquiryType>('/api/v1/inquiries', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    list: () =>
+      request<{ items: InquiryType[]; total: number }>('/api/v1/inquiries'),
+  },
+
   attributes: {
     list: (locale: string) =>
       request<AttributeGroup[]>(`/api/v1/attributes?locale=${locale}`),

@@ -87,6 +87,32 @@
     "factoryFeature3Desc": "每个组件从原材料到最终组装全程数字化质量记录可追溯",
     "factoryImageLabel": "现代化生产基地"
   },
+  "inquiry": {
+    "sendInquiry": "发送询盘",
+    "pending": "待处理",
+    "replied": "已回复",
+    "closed": "已关闭",
+    "noInquiries": "暂无询盘",
+    "noInquiriesDesc": "浏览我们的产品并发送询盘",
+    "browseProducts": "浏览产品",
+    "productSku": "产品编号",
+    "inquirySuccess": "询盘已发送成功！",
+    "inquirySuccessDesc": "我们的团队将在24小时内回复您。",
+    "name": "姓名",
+    "email": "邮箱",
+    "phone": "电话",
+    "company": "公司",
+    "quantity": "数量",
+    "message": "留言",
+    "namePlaceholder": "请输入您的姓名",
+    "emailPlaceholder": "请输入您的邮箱",
+    "phonePlaceholder": "请输入您的电话",
+    "companyPlaceholder": "请输入公司名称",
+    "messagePlaceholder": "请描述您的需求...",
+    "quantityPlaceholder": "所需数量",
+    "submitError": "发送失败，请重试",
+    "loginRequired": "请先登录再发送询盘"
+  },
   "products": {
     "title": "全部商品",
     "subtitle": "发现您需要的商品",
@@ -207,6 +233,8 @@
     "settings": "账户设置",
     "noOrders": "暂无订单",
     "noWishlist": "收藏夹为空",
+    "myInquiries": "我的询盘",
+    "recentInquiries": "最近询盘",
     "orderStatus": {
       "pending": "待付款",
       "confirmed": "已确认",
@@ -295,7 +323,8 @@
     "confirm": "确认",
     "submit": "提交",
     "close": "关闭",
-    "back": "返回"
+    "back": "返回",
+    "logout": "退出登录"
   },
   "admin": {
     "dashboard": "控制台",

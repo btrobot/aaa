@@ -28,7 +28,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
-  const [inquiryProduct, setInquiryProduct] = useState<{ name: string; sku: string } | null>(null);
+  const [inquiryProduct, setInquiryProduct] = useState<{ id: number; name: string; sku: string } | null>(null);
 
   const apiLocale = toApiLocale(locale);
 
@@ -255,7 +255,7 @@ export default function ProductsPage() {
                                   className="bg-orange-500 hover:bg-orange-600 text-white"
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    setInquiryProduct({ name, sku: product.sku });
+                                    setInquiryProduct({ id: product.id, name, sku: product.sku });
                                   }}
                                 >
                                   <Mail className="w-3.5 h-3.5 mr-1.5" />
@@ -334,7 +334,7 @@ export default function ProductsPage() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setInquiryProduct({ name, sku: product.sku });
+                            setInquiryProduct({ id: product.id, name, sku: product.sku });
                           }}
                         >
                           <Mail className="w-3.5 h-3.5 mr-1.5" />
@@ -357,6 +357,7 @@ export default function ProductsPage() {
           onOpenChange={(open) => { if (!open) setInquiryProduct(null); }}
           productName={inquiryProduct.name}
           productSku={inquiryProduct.sku}
+          productId={inquiryProduct.id}
         />
       )}
     </div>

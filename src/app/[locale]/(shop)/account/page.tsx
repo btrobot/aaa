@@ -3,64 +3,40 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { api } from '@/lib/api';
+import { api, InquiryType } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Package, MapPin, Heart, Settings, LogOut, ChevronRight, RotateCcw } from 'lucide-react';
+import { User, Mail, MapPin, Settings, LogOut, ChevronRight, FileText } from 'lucide-react';
 
 const sidebarLinks = [
   { icon: User, label: 'account.profile', href: '/account' },
-  { icon: Package, label: 'account.orders', href: '/account/orders' },
-  { icon: RotateCcw, label: '退换货', href: '/account/rmas' },
+  { icon: Mail, label: 'account.myInquiries', href: '/account/inquiries' },
   { icon: MapPin, label: 'account.addresses', href: '/account/addresses' },
-  { icon: Heart, label: 'account.wishlist', href: '/account/wishlist' },
   { icon: Settings, label: 'account.settings', href: '#' },
 ];
 
-function statusBadge(status: string) {
-  const colors: Record<string, string> = {
-    completed: 'bg-green-100 text-green-700',
-    shipped: 'bg-blue-100 text-blue-700',
-    confirmed: 'bg-yellow-100 text-yellow-700',
-    pending: 'bg-gray-100 text-gray-700',
-    cancelled: 'bg-red-100 text-red-700',
-    returned: 'bg-purple-100 text-purple-700',
-  };
-  return colors[status] || 'bg-gray-100 text-gray-700';
-}
-
-function statusText(status: string) {
-  const map: Record<string, string> = {
-    pending: '待处理', confirmed: '已确认', shipped: '已发货',
-    completed: '已完成', cancelled: '已取消', returned: '已退货',
-  };
-  return map[status] || status;
-}
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  replied: 'bg-blue-100 text-blue-700',
+  closed: 'bg-gray-100 text-gray-700',
+};
 
 export default function AccountPage() {
   const locale = useLocale();
   const t = useTranslations();
   const { user, loading: authLoading, logout } = useAuth();
-  
-interface AccountOrder {
-  id: number;
-  number: string;
-  status: string;
-  total: string;
-  createdAt: string;
-}
 
-const [orders, setOrders] = useState<AccountOrder[]>([]);
+  const [inquiries, setInquiries] = useState<InquiryType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       if (!user) { setLoading(false); return; }
       try {
-        const orderData = await api.orders.list();
-        setOrders(orderData.slice(0, 3));
+        const result = await api.inquiries.list();
+        setInquiries(result.items.slice(0, 3));
       } catch (err) {
         console.error('Failed to load account:', err);
       } finally {
@@ -79,10 +55,13 @@ const [orders, setOrders] = useState<AccountOrder[]>([]);
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center"><User className="w-16 h-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500 mb-4">请先登录</p><Link href={`/${locale}/auth/login`}><Button className="bg-blue-600 hover:bg-blue-700">登录</Button></Link></div>
+        <div className="text-center"><User className="w-16 h-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500 mb-4">{t('inquiry.loginRequired')}</p><Link href={`/${locale}/auth/login`}><Button className="bg-blue-600 hover:bg-blue-700">{t('common.login')}</Button></Link></div>
       </div>
     );
   }
+
+  const pendingCount = inquiries.filter((i) => i.status === 'pending').length;
+  const repliedCount = inquiries.filter((i) => i.status === 'replied').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -116,7 +95,7 @@ const [orders, setOrders] = useState<AccountOrder[]>([]);
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors w-full"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>退出登录</span>
+                    <span>{t('common.logout')}</span>
                   </button>
                 </nav>
               </CardContent>
@@ -129,53 +108,60 @@ const [orders, setOrders] = useState<AccountOrder[]>([]);
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{orders.length}</p>
-                  <p className="text-sm text-gray-500">{t('account.orders')}</p>
+                  <p className="text-2xl font-bold text-blue-600">{inquiries.length}</p>
+                  <p className="text-sm text-gray-500">{t('account.myInquiries')}</p>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-green-600">0</p>
-                  <p className="text-sm text-gray-500">收藏夹</p>
+                  <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
+                  <p className="text-sm text-gray-500">{t('inquiry.pending')}</p>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-purple-600">0</p>
-                  <p className="text-sm text-gray-500">地址</p>
+                  <p className="text-2xl font-bold text-green-600">{repliedCount}</p>
+                  <p className="text-sm text-gray-500">{t('inquiry.replied')}</p>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-orange-600">0</p>
-                  <p className="text-sm text-gray-500">优惠券</p>
+                  <p className="text-2xl font-bold text-orange-600">{t('inquiry.sendInquiry')}</p>
+                  <p className="text-sm text-gray-500">
+                    <Link href={`/${locale}/products`} className="text-blue-600 hover:underline">{t('inquiry.browseProducts')}</Link>
+                  </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Recent Orders */}
+            {/* Recent Inquiries */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">{t('account.recentOrders')}</h2>
-                  <Link href={`/${locale}/account/orders`} className="text-sm text-blue-600 hover:underline">{t('common.viewAll')}</Link>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('account.recentInquiries')}</h2>
+                  <Link href={`/${locale}/account/inquiries`} className="text-sm text-blue-600 hover:underline">{t('common.viewAll')}</Link>
                 </div>
-                {orders.length === 0 ? (
+                {inquiries.length === 0 ? (
                   <div className="text-center py-8">
-                    <Package className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-gray-500">{t('account.noOrders')}</p>
+                    <Mail className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500">{t('inquiry.noInquiries')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {orders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{order.number}</p>
-                          <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    {inquiries.map((inquiry) => (
+                      <div key={inquiry.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-4 h-4 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{inquiry.productSku || '-'}</p>
+                            <p className="text-xs text-gray-500">{inquiry.company || inquiry.name}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">¥{Number(order.total).toLocaleString()}</p>
-                          <Badge className={`${statusBadge(order.status)} text-xs`}>{statusText(order.status)}</Badge>
+                        <div className="text-right flex items-center gap-2">
+                          <span className="text-xs text-gray-400">{new Date(inquiry.createdAt).toLocaleDateString()}</span>
+                          <Badge className={`${statusColors[inquiry.status] || 'bg-gray-100 text-gray-700'} text-xs`}>
+                            {t(inquiry.status === 'pending' ? 'inquiry.pending' : inquiry.status === 'replied' ? 'inquiry.replied' : 'inquiry.closed')}
+                          </Badge>
                         </div>
                       </div>
                     ))}
@@ -186,9 +172,9 @@ const [orders, setOrders] = useState<AccountOrder[]>([]);
 
             {/* Quick Actions */}
             <div className="grid sm:grid-cols-3 gap-4">
-              <Link href={`/${locale}/account/orders`} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all">
-                <Package className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">{t('account.myOrders')}</span>
+              <Link href={`/${locale}/account/inquiries`} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all">
+                <Mail className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">{t('account.myInquiries')}</span>
                 <ChevronRight className="w-4 h-4 text-gray-300 ml-auto" />
               </Link>
               <Link href={`/${locale}/account/addresses`} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all">
@@ -196,9 +182,9 @@ const [orders, setOrders] = useState<AccountOrder[]>([]);
                 <span className="text-sm font-medium text-gray-700">{t('account.myAddresses')}</span>
                 <ChevronRight className="w-4 h-4 text-gray-300 ml-auto" />
               </Link>
-              <Link href={`/${locale}/account/wishlist`} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all">
-                <Heart className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">{t('account.myWishlist')}</span>
+              <Link href={`/${locale}/products`} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">{t('inquiry.browseProducts')}</span>
                 <ChevronRight className="w-4 h-4 text-gray-300 ml-auto" />
               </Link>
             </div>
