@@ -24,7 +24,8 @@
     "backToShop": "Back to Shop",
     "viewSite": "View Site",
     "about": "About Us",
-    "news": "News Center"
+    "news": "News Center",
+    "inquiry": "Inquiry"
   },
   "home": {
     "heroBadge": "Global Leader in Amusement Rides",
@@ -49,7 +50,17 @@
     "news": "News Center",
     "newsDesc": "Stay updated with the latest company news and industry insights",
     "viewAll": "View All",
-    "readMore": "Read More"
+    "readMore": "Read More",
+    "sendInquiry": "Send Inquiry",
+    "inquiryProcess": "How It Works",
+    "inquiryProcessDesc": "Simple 3-step process to get your custom quote",
+    "inquiryStep1": "Submit Inquiry",
+    "inquiryStep1Desc": "Tell us your requirements and product interests",
+    "inquiryStep2": "Get Quote",
+    "inquiryStep2Desc": "Our team responds within 24 hours with a tailored quote",
+    "inquiryStep3": "Manufacturing & Delivery",
+    "inquiryStep3Desc": "Custom manufacturing with global shipping worldwide",
+    "startInquiry": "Start Your Inquiry"
   },
   "products": {
     "title": "All Products",
@@ -80,7 +91,13 @@
     "sku": "Options",
     "quantity": "Qty",
     "total": "Total",
-    "share": "Share"
+    "share": "Share",
+    "inquiryTitle": "Interested in this product?",
+    "inquiryDesc": "Send us an inquiry to get a customized quote, technical specifications, and delivery information.",
+    "sendInquiry": "Send Inquiry",
+    "weight": "Weight",
+    "sales": "Sold",
+    "brand": "Brand"
   },
   "product": {
     "description": "Product Details",
@@ -199,21 +216,26 @@
   },
   "footer": {
     "aboutUs": "About Us",
-    "aboutDesc": "NodeCoda is an open-source cross-border e-commerce platform dedicated to providing secure, efficient and convenient online sales solutions for global sellers.",
-    "customerService": "Customer Service",
+    "aboutDesc": "NodeCoda is a leading amusement ride manufacturer dedicated to delivering safe, innovative, and high-quality amusement equipment to theme parks and entertainment venues worldwide.",
+    "customerService": "Support",
     "helpCenter": "Help Center",
     "shippingInfo": "Shipping Info",
     "returnPolicy": "Return Policy",
     "sizeGuide": "Size Guide",
     "quickLinks": "Quick Links",
     "contactInfo": "Contact Us",
-    "email": "service@nodecoda.com",
+    "email": "sales@nodecoda.com",
     "phone": "+86 400-888-8888",
     "address": "Nanshan District, Shenzhen, Guangdong, China",
     "followUs": "Follow Us",
     "copyright": "© 2024 NodeCoda. All rights reserved.",
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "about": "About Us",
+    "contactSales": "Contact Sales",
+    "technicalSupport": "Technical Support",
+    "faq": "FAQ",
+    "support": "Support"
   },
   "common": {
     "loading": "Loading...",

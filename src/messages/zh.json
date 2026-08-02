@@ -20,6 +20,7 @@
     "addresses": "收货地址",
     "about": "关于我们",
     "news": "新闻中心",
+    "inquiry": "询盘",
     "language": "语言",
     "search": "搜索商品...",
     "dashboard": "控制台",
@@ -49,7 +50,17 @@
     "news": "新闻中心",
     "newsDesc": "了解公司最新动态和行业资讯",
     "viewAll": "查看全部",
-    "readMore": "了解更多"
+    "readMore": "了解更多",
+    "sendInquiry": "发送询盘",
+    "inquiryProcess": "询盘流程",
+    "inquiryProcessDesc": "三步轻松获取定制报价",
+    "inquiryStep1": "提交需求",
+    "inquiryStep1Desc": "告诉我们您的产品需求和规格要求",
+    "inquiryStep2": "获取报价",
+    "inquiryStep2Desc": "专业团队24小时内为您提供定制报价方案",
+    "inquiryStep3": "生产与交付",
+    "inquiryStep3Desc": "定制生产，全球物流配送直达您的手中",
+    "startInquiry": "开始询盘"
   },
   "products": {
     "title": "全部商品",
@@ -80,7 +91,13 @@
     "sku": "规格",
     "quantity": "数量",
     "total": "合计",
-    "share": "分享"
+    "share": "分享",
+    "inquiryTitle": "对此产品感兴趣？",
+    "inquiryDesc": "发送询盘获取定制报价、技术参数和交货信息",
+    "sendInquiry": "发送询盘",
+    "weight": "重量",
+    "sales": "已售",
+    "brand": "品牌"
   },
   "product": {
     "description": "商品详情",
@@ -199,21 +216,26 @@
   },
   "footer": {
     "aboutUs": "关于我们",
-    "aboutDesc": "NodeCoda 是开源跨境电商平台，致力于为全球卖家提供安全、高效、便捷的在线销售解决方案。",
-    "customerService": "客户服务",
+    "aboutDesc": "NodeCoda 是领先的游乐设备制造商，致力于为全球主题公园和娱乐场所提供安全、创新、高品质的游乐设施。",
+    "customerService": "支持中心",
     "helpCenter": "帮助中心",
     "shippingInfo": "配送说明",
     "returnPolicy": "退换货政策",
     "sizeGuide": "尺码指南",
     "quickLinks": "快速链接",
     "contactInfo": "联系方式",
-    "email": "service@nodecoda.com",
+    "email": "sales@nodecoda.com",
     "phone": "+86 400-888-8888",
     "address": "中国广东省深圳市南山区科技园",
     "followUs": "关注我们",
     "copyright": "© 2024 NodeCoda. All rights reserved.",
     "privacy": "隐私政策",
-    "terms": "服务条款"
+    "terms": "服务条款",
+    "about": "关于我们",
+    "contactSales": "联系销售",
+    "technicalSupport": "技术支持",
+    "faq": "常见问题",
+    "support": "支持中心"
   },
   "common": {
     "loading": "加载中...",

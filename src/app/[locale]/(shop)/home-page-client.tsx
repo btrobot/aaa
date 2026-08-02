@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ArrowRight, Shield, Ship, HeadphonesIcon, Building2, Newspaper, ChevronRight } from 'lucide-react';
+import { ArrowRight, Shield, Ship, HeadphonesIcon, Building2, Newspaper, ChevronRight, Mail, FileText, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,12 @@ export default function HomePageClient({
     setLoaded(true);
   }, []);
 
+  const inquirySteps = [
+    { icon: FileText, title: t('home.inquiryStep1'), desc: t('home.inquiryStep1Desc') },
+    { icon: CheckCircle, title: t('home.inquiryStep2'), desc: t('home.inquiryStep2Desc') },
+    { icon: Mail, title: t('home.inquiryStep3'), desc: t('home.inquiryStep3Desc') },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -59,9 +65,10 @@ export default function HomePageClient({
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href={`/${locale}/about`}>
+              <Link href={`/${locale}/products`}>
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
-                  {t('home.learnMore')}
+                  <Mail className="mr-2 h-4 w-4" />
+                  {t('home.sendInquiry')}
                 </Button>
               </Link>
             </div>
@@ -105,7 +112,7 @@ export default function HomePageClient({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.slice(0, 8).map((product) => (
-              <Link key={product.id} href={`/${locale}/products/${product.id}`}>
+              <Link key={product.id} href={`/${locale}/products/${product.id}`} className="group">
                 <Card className="group overflow-hidden border-0 shadow-sm hover:shadow-xl transition-all duration-300 h-full">
                   <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-50 relative overflow-hidden">
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -180,8 +187,42 @@ export default function HomePageClient({
         </div>
       </section>
 
-      {/* News Section */}
+      {/* Inquiry Process Section */}
       <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">
+              {t('home.inquiryProcess')}
+            </h2>
+            <p className="mt-2 text-gray-500">
+              {t('home.inquiryProcessDesc')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {inquirySteps.map((step, i) => (
+              <div key={i} className="relative text-center group">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                  <step.icon className="h-10 w-10 text-blue-600" />
+                </div>
+                <div className="hidden md:block absolute top-10 left-[60%] w-[calc(80%)] h-px border-t-2 border-dashed border-gray-200" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-500 max-w-xs mx-auto">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-10">
+            <Link href={`/${locale}/products`}>
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Mail className="mr-2 h-4 w-4" />
+                {t('home.startInquiry')}
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* News Section */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-10">
             <div>

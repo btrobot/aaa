@@ -4,10 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { useCart } from '@/lib/cart-context';
 import { useCurrency } from '@/i18n/CurrencyProvider';
 import { routing, localeNames } from '@/i18n/routing';
-import { Menu, X, ShoppingCart, ChevronDown, Globe, User, Search, Heart } from 'lucide-react';
+import { Menu, X, ChevronDown, Globe, User, Search, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -17,7 +16,6 @@ export default function Navbar() {
   const locale = useLocale();
   const t = useTranslations();
   const router = useRouter();
-  const { totalItems } = useCart();
   const { currency, setCurrency } = useCurrency();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -60,10 +58,11 @@ export default function Navbar() {
             <Link href={`/${locale}/account/orders`} className="hover:text-blue-600 transition-colors">
               {t('nav.orders')}
             </Link>
-            <Link href={`/${locale}/account/wishlist`} className="hover:text-blue-600 transition-colors inline-flex items-center gap-1">
-              <Heart className="h-3 w-3" />
-              {t('nav.wishlist')}
-            </Link>
+            <span className="text-gray-300">|</span>
+            <a href={`/${locale}/products?inquiry=1`} className="hover:text-orange-500 transition-colors inline-flex items-center gap-1">
+              <Mail className="h-3 w-3" />
+              {t('nav.inquiry')}
+            </a>
           </div>
         </div>
       </div>
@@ -146,15 +145,11 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Cart */}
-            <Link href={`/${locale}/cart`}>
-              <Button variant="ghost" size="sm" className="relative text-gray-600">
-                <ShoppingCart className="h-5 w-5" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-medium">
-                    {totalItems > 99 ? '99+' : totalItems}
-                  </span>
-                )}
+            {/* Inquiry Button */}
+            <Link href={`/${locale}/products`}>
+              <Button size="sm" className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white gap-1.5">
+                <Mail className="h-4 w-4" />
+                <span>{t('nav.inquiry')}</span>
               </Button>
             </Link>
 
@@ -222,20 +217,20 @@ export default function Navbar() {
             ))}
             <div className="border-t pt-2 mt-2">
               <Link
+                href={`/${locale}/products`}
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+              >
+                <Mail className="h-3.5 w-3.5 inline-block mr-2" />
+                {t('nav.inquiry')}
+              </Link>
+              <Link
                 href={`/${locale}/account`}
                 onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-orange-500 hover:bg-orange-50 rounded-md transition-colors"
               >
                 <User className="h-3.5 w-3.5 inline-block mr-2" />
                 {t('nav.account')}
-              </Link>
-              <Link
-                href={`/${locale}/account/wishlist`}
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-orange-500 hover:bg-orange-50 rounded-md transition-colors"
-              >
-                <Heart className="h-3.5 w-3.5 inline-block mr-2" />
-                {t('nav.wishlist')}
               </Link>
             </div>
             <div className="border-t pt-2 mt-2">

@@ -15,11 +15,11 @@ export default function Footer() {
     { href: `/${locale}/brands`, label: t('nav.brands') },
   ];
 
-  const customerService = [
-    { href: '#', label: t('footer.helpCenter') },
-    { href: '#', label: t('footer.shippingInfo') },
-    { href: '#', label: t('footer.returnPolicy') },
-    { href: '#', label: t('footer.sizeGuide') },
+  const supportLinks = [
+    { href: `/${locale}/about`, label: t('footer.about') },
+    { href: '#', label: t('footer.contactSales') },
+    { href: '#', label: t('footer.technicalSupport') },
+    { href: '#', label: t('footer.faq') },
   ];
 
   return (
@@ -53,11 +53,11 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Customer Service */}
+          {/* Support */}
           <div>
-            <h3 className="text-white font-semibold mb-4">{t('footer.customerService')}</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.support')}</h3>
             <ul className="space-y-2">
-              {customerService.map((link) => (
+              {supportLinks.map((link) => (
                 <li key={link.label}>
                   <Link href={link.href} className="text-sm text-gray-400 hover:text-white transition-colors">
                     {link.label}

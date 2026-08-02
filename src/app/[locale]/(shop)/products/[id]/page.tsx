@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/api';
 import type { Product } from '@/lib/api';
-import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { ShoppingCart, Heart, Minus, Plus, Cog } from 'lucide-react';
+import { Mail, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { ProductReviews } from '@/components/ProductReviews';
 import { toApiLocale } from '@/lib/locales';
@@ -24,15 +23,12 @@ export default function ProductDetailPage({
   const locale = useLocale();
   const t = useTranslations();
   const { id } = use(params);
-  const { refreshCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
   const [productName, setProductName] = useState('');
   const [productDesc, setProductDesc] = useState('');
-  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -73,18 +69,10 @@ export default function ProductDetailPage({
     load();
   }, [id, locale]);
 
-  const handleAddToCart = async () => {
-    setAddingToCart(true);
-    try {
-      await api.cart.add(Number(id), quantity);
-      await refreshCart();
-      alert(t('products.addedToCart'));
-    } catch (err) {
-      console.error('Failed to add to cart:', err);
-      alert('添加失败，请先登录');
-    } finally {
-      setAddingToCart(false);
-    }
+  const handleInquiry = () => {
+    const name = product?.description?.name || product?.sku || '';
+    const subject = encodeURIComponent(`Inquiry: ${name} (SKU: ${product?.sku})`);
+    window.location.href = `mailto:sales@nodecoda.com?subject=${subject}`;
   };
 
   if (loading) {
@@ -212,45 +200,33 @@ export default function ProductDetailPage({
             </div>
 
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>已售 {product.sales}</span>
-              <span>库存 {product.quantity}</span>
-              <span>重量 {product.weight}kg</span>
+              <span>{t('products.sales')}: {product.sales}</span>
+              <span>{t('products.weight')}: {product.weight}kg</span>
             </div>
 
-            {/* Quantity */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">{t('products.quantity')}</span>
-              <div className="flex items-center border rounded-lg">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2 hover:bg-gray-100 transition-colors"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="px-4 py-2 text-sm font-medium min-w-[40px] text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(Math.min(99, quantity + 1))}
-                  className="p-2 hover:bg-gray-100 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+            {/* Inquiry Button */}
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {t('products.inquiryTitle')}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {t('products.inquiryDesc')}
+                  </p>
+                  <Button
+                    size="lg"
+                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={handleInquiry}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    {t('products.sendInquiry')}
+                  </Button>
+                </div>
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <Button
-                size="lg"
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-                onClick={handleAddToCart}
-                disabled={addingToCart}
-              >
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                {addingToCart ? t('common.loading') : t('products.addToCart')}
-              </Button>
-              <Button size="lg" variant="outline">
-                <Heart className="w-4 h-4" />
-              </Button>
             </div>
 
             {/* Specs */}
@@ -272,6 +248,9 @@ export default function ProductDetailPage({
               <TabsTrigger value="description" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600">
                 {t('product.description')}
               </TabsTrigger>
+              <TabsTrigger value="specifications" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600">
+                {t('product.specifications')}
+              </TabsTrigger>
               <TabsTrigger value="reviews" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600">
                 {t('product.reviews')}
               </TabsTrigger>
@@ -279,6 +258,22 @@ export default function ProductDetailPage({
             <TabsContent value="description" className="p-6">
               <div className="prose max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
                 {desc.replace(/[*#`]/g, '') || t('product.noDescription')}
+              </div>
+            </TabsContent>
+            <TabsContent value="specifications" className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { label: t('products.sku'), value: product.sku },
+                  { label: t('products.price'), value: `¥${Number(product.price).toLocaleString()}` },
+                  { label: t('products.weight'), value: `${product.weight}kg` },
+                  { label: t('products.sales'), value: String(product.sales) },
+                  { label: t('products.brand'), value: product.brand?.name || '-' },
+                ].map((spec) => (
+                  <div key={spec.label} className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-500">{spec.label}</p>
+                    <p className="text-sm font-medium text-gray-900 mt-0.5">{spec.value}</p>
+                  </div>
+                ))}
               </div>
             </TabsContent>
             <TabsContent value="reviews" className="p-6">
