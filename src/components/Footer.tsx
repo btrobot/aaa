@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { Mail, Phone, MapPin, ArrowUpRight } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowUpRight, Cog } from 'lucide-react';
 
 export default function Footer() {
   const locale = useLocale();
@@ -23,28 +23,28 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer className="bg-slate-900 text-slate-300">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* About */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">N</span>
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-sky-600 to-sky-800 flex items-center justify-center">
+                <Cog className="h-4 w-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-white">NodeCoda</span>
+              <span className="text-lg font-bold text-white font-sans">NodeCoda</span>
             </div>
-            <p className="text-sm leading-relaxed text-gray-400">{t('footer.aboutDesc')}</p>
+            <p className="text-sm leading-relaxed text-slate-400">{t('footer.aboutDesc')}</p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">{t('footer.quickLinks')}</h3>
+            <h3 className="text-white font-semibold mb-4 font-sans">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-gray-400 hover:text-white transition-colors inline-flex items-center gap-1">
+                  <Link href={link.href} className="text-sm text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1">
                     {link.label}
                     <ArrowUpRight className="h-3 w-3" />
                   </Link>
@@ -55,11 +55,11 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div>
-            <h3 className="text-white font-semibold mb-4">{t('footer.customerService')}</h3>
+            <h3 className="text-white font-semibold mb-4 font-sans">{t('footer.customerService')}</h3>
             <ul className="space-y-2">
               {customerService.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-gray-400 hover:text-white transition-colors">
+                  <Link href={link.href} className="text-sm text-slate-400 hover:text-sky-400 transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -69,18 +69,18 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-white font-semibold mb-4">{t('footer.contactInfo')}</h3>
+            <h3 className="text-white font-semibold mb-4 font-sans">{t('footer.contactInfo')}</h3>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-gray-400">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+              <li className="flex items-start gap-2 text-sm text-slate-400">
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-sky-500" />
                 <span>{t('footer.address')}</span>
               </li>
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <Phone className="h-4 w-4 shrink-0" />
+              <li className="flex items-center gap-2 text-sm text-slate-400">
+                <Phone className="h-4 w-4 shrink-0 text-sky-500" />
                 <span>{t('footer.phone')}</span>
               </li>
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <Mail className="h-4 w-4 shrink-0" />
+              <li className="flex items-center gap-2 text-sm text-slate-400">
+                <Mail className="h-4 w-4 shrink-0 text-sky-500" />
                 <span>{t('footer.email')}</span>
               </li>
             </ul>
@@ -89,12 +89,12 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-800">
+      <div className="border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">{t('footer.copyright')}</p>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <Link href="#" className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
-            <Link href="#" className="hover:text-white transition-colors">{t('footer.terms')}</Link>
+          <p className="text-sm text-slate-500">{t('footer.copyright')}</p>
+          <div className="flex items-center gap-4 text-sm text-slate-500">
+            <Link href="#" className="hover:text-sky-400 transition-colors">{t('footer.privacy')}</Link>
+            <Link href="#" className="hover:text-sky-400 transition-colors">{t('footer.terms')}</Link>
           </div>
         </div>
       </div>

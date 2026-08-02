@@ -1,3 +1,4 @@
+@import "https://fonts.googleapis.cn/css2?family=Rubik:wght@400;500;600;700;800&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;1,6..12,400&display=swap";
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -42,13 +43,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-sans:
-    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', ui-sans-serif,
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  --font-sans: 'Rubik', 'Nunito Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 :root {
@@ -59,26 +55,28 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.55 0.2 260); /* Blue primary */
+  /* Industrial slate-based primary */
+  --primary: oklch(0.37 0.013 285); /* slate-700 - industrial */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  /* Sky blue accent */
+  --secondary: oklch(0.55 0.15 250); /* sky-600 */
+  --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: oklch(0.55 0.15 250); /* sky-600 */
+  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.55 0.2 260);
-  --chart-1: oklch(0.55 0.2 260);
+  --ring: oklch(0.55 0.15 250);
+  --chart-1: oklch(0.55 0.15 250);
   --chart-2: oklch(0.6 0.18 185);
   --chart-3: oklch(0.398 0.07 227);
   --chart-4: oklch(0.828 0.189 84);
   --chart-5: oklch(0.769 0.188 70);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.55 0.2 260);
+  --sidebar-primary: oklch(0.37 0.013 285);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.96 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
@@ -91,15 +89,19 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Rubik', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   }
 }
 
-/* Custom animations */
+/* ─── Custom Animations ──────────────────────────────────────── */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -109,7 +111,17 @@
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .animate-fade-in-up {
@@ -120,7 +132,31 @@
   animation: float 3s ease-in-out infinite;
 }
 
-/* Scrollbar styling */
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+
+/* ─── Custom Utilities ───────────────────────────────────────── */
+
+.text-gradient {
+  background: linear-gradient(135deg, #0F172A 0%, #334155 50%, #0369A1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0C4A6E 100%);
+}
+
+/* ─── Scrollbar Styling ───────────────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -137,10 +173,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
-/* ─── P1-6: Focus Styles (Accessibility) ───────────────────────── */
+
+/* ─── Focus Styles (Accessibility) ────────────────────────────── */
 
 :focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #0369A1;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -150,12 +187,12 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #0369A1;
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.15);
 }
 
-/* ─── P1-7: Cursor Pointer ──────────────────────────────────────── */
+/* ─── Cursor Pointer ──────────────────────────────────────────── */
 
 button,
 a,
@@ -169,7 +206,7 @@ input[type="radio"],
   cursor: pointer;
 }
 
-/* ─── P2-10: Micro-interactions ──────────────────────────────────── */
+/* ─── Micro-interactions ──────────────────────────────────────── */
 
 .btn-press:active {
   transform: scale(0.97);
@@ -185,7 +222,7 @@ input[type="radio"],
   transform: translateY(-2px);
 }
 
-/* ─── P2-12: Reduced Motion ──────────────────────────────────────── */
+/* ─── Reduced Motion ──────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   *,
