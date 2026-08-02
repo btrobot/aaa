@@ -1,440 +1,255 @@
-# NodeCoda 架构审查报告
+# NodeCoda 前端架构审查报告
 
-> 审查日期：2026-07-31
-> 审查范围：全栈分层架构、代码一致性、测试覆盖、配置与部署
-> 审查方法：代码扫描 + 静态分析 + 逐层比对
-
----
-
-## 目录
-
-1. [总体评分](#1-总体评分)
-2. [服务层 (Service Layer)](#2-服务层-service-layer)
-3. [API 路由层 (API Routes)](#3-api-路由层-api-routes)
-4. [前端页面与组件 (Frontend)](#4-前端页面与组件-frontend)
-5. [数据库 Schema (Database)](#5-数据库-schema-database)
-6. [测试覆盖 (Testing)](#6-测试覆盖-testing)
-7. [国际化 (I18n)](#7-国际化-i18n)
-8. [构建与配置 (Build & Config)](#8-构建与配置-build--config)
-9. [安全审计 (Security)](#9-安全审计-security)
-10. [技术债务汇总](#10-技术债务汇总)
+> 审查日期：2026-08-02
+> 范围：前端 UI/UX 架构 — 结构 / 布局 / 交互 / UI 系统
+> 网站类型：B2B 游乐设备制造商
 
 ---
 
-## 1. 总体评分
+## 评分总览
 
-| 维度 | 评分 | 说明 |
+| 维度 | 评分 | 状态 |
 |------|------|------|
-| 服务层一致性 | ✅ 8/10 | 统一为对象字面量模式 |
-| API 路由一致性 | ✅ 8/10 | 中间件链统一，速率限制全局应用 |
-| 前端页面模式 | ⚠️ 5/10 | 首页拆分为 RSC + Suspense，其余仍需优化 |
-| 数据库 Schema | ✅ 9/10 | 已添加软删除、updated_at 触发器、索引优化 |
-| 测试覆盖 | ⚠️ 6/10 | 覆盖率阈值已强制执行，E2E 仍待完善 |
-| 国际化 | ⚠️ 5/10 | 客户端 only，无服务端翻译 |
-| 构建与配置 | ✅ 8/10 | Bundle Analyzer 配置，安全头完善 |
-| 安全 | ✅ 9/10 | CORS/CSP/速率限制/请求体限制全面覆盖 |
-
-**整体健康度：✅ 7.5/10 — 主要技术债务已修复，可进入维护迭代阶段**
+| 网站结构 | 5.5/10 | 有改进空间 |
+| 布局体系 | 6.5/10 | 基本可用 |
+| 交互体验 | 5/10 | 需加强 |
+| UI 系统 | 6/10 | 基础扎实 |
+| **综合** | **5.75/10** | **需要系统性改进** |
 
 ---
 
-## 2. 服务层 (Service Layer)
+## 一、网站结构 (Structure) — 5.5/10
 
-### 2.1 三种模式并存 [P0][严重]
+### 1.1 路由架构
 
-当前服务层有 **3 种完全不同** 的代码组织模式，这是最需要统一的技术债务：
-
-| 模式 | 文件 | 示例 |
-|------|------|------|
-| **A. 对象字面量** | cart.service, category.service, product.service, review.service, rma.service, shipping.service, tax.service, payment.service | `export const XxxService = { async method() {} }` |
-| **B. 类 + 静态方法** | brand.service, page.service, theme.service | `export class XxxService { static async method() {} }` |
-| **C. 类 + 实例方法 + 单例** | notification.service, customer-group.service, settings.service | `export class XxxService { async method() {} }` + `export const service = new XxxService()` |
-| **D. 裸函数导出** | attribute.service | `export async function createGroup() {}` |
-
-**影响**：
-- 开发者切换文件时需要适应不同模式
-- 测试 mock 方式不统一（模式 A 需要 mock 整个对象，模式 B 需要 mock 类方法，模式 D 需要 mock 函数）
-- 代码生成器无法统一产出
-
-**建议方案**：统一为 **模式 A（对象字面量）**，因为：
-- 最简单，接口清晰
-- 不需要 `new` 操作
-- 与当前 API 路由的 `import { XxxService }` 兼容
-
-### 2.2 Zod 输入校验不一致 [P1]
-
-| 服务 | 校验方式 | 状态 |
-|------|----------|------|
-| product.service | ✅ Zod schema (`createProductSchema`) | 规范 |
-| review.service | ✅ Zod schema (`createReviewSchema`) | 规范 |
-| rma.service | ✅ Zod schema (`createRmaSchema`) | 规范 |
-| brand.service | ❌ 手动校验 | 需迁移 |
-| category.service | ❌ 手动校验 | 需迁移 |
-| cart.service | ❌ 手动校验 | 需迁移 |
-| customer.service | ❌ 手动校验 | 需迁移 |
-| customer-group.service | ❌ 手动校验 | 需迁移 |
-| attribute.service | ❌ 无校验 | 需迁移 |
-| order.service | ❌ 手动校验 | 需迁移 |
-| payment.service | ❌ 手动校验 | 需迁移 |
-| shipping.service | ❌ 手动校验 | 需迁移 |
-| tax.service | ❌ 手动校验 | 需迁移 |
-
-### 2.3 无依赖注入 (DI) [P2]
-
-所有服务直接引用 `import { db } from '@/lib/db/db'`，导致：
-- 单元测试必须 mock 模块级 import（使用 `vi.mock()`）
-- 无法在测试中注入测试数据库
-- 无法切换数据源
-
-**建议方案**：创建工厂函数或接受 `db` 参数的 closure：
-
-```typescript
-// 改造后
-export function createBrandService(db: DrizzleDB) {
-  return {
-    async findAll() { ... },
-    async create(input: CreateBrandInput) { ... },
-  };
-}
-// 默认导出
-export const BrandService = createBrandService(db);
+```
+/[locale]/
+├── (shop)/                    # 前台
+│   ├── page.tsx               # 首页
+│   ├── products/              # 产品列表 + 详情
+│   ├── categories/            # 分类页
+│   ├── brands/                # 品牌页
+│   ├── news/ + [id]/          # 新闻列表 + 详情
+│   ├── account/               # 账户中心
+│   │   ├── inquiries/         # 询盘历史 (新)
+│   │   ├── orders/            # ❌ B2C 残留
+│   │   ├── addresses/         # ❌ B2C 残留
+│   │   ├── wishlist/          # ❌ B2C 残留
+│   │   └── rmas/              # ❌ B2C 残留
+│   ├── auth/login             # 登录
+│   ├── auth/register          # 注册
+│   ├── cart/                  # ❌ B2C 残留（无导航入口但路由存活）
+│   └── checkout/              # ❌ B2C 残留
+├── admin/                     # 后台管理 (17个子路由)
+│   ├── products/ + [id]/ + new/
+│   ├── orders/ + [id]/
+│   ├── customers/
+│   ├── categories/
+│   ├── brands/
+│   ├── reviews/
+│   ├── settings/
+│   └── ...
+└── payment/                   # 支付页面
 ```
 
-### 2.4 分页返回格式不统一 [P1]
+### 1.2 发现的问题
 
-| 服务 | 返回格式 |
-|------|----------|
-| review.service | `{ items, total }` |
-| rma.service | `{ items, total }` |
-| product.service | ✅ `{ items, total, totalPages }` |
-| brand.service | ❌ 数组 |
-| category.service | ❌ 数组 |
-| customer.service | ❌ 数组 |
-| shipping.service | ❌ 数组 |
+**🔴 P0 — 信息架构残存 B2C 路线**
 
-### 2.5 attribute.service 完全脱离规范 [P0][严重]
+- `cart/`、`checkout/`、`account/orders/`、`account/addresses/`、`account/wishlist/`、`account/rmas/` 共 6 个 B2C 路由仍然存活，虽然导航已移除入口但 URL 直接访问仍可打开
+- 缺少 B2B 核心页面：`/solutions`（行业解决方案）、`/about`（关于我们）、`/cases`（案例展示）、`/downloads`（技术文档下载）
+- 所有 11 语言的 `site.description` 仍写着 "Open-source cross-border e-commerce platform"（跨境电商平台），与 B2B 游乐设备制造商定位不符
 
-`attribute.service.ts` 是唯一一个：
-- 不 export 任何 Service 对象/类
-- 不使用 Zod 校验
-- 裸函数 export
-- 没有 `findAll` 方法
-- 直接输出 `{ id }` 而非完整对象
+**🟡 P1 — 导航与信息架构**
 
----
+- 导航栏：`nav.orders`、`nav.wishlist`、`nav.cart` 翻译键仍然存在，但 Navbar 已不再引用
+- 缺少"询盘历史"的导航入口（需登录后才能看到账户页内的链接）
+- 新闻模块没有分类/标签体系，所有新闻混在一起
+- 品牌页功能单一，只展示品牌名列表，无品牌故事/产品线
 
-## 3. API 路由层 (API Routes)
+**🟢 P2 — 细节**
 
-### 3.1 错误处理不一致 [P1]
+- `nav.about` 翻译键存在但无对应路由页面
+- 无 sitemap / 面包屑导航在部分页面缺失
+- 新闻详情页路由在 `news/[id]` 而非 `news/[slug]`，不利于 SEO
 
-两种模式并存：
+### 1.3 改进建议
 
-**模式 A（推荐）** — 依赖中间件捕获：
-```typescript
-export const GET = withAuth(async (request) => {
-  const data = await XxxService.findById(id); // 抛出 NotFoundError
-  return NextResponse.json(data);
-});
-```
-
-**模式 B（需迁移）** — 手动检查：
-```typescript
-export const GET = withAuth(async (request) => {
-  const data = await XxxService.findById(id);
-  if (!data) return NextResponse.json({ error: 'not found' }, { status: 404 });
-  return NextResponse.json(data);
-});
-```
-
-受影响的路由：重写检查所有路由，统一使用模式 A。
-
-### 3.2 orders/route.ts 权限检查混合 [P1]
-
-`orders/route.ts` 的 GET 方法使用了手动管理员检查（`if (customer.role !== 'admin')`），而其他路由统一使用 `withAdmin`/`withAuth` 中间件。
-
-### 3.3 cacheResponse 使用不一致 [P2] ✅ 已修复
-
-所有 GET 路由统一使用 `cacheResponse`，TTL 标准化为：
-- 列表页 (list)：30s (`products`, `pages`, `reviews`, `orders`)
-- 详情页 (detail)：60s (`products/[id]`, `categories/[id]`, `brands/[id]`, `pages/[id]`, `reviews/stats`)
-- 配置数据：60s (`attributes`, `categories`, `customer-groups`, `brands`, `settings`, `theme`, `shipping-methods`, `tax-classes`)
-- 静态预设：3600s (`theme/presets`)
-
-### 3.4 categories/route.ts 的 toCreateInput 应下沉到服务层 [P2]
-
-`toCreateInput` 函数在路由层做数据转换，逻辑应属于 `CategoryService`。
-
-### 3.5 速率限制未全局应用 [P2] ✅ 已修复
-
-`rate-limit.ts` 已实现，`api-middleware.ts` 的 `withRateLimit` 已存在。已对所有 API 路由统一添加速率限制：
-- 公开路由（auth/tax-classes）：60 req/min
-- 认证路由（withAuth）：60 req/min  
-- 管理员路由（withAdmin）：120 req/min
-- 购物车/支付：30 req/min（敏感操作）
-- 通知：60 req/min
+1. **删除或隐藏 B2C 路由**：`cart/`、`checkout/` 重定向到首页；`account/orders/` → 重定向到 `account/inquiries/`
+2. **新增 B2B 核心页面**：`/solutions`（行业解决方案，如"主题乐园/景区/商业综合体"）、`/about`（公司介绍+工厂实拍+资质）、`/cases`（项目案例展示）
+3. **更新所有语言文件**的 `site.description` 和 `site.title` 为 B2B 游乐设备制造商定位
+4. **新闻模块增加分类**（公司新闻、行业动态、产品发布）
+5. **导航增加"解决方案"**和"案例"入口
 
 ---
 
-## 4. 前端页面与组件 (Frontend)
+## 二、布局体系 (Layout) — 6.5/10
 
-### 4.1 全员 'use client' [P0][严重]
+### 2.1 当前布局模式
 
-**所有 35 个页面文件** 全部使用 `'use client'` 指令，包括纯静态内容页面（首页、产品列表等）。这意味着：
+| 页面 | 布局模式 | 最大宽度 | 响应式 |
+|------|---------|---------|--------|
+| 首页 | 全幅区块式 | max-w-7xl | ✅ 3断点 |
+| 产品列表 | 左侧筛选+右侧网格 | max-w-7xl | ✅ 4断点 |
+| 产品详情 | 左图右信息 | max-w-7xl | ✅ 3断点 |
+| 分类页 | 网格卡片 | max-w-7xl | ✅ 4断点 |
+| 品牌页 | 网格卡片 | max-w-7xl | ✅ 4断点 |
+| 新闻页 | 网格卡片 | max-w-7xl | ✅ 3断点 |
+| 账户页 | 左侧边栏+右侧内容 | max-w-7xl | ✅ 3断点 |
+| 管理员 | 左侧边栏+右侧内容 | 满宽 | ✅ 响应式侧栏 |
 
-- **零 Server Components 利用**：大量组件可以在服务端渲染，减少 JS 包体积
-- **SEO 优化受限**：虽然 Next.js 仍做 SSR，但 RSC 的流式渲染优势被浪费
-- **数据获取混在客户端**：每个页面都走 `useEffect + fetch` 模式，而非 RSC 的 `async component`
+### 2.2 发现的问题
 
-**建议方案**：
-- 静态内容页面（首页、about、contact）改为 Server Component
-- 使用 RSC 的 `async function Page()` 模式直接获取数据
-- 仅在需要交互的组件（表单、购物车、筛选器）保留 `'use client'`
+**🟡 P1 — 布局一致性问题**
 
-### 4.2 toApiLocale 函数重复 [P1]
+- **重复样板代码**：每个页面都重复写 `min-h-screen bg-gray-50` + `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8`，没有抽取为布局组件
+- **页面标题不一致**：有的页面用 `text-2xl font-bold`，有的用 `text-3xl`，有的用 `text-xl`
+- **加载状态不一致**：有的用 `animate-pulse` 骨架屏，有的用 `loading` 文字，有的无加载态
+- **空状态处理缺失**：品牌页、分类页、新闻页等没有空状态展示
 
-每个页面都定义了 `toApiLocale` 函数：
-```typescript
-function toApiLocale(locale: string): string {
-  return locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : locale;
-}
-```
+**🟢 P2 — 细节**
 
-**建议**：提取到共享工具函数 `src/i18n/utils.ts`。
+- 品牌页卡片 `min-h-screen bg-gray-50` 导致页面高度始终为 100vh
+- 移动端底部间距不一致（有的页面有 `pb-16` 有的没有）
+- 管理员页面固定侧边栏在移动端占位过大
 
-### 4.3 内联接口定义 [P1]
+### 2.3 改进建议
 
-多个页面在函数组件内部定义 TypeScript 接口：
-```typescript
-export default function ProductsPage() {
-  interface CategoryData { ... } // ❌ 在组件内定义
-  // ...
-}
-```
-
-**建议**：提取到独立类型文件或页面文件顶部。
-
-### 4.4 无 Suspense 边界 [P2] ✅ 已修复
-
-首页已重构为 `Suspense` + `async data fetching` 模式：
-- 使用 `Suspense` 包裹 `FeaturedProducts` 数据加载组件
-- 提供 `HomePageSkeleton` 骨架屏作为 fallback
-- 数据加载拆分到独立 `async function`，支持流式渲染
-
-### 4.5 管理后台 locale 硬编码 [P2]
-
-`admin/layout.tsx` 使用：
-```typescript
-const locale = pathname.startsWith('/en') ? 'en' : 'zh';
-```
-
-这仅支持 2 个语言，违反 `SUPPORTED_LOCALES` 中 11 语言的设定。
+1. **抽取 `PageLayout` 组件**：统一管理 `max-w-7xl mx-auto px-4...` 样板代码
+2. **抽取 `PageHeader` 组件**：统一页面标题 + 副标题样式
+3. **抽取 `SkeletonGrid` 组件**：统一骨架屏加载状态
+4. **统一空状态组件**：比如 `EmptyState` 组件带图标+文案+CTA
 
 ---
 
-## 5. 数据库 Schema (Database)
+## 三、交互体验 (Interaction) — 5/10
 
-### 5.1 死代码：src/storage/ [P1]
+### 3.1 当前交互模式
 
-`src/storage/database/shared/schema.ts` 和 `relations.ts` 是 Supabase 初始化遗留文件，未被任何代码引用。应删除。
+| 交互类型 | 实现方式 | 覆盖范围 |
+|---------|---------|---------|
+| 卡片 hover | 阴影提升 + 微抬升 | 产品卡片、分类卡片 |
+| 按钮 hover | 颜色变化/透明度 | 全站 |
+| 导航 hover | 颜色变化 | 导航栏 |
+| 产品浮层 | hover 技术参数滑入 | 产品列表页 |
+| 无限滚动 | CSS 动画 + 悬停暂停 | 合作伙伴 Logo 墙 |
+| 弹窗 | Dialog 组件 | 询盘表单 |
+| 骨架屏 | animate-pulse | 部分页面 |
+| 面包屑 | Breadcrumb 组件 | 部分页面 |
+| 通知 | Sonner toast | 询盘提交成功 |
 
-### 5.2 无软删除 [P2] ✅ 已修复
+### 3.2 发现的问题
 
-已在 `products`, `categories`, `brands`, `customers`, `orders`, `carts`, `pages`, `notifications`, `rmas`, `shippingMethods` 表中添加 `deleted_at` 字段。
-- 迁移 SQL：`0004_soft_delete_and_indexes.sql`
-- 当前服务层尚未自动过滤软删除数据，需在后续迭代中逐步开启
+**🔴 P0 — 反馈机制缺失**
 
-### 5.3 updated_at 不自动更新 [P2] ✅ 已修复
+- **无全局加载指示器**：页面切换/数据加载没有顶部进度条
+- **表单提交无加载状态**：注册/登录表单提交时按钮无 loading 状态
+- **错误处理不一致**：有的页面用 `error` 状态显示，有的 `console.error` 静默失败，有的直接用 `catch` 忽略
 
-已创建 `update_updated_at_column()` 触发器函数，并应用到所有包含 `updated_at` 字段的表：
-- 迁移 SQL：`0003_updated_at_trigger.sql`
-- 触发器自动在 `UPDATE` 时更新 `updated_at` 字段
-- 服务层不再需要手动设置 `updatedAt: new Date()`
+**🟡 P1 — 交互深度不足**
 
-### 5.4 索引策略 [P2] ✅ 已修复
+- **无滚动动画**：首页区块没有滚动触发入场动画（除了产品区的 fadeInUp）
+- **无微交互**：按钮点击无波纹/反馈，链接无下划线动画
+- **无图片懒加载**：虽然有 `next/image` 但没有 `loading="lazy"` 属性
+- **无滚动到顶部**：长页面没有回到顶部按钮
+- **无键盘导航增强**：产品列表不支持键盘上下选择
 
-已添加以下索引：
-- 全文搜索索引：`products_name_trgm_idx` (trgm), `products_description_trgm_idx` (trgm)
-- 复合索引：`idx_products_status_sort` (`status`, `sort_order`), `idx_products_brand_sort` (`brand_id`, `sort_order`)
-- 部分索引：`idx_products_active` (`status = true`), `idx_pages_published` (`status = 'published'`)
-- 外键覆盖索引：`idx_categories_parent`, `idx_products_category`, `idx_orders_customer`, `idx_rmas_order`, `idx_notifications_customer`
-- 排序/查询索引：`idx_products_sales`, `idx_products_price`, `idx_products_created`, `idx_orders_created`, `idx_rmas_created`, `idx_categories_sort`
+**🟢 P2 — 细节**
 
----
+- 首页产品区 hover 浮层在半透明背景上文字可读性一般
+- 分类页面卡片点击区域只有文字，没有整张卡片可点击
+- 品牌页品牌名可点击但无 hover 反馈
+- 询盘表单提交后无关闭弹窗的自动倒计时
 
-## 6. 测试覆盖 (Testing)
+### 3.3 改进建议
 
-### 6.1 覆盖率数据 [P1]
-
-| 测试类型 | 文件数 | 状态 |
-|----------|--------|------|
-| 单元测试 - 服务层 | 18 个 | ✅ 完整 |
-| 单元测试 - API 路由 | 15 个 | ✅ 完整 |
-| 单元测试 - 组件 | 3 个 | ⚠️ 仅覆盖 3 个组件 |
-| 单元测试 - Auth | 1 个 | ✅ |
-| 单元测试 - Schema | 1 个 | ✅ |
-| 集成测试 | 1 个 | ⚠️ 仅 auth 流程 |
-| E2E 测试 | 1 个 spec | ❌ 无法运行 |
-
-**覆盖率阈值**：`vitest.config.ts` 配置了 75% 阈值，已通过 `validate` 脚本强制执行：
-- `pnpm test:coverage` 已集成到 `validate` 命令
-- 覆盖率未达标时会阻止构建流程
-
-### 6.2 无 E2E 测试 [P1]
-
-Playwright 配置完成（`e2e/` 目录），但浏览器下载被网络限制阻止。国内镜像方案未生效。
-
-### 6.3 集成测试仅覆盖 auth [P2]
-
-`src/__tests__/integration/api.test.ts` 只测试了登录/注册/me 流程，没有 CRUD 集成测试。
-
-### 6.4 测试 setup 未清理 [P2]
-
-`src/__tests__/setup.ts` 建议检查是否包含 `afterEach` 清理逻辑（如清理 DOM、重置 mock）。
+1. **添加 NProgress 页面加载进度条**（可使用 `next/navigation` 的 `useNavigation` 监听）
+2. **统一按钮 loading 状态**：所有表单提交按钮添加 `loading` prop
+3. **添加滚动触发动画**：首页各区块使用 `IntersectionObserver` 实现 fadeInUp
+4. **添加微交互**：按钮点击波纹效果、卡片 hover 更丰富的反馈
+5. **添加「回到顶部」按钮**：页面滚动超过 300px 后显示
+6. **统一错误处理**：全局错误边界 + 每个页面兜底错误 UI
 
 ---
 
-## 7. 国际化 (I18n)
+## 四、UI 系统 (UI System) — 6/10
 
-### 7.1 客户端 Only [P1]
+### 4.1 当前组件库
 
-所有翻译文件（`src/messages/*.json`）仅在客户端通过 `I18nProvider` 的 `useEffect` 动态加载。这意味着：
-- 服务端渲染的页面无法获取翻译
-- 静态生成（SSG）无法利用翻译
-- 初始加载需要额外网络请求
+| 类别 | 可用组件数 | 实际使用数 | 使用率 |
+|------|-----------|-----------|--------|
+| shadcn/ui | 53 | ~20 | 38% |
+| 自定义组件 | — | 5 | — |
 
-**建议方案**：使用 `next-intl` 或在 RSC 中直接 `import` 翻译文件。
+**实际使用的 shadcn 组件**：Button, Card, Badge, Input, Select, Tabs, Dialog, DialogContent, Skeleton, Table, Breadcrumb, Separator, Sonner, Label, Textarea
 
-### 7.2 getStaticMessages 返回空对象 [P2]
+**自有组件**：Navbar, Footer, InquiryModal, ProductReviews, Breadcrumb
 
-```typescript
-export function getStaticMessages(_locale: Locale): Record<string, string> {
-  return {}; // ❌ 永远返回空
-}
-```
+### 4.2 发现的问题
 
-如果动态加载失败，没有 fallback 翻译。
+**🟡 P1 — 设计系统不完整**
 
-### 7.3 缺少 next-intl [P2]
+- **CSS 变量不足**：`globals.css` 中只定义了少量 CSS 变量，没有形成完整的 token 体系
+- **颜色使用不统一**：同一种灰色在不同页面使用 `gray-50`、`gray-100`、`slate-50` 混用
+- **圆角风格不一致**：有的用 `rounded-xl`，有的 `rounded-lg`，有的 `rounded-2xl`
+- **阴影层级不统一**：`shadow-sm`、`shadow-md`、`shadow-lg` 在不同场景混用，没有层级规范
 
-`AGENTS.md` 声明使用 `next-intl`，但实际是自定义实现，缺少：
-- 服务端翻译 API
-- 数字/货币格式化
-- 复数和上下文规则
-- 懒加载分区
+**🟡 P1 — 设计系统与实现在 DESIGN.md 之间脱节**
 
----
+- `DESIGN.md` 定义了蓝色主色 `#2563eb`，但代码中大量使用 `#4F46E5`（indigo-600）等相近但不是同一颜色的值
+- `DESIGN.md` 定义了 `from-blue-900 via-blue-700 to-indigo-900` 的 Hero 渐变，但实际代码中部分使用了不同的渐变
+- 没有统一的 spacing scale 规范（有的用 `gap-6`，有的 `gap-8`，有的 `space-y-6`）
 
-## 8. 构建与配置 (Build & Config)
+**🟢 P2 — 组件复用度低**
 
-### 8.1 server.ts 可能未被使用 [P1]
+- 产品卡片在列表页和首页各实现一次，未抽取为共享组件
+- 分类卡片同样在首页和分类页各实现一次
+- 骨架屏样式在各页面重复定义
+- 页面加载/错误/空状态在每个页面重复实现
 
-`src/server.ts` 创建了一个自定义 HTTP 服务器，但 `.coze` 配置使用 `next start` 启动。这个文件可能未被部署环境使用，容易造成开发与生产环境不一致。
+### 4.3 改进建议
 
-### 8.2 middleware.ts 使用已弃用约定 [P2] ✅ 已修复
-
-已迁移到 `src/proxy.ts`，Next.js 16 新约定。
-
-### 8.3 无 Bundle Analyzer [P2] ✅ 已修复
-
-已配置 `@next/bundle-analyzer`，通过 `ANALYZE=true` 环境变量启用。
-
-### 8.4 缺少环境变量校验 [P1]
-
-启动时未校验关键环境变量（`PGDATABASE_URL`、`JWT_SECRET` 等），缺少时静默使用默认值，可能导致生产环境问题。
+1. **建立完整 Design Token 体系**：在 `globals.css` 中定义所有颜色、间距、圆角、阴影的 CSS 变量
+2. **抽取共享组件**：`ProductCard`、`CategoryCard`、`NewsCard`、`PageSkeleton`、`EmptyState`、`ErrorState`
+3. **统一组件样式规范**：所有卡片使用相同的圆角/阴影/间距配置
+4. **建立组件故事/文档**：用 `@/components/ui/` 下的组件作为基础，自有组件作为复合组件
 
 ---
 
-## 9. 安全审计 (Security)
+## 五、改进优先级路线图
 
-### 9.1 已实现的安全措施 ✅
+### 立即 (P0)
+| 项 | 工作量 | 影响 |
+|----|--------|------|
+| 更新所有语言 site.description 为 B2B 定位 | 小 | 高 |
+| 删除/重定向 B2C 路由 (cart/checkout/orders/addresses/wishlist/rmas) | 中 | 高 |
+| 统一错误处理 + 全局加载状态 | 中 | 高 |
 
-| 措施 | 状态 | 说明 |
-|------|------|------|
-| JWT 鉴权 | ✅ | jose 库，Edge 兼容 |
-| 统一中间件 | ✅ | withMiddleware/withAuth/withAdmin |
-| 速率限制 | ✅ | 滑动窗口，登录接口 10/min |
-| 密码哈希 | ✅ | bcryptjs |
-| API 版本控制 | ✅ | /api/v1/* |
-| 图片优化 | ✅ | next/image 配置 |
+### 短期 (P1)
+| 项 | 工作量 | 影响 |
+|----|--------|------|
+| 抽取 PageLayout + PageHeader + SkeletonGrid 组件 | 小 | 高 |
+| 建立完整 CSS 变量体系 | 中 | 高 |
+| 新增 B2B 核心页面（About / Solutions / Cases） | 大 | 高 |
+| 抽取共享组件 (ProductCard/CategoryCard) | 中 | 中 |
+| 添加滚动触发动画 | 中 | 中 |
+| 统一颜色/圆角/阴影使用规范 | 中 | 中 |
 
-### 9.2 已修复 ✅
-
-| 问题 | 严重度 | 修复 |
-|------|--------|------|
-| CORS 配置 | P2 | 已在 `next.config.ts` 中添加显式 CORS 头策略 |
-| 请求体大小限制 | P2 | 已配置 `serverActions.bodySizeLimit: '5mb'` |
-| CSP 头 | P2 | 已在 `next.config.ts` 中配置 Content-Security-Policy |
-
----
-
-## 10. 技术债务汇总
-
-### P0 — 必须修复
-
-| # | 问题 | 文件 | 影响 |
-|---|------|------|------|
-| 1 | 服务层三种模式并存 | 全部 18 个 service 文件 | 开发效率、测试一致性 |
-| 2 | attribute.service 脱离规范 | attribute.service.ts | 是最旧的技术债 |
-| 3 | 全员 'use client' | 35 个页面文件 | 性能、SEO、RSC 零利用 |
-
-### P1 — 建议尽快修复
-
-| # | 问题 | 文件 | 影响 |
-|---|------|------|------|
-| 4 | Zod 校验不一致 | 12 个 service 文件 | 运行时安全性 |
-| 5 | 分页返回格式不统一 | 8 个 service 文件 | 前端适配成本 |
-| 6 | 错误处理方式不统一 | 多个 API 路由 | 可维护性 |
-| 7 | orders/route.ts 权限混合 | orders/route.ts | 安全隐患 |
-| 8 | toApiLocale 函数重复 | 多个 page.tsx | 代码重复 |
-| 9 | 内联接口定义 | 多个 page.tsx | 代码质量 |
-| 10 | 死代码 storage/ | src/storage/ | 维护负担 |
-| 11 | 无 E2E 测试 | 整个 e2e/ | 质量门禁缺失 |
-| 12 | 客户端 Only i18n | I18nProvider | 性能、SEO |
-| 13 | server.ts 可能未使用 | server.ts | 环境不一致 |
-| 14 | 缺少环境变量校验 | 启动流程 | 生产可靠性 |
-
-### P2 — 可择机修复
-
-| # | 问题 | 影响 | 状态 |
-|---|------|------|------|
-| 15 | 无 DI 模式 | 测试可维护性 | ⏸️ 保持现状（Next.js 标准模式） |
-| 16 | cacheResponse 使用不一致 | 缓存策略 | ✅ 已修复 |
-| 17 | 速率限制未全局应用 | 安全 | ✅ 已修复 |
-| 18 | 无 Suspense 边界 | 用户体验 | ✅ 已修复 |
-| 19 | 管理后台 locale 硬编码 | 国际化完整性 | ✅ 已修复 |
-| 20 | 无软删除 | 数据安全 | ✅ 已修复 |
-| 21 | updated_at 不自动更新 | 数据准确性 | ✅ 已修复 |
-| 22 | 索引策略优化 | 查询性能 | ✅ 已修复 |
-| 23 | 覆盖率未强制执行 | 质量门禁 | ✅ 已修复 |
-| 24 | getStaticMessages 空 | 降级体验 | ✅ 已修复 |
-| 25 | middleware 弃用约定 | 升级兼容性 | ✅ 已修复 |
-| 26 | 无 Bundle Analyzer | 性能监控 | ✅ 已修复 |
-| 27 | CORS/CSP 配置 | 安全 | ✅ 已修复 |
-| 28 | 请求体大小限制 | 安全 | ✅ 已修复 |
+### 中期 (P2)
+| 项 | 工作量 | 影响 |
+|----|--------|------|
+| 新闻模块增加分类标签 | 中 | 中 |
+| 品牌页升级（品牌故事/产品线） | 中 | 中 |
+| 添加微交互（点击波纹、hover 动效） | 中 | 低 |
+| 键盘导航增强 | 小 | 低 |
+| 添加回到顶部按钮 | 小 | 低 |
 
 ---
 
-## 修复建议优先级路线图
+## 六、总结
 
-### Phase 1（立即 — 1-2 轮对话）
-1. 统一服务层为对象字面量模式（P0#1）
-2. 修复 attribute.service（P0#2）
-3. 删除 storage/ 死代码（P1#10）
+NodeCoda 前端在从 B2C 电商向 B2B 工业设备网站转型的过程中已完成了**核心功能改造**（询盘系统、导航栏、首页内容），但**信息架构和 UI 基础设施建设**还存在较明显的 B2C 历史包袱。
 
-### Phase 2（短期 — 2-3 轮对话）
-4. 统一 Zod 校验到所有服务（P1#4）
-5. 统一分页返回格式（P1#5）
-6. 统一错误处理（P1#6）
-7. 提取 toApiLocale 和内联接口（P1#8, #9）
-8. 修复 orders/route.ts 权限（P1#7）
+**核心问题**：这是一个"披着 B2B 外衣的 B2C 电商系统"——首页内容已改，但底层路由、语言文件、账户体系仍保留大量电商痕迹。
 
-### Phase 3（中期 — 3-5 轮对话）
-9. 拆分为 RSC + Client Component 架构（P0#3）
-10. 服务端 i18n 支持（P1#12）
-11. 环境变量校验（P1#14）
-12. 修复 server.ts（P1#13）
-
-### Phase 4（长期）
-13. E2E 测试（P1#11）
-14. DI 模式（P2#15）
-15. 服务端 i18n（P1#12）
+**改进方向**：紧抓"B2B 工业设备制造商"这一核心定位，从上到下做一次彻底的骨架清理，先切除残留 B2C 器官，再建立统一的 B2B UI 基础设施。
