@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ArrowRight, Shield, Ship, HeadphonesIcon, Building2, Newspaper, ChevronRight, Mail, FileText, CheckCircle, Cog, FerrisWheel, Blocks, Rocket, Star, Gamepad2 } from 'lucide-react';
+import { ArrowRight, Shield, Ship, HeadphonesIcon, Building2, Newspaper, ChevronRight, Mail, FileText, CheckCircle, Cog, FerrisWheel, Blocks, Rocket, Star, Gamepad2, ShieldCheck, Award, BadgeCheck, ClipboardCheck, Globe2, Factory, Users, Wrench, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -198,6 +198,135 @@ export default function HomePageClient({
                 </Card>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Certifications Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 bg-blue-50 text-blue-700 border-blue-200">
+              {t('home.certBadge')}
+            </Badge>
+            <h2 className="text-3xl font-bold text-gray-900">{t('home.certifications')}</h2>
+            <p className="mt-2 text-gray-500 max-w-2xl mx-auto">{t('home.certificationsDesc')}</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: ShieldCheck, name: 'ISO 9001:2025', desc: t('home.certISO'), color: 'from-blue-500 to-blue-600' },
+              { icon: BadgeCheck, name: 'CE', desc: t('home.certCE'), color: 'from-amber-500 to-orange-600' },
+              { icon: ClipboardCheck, name: 'TUV Rheinland', desc: t('home.certTUV'), color: 'from-emerald-500 to-teal-600' },
+              { icon: Award, name: 'SGS', desc: t('home.certSGS'), color: 'from-purple-500 to-violet-600' },
+            ].map((cert) => (
+              <Card key={cert.name} className="group p-6 text-center border-0 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default">
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${cert.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <cert.icon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">{cert.name}</h3>
+                <p className="text-sm text-gray-500">{cert.desc}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Global Partners Section */}
+      <section className="py-16 bg-gray-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 bg-blue-50 text-blue-700 border-blue-200">
+              {t('home.partnerBadge')}
+            </Badge>
+            <h2 className="text-3xl font-bold text-gray-900">{t('home.globalPartners')}</h2>
+            <p className="mt-2 text-gray-500 max-w-2xl mx-auto">{t('home.globalPartnersDesc')}</p>
+          </div>
+          <div className="relative">
+            {/* Scrolling partners row */}
+            <div className="flex gap-8 animate-scroll">
+              {[
+                { name: 'Disney', icon: Star },
+                { name: 'Universal', icon: Globe2 },
+                { name: 'Six Flags', icon: Flag },
+                { name: 'SeaWorld', icon: Ship },
+                { name: 'Merlin', icon: Blocks },
+                { name: 'Parques Reunidos', icon: Building2 },
+                { name: 'Disney', icon: Star },
+                { name: 'Universal', icon: Globe2 },
+                { name: 'Six Flags', icon: Flag },
+                { name: 'SeaWorld', icon: Ship },
+                { name: 'Merlin', icon: Blocks },
+                { name: 'Parques Reunidos', icon: Building2 },
+              ].map((partner, i) => (
+                <div key={i} className="flex-shrink-0 w-40 h-20 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center gap-2 hover:shadow-md hover:border-blue-200 transition-all duration-300 group">
+                  <partner.icon className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                  <span className="text-sm font-semibold text-gray-600 group-hover:text-blue-600 transition-colors">{partner.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-400">{t('home.partnerFootnote')}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Factory & Production Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <Badge variant="secondary" className="mb-4 bg-blue-50 text-blue-700 border-blue-200">
+                {t('home.factoryBadge')}
+              </Badge>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home.factoryTitle')}</h2>
+              <p className="text-gray-500 mb-8">{t('home.factoryDesc')}</p>
+              <div className="space-y-4">
+                {[
+                  { icon: Factory, title: t('home.factoryFeature1'), desc: t('home.factoryFeature1Desc') },
+                  { icon: Users, title: t('home.factoryFeature2'), desc: t('home.factoryFeature2Desc') },
+                  { icon: Wrench, title: t('home.factoryFeature3'), desc: t('home.factoryFeature3Desc') },
+                ].map((feat) => (
+                  <div key={feat.title} className="flex gap-4 group">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                      <feat.icon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{feat.title}</h4>
+                      <p className="text-sm text-gray-500">{feat.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8">
+                <Link href={`/${locale}/news`}>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    {t('home.learnMore')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 overflow-hidden shadow-xl border border-blue-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-indigo-600/5" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <Factory className="w-24 h-24 text-blue-200 mx-auto mb-4" />
+                    <p className="text-blue-400 text-sm font-medium">{t('home.factoryImageLabel')}</p>
+                  </div>
+                </div>
+                {/* Decorative elements */}
+                <div className="absolute top-4 left-4 w-20 h-20 bg-blue-100/50 rounded-full blur-xl" />
+                <div className="absolute bottom-4 right-4 w-32 h-32 bg-indigo-100/50 rounded-full blur-xl" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
+                  <div className="absolute top-[15%] left-[20%] w-3 h-3 bg-blue-300 rounded-full" />
+                  <div className="absolute top-[30%] right-[25%] w-2 h-2 bg-indigo-300 rounded-full" />
+                  <div className="absolute bottom-[35%] left-[30%] w-2.5 h-2.5 bg-sky-300 rounded-full" />
+                  <div className="absolute bottom-[25%] right-[20%] w-3 h-3 bg-blue-400 rounded-full" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
