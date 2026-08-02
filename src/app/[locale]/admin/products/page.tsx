@@ -6,8 +6,7 @@ import { useTranslations } from '@/i18n/useTranslations';
 import { usePathname } from 'next/navigation';
 import { api, type Product } from '@/lib/api';
 import { Search, Plus, Edit2, Eye, Star } from 'lucide-react';
-
-function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
+import { toApiLocale } from '@/i18n/utils';
 
 export default function AdminProducts() {
   const { t } = useTranslations();

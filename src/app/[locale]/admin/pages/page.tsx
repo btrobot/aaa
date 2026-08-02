@@ -5,8 +5,7 @@ import { useTranslations } from '@/i18n/useTranslations';
 import { usePathname } from 'next/navigation';
 import { api, type Page } from '@/lib/api';
 import { Search, Plus, Edit2, Trash2, Globe, CheckCircle, XCircle } from 'lucide-react';
-
-function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
+import { toApiLocale } from '@/i18n/utils';
 
 export default function AdminPages() {
   const { t } = useTranslations();

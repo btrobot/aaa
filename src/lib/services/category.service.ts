@@ -1,16 +1,35 @@
 import { db } from '@/lib/db/db';
 import { categories, categoryDescriptions, categoryPaths, productCategories } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { z } from 'zod';
 import { NotFoundError, BusinessRuleError } from './errors';
 
 const MAX_DEPTH = 5;
 
-export interface CreateCategoryInput {
-  parentId: number | null;
-  sortOrder?: number;
-  status?: boolean;
-  descriptions: Record<string, { name: string; description?: string }>;
-}
+const categoryDescSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().optional(),
+});
+
+export const createCategorySchema = z.object({
+  parentId: z.number().int().positive().nullable(),
+  sortOrder: z.number().int().optional().default(0),
+  status: z.boolean().optional().default(true),
+  descriptions: z.record(z.string(), categoryDescSchema).refine(
+    (d) => Object.keys(d).length > 0,
+    { message: '至少需要一种语言描述' }
+  ),
+});
+
+export const updateCategorySchema = z.object({
+  parentId: z.number().int().positive().nullable().optional(),
+  sortOrder: z.number().int().optional(),
+  status: z.boolean().optional(),
+  descriptions: z.record(z.string(), categoryDescSchema).optional(),
+});
+
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
+export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 
 export interface CategoryTreeItem {
   id: number;

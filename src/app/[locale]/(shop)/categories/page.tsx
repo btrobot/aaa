@@ -5,21 +5,13 @@ import Link from 'next/link';
 import { useTranslations } from '@/i18n/useTranslations';
 import { api } from '@/lib/api';
 import { Cog } from 'lucide-react';
-
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
+import { toApiLocale } from '@/i18n/utils';
+import type { CategoryData } from '@/lib/types';
 
 export default function CategoriesPage() {
   const { locale, t } = useTranslations();
   
-interface CategoryData {
-  id: number;
-  name: string;
-  children?: { id: number }[];
-}
-
-const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

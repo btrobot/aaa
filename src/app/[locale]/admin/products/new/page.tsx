@@ -5,8 +5,7 @@ import { useTranslations } from '@/i18n/useTranslations';
 import { useRouter, useParams } from 'next/navigation';
 import { api, type Brand, type CategoryTreeNode } from '@/lib/api';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-
-function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
+import { toApiLocale } from '@/i18n/utils';
 
 export default function AdminNewProduct() {
   const { t } = useTranslations();

@@ -1,17 +1,26 @@
 import { db } from '@/lib/db/db';
 import { carts, products, productDescriptions, productImages, productSkus } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { z } from 'zod';
 import { NotFoundError, BusinessRuleError } from './errors';
 
 /** 购物车数量上限（spec: rules[2]） */
 const MAX_QUANTITY = 99;
 
-export interface AddCartItemInput {
-  customerId: number;
-  productId: number;
-  skuId?: number;
-  quantity: number;
-}
+export const addCartItemSchema = z.object({
+  customerId: z.number().int().positive(),
+  productId: z.number().int().positive(),
+  skuId: z.number().int().positive().optional(),
+  quantity: z.number().int().min(1).max(MAX_QUANTITY),
+});
+
+export const updateQuantitySchema = z.object({
+  quantity: z.number().int().min(1).max(MAX_QUANTITY),
+  customerId: z.number().int().positive(),
+});
+
+export type AddCartItemInput = z.infer<typeof addCartItemSchema>;
+export type UpdateQuantityInput = z.infer<typeof updateQuantitySchema>;
 
 export interface CartItem {
   id: number;

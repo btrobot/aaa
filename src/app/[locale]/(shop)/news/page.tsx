@@ -8,10 +8,7 @@ import type { Page } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, ChevronRight, Newspaper } from 'lucide-react';
-
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
+import { toApiLocale } from '@/i18n/utils';
 
 export default function NewsPage() {
   const { locale, t } = useTranslations();

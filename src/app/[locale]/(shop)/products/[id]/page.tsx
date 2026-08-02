@@ -14,10 +14,7 @@ import Image from 'next/image';
 import { ShoppingCart, Heart, Minus, Plus, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { ProductReviews } from '@/components/ProductReviews';
-
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
+import { toApiLocale } from '@/i18n/utils';
 
 export default function ProductDetailPage({
   params,

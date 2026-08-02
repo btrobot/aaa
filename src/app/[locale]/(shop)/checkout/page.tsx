@@ -13,21 +13,8 @@ import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ChevronRight, CreditCard, Building, Wallet, Truck, ShoppingBag } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
-
-interface CartItemData {
-  id: number;
-  productId: number;
-  productName: string;
-  sku: string;
-  price: string;
-  quantity: number;
-  selected: boolean;
-  image?: string;
-}
+import { toApiLocale } from '@/i18n/utils';
+import type { CartItemData } from '@/lib/types';
 
 interface ShippingMethod {
   id: number;

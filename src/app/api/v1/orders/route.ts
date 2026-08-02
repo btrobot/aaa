@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { OrderService } from '@/lib/services/order.service';
 import { withAuth, withAdmin, withMiddleware, cacheResponse } from '@/lib/api-middleware';
+import { requireAuth } from '@/lib/auth';
 
 /**
  * GET /api/orders
@@ -19,18 +20,14 @@ export const GET = withMiddleware(async (request, { user }) => {
 
   // 管理员查看所有订单
   if (searchParams.get('admin') === 'true') {
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: '权限不足' }, { status: 403 });
-    }
+    requireAuth(user!, ['admin']);
     const orders = await OrderService.getAll();
     return cacheResponse(NextResponse.json(orders), { maxAge: 10 });
   }
 
   // 普通用户查看自己的订单
-  if (!user) {
-    return NextResponse.json({ error: '请先登录' }, { status: 401 });
-  }
-  const orders = await OrderService.getCustomerOrders(user.id);
+  requireAuth(user!, ['customer']);
+  const orders = await OrderService.getCustomerOrders(user!.id);
   return NextResponse.json(orders);
 }, { auth: true });
 

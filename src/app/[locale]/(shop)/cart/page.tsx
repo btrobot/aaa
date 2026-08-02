@@ -9,24 +9,14 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft } from 'lucide-react';
-
-function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
+import { toApiLocale } from '@/i18n/utils';
+import type { CartItemData } from '@/lib/types';
 
 export default function CartPage() {
   const { locale, t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
   
-interface CartItemData {
-  id: number;
-  productId: number;
-  productName: string;
-  sku: string;
-  price: string;
-  quantity: number;
-  image?: string;
-}
-
-const [cartItems, setCartItems] = useState<CartItemData[]>([]);
+  const [cartItems, setCartItems] = useState<CartItemData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -12,21 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Image from 'next/image';
 import { Search, SlidersHorizontal, Grid3X3, List, Cog } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-
-function toApiLocale(locale: string) {
-  return locale === 'en' ? 'en' : 'zh_cn';
-}
+import { toApiLocale } from '@/i18n/utils';
+import type { CategoryData } from '@/lib/types';
 
 export default function ProductsPage() {
   const { locale, t } = useTranslations();
   const [products, setProducts] = useState<Product[]>([]);
   
-interface CategoryData {
-  id: number;
-  name: string;
-}
-
-const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');

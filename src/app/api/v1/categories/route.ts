@@ -11,6 +11,7 @@ function toCreateInput(body: Record<string, unknown>) {
   return {
     parentId: (body.parentId as number | null) ?? null,
     status: body.status !== undefined ? Boolean(body.status) : true,
+    sortOrder: body.sortOrder !== undefined ? Number(body.sortOrder) : 0,
     descriptions: {
       [locale]: {
         name,

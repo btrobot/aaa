@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useParams } from 'next/navigation';
 import { api, type Brand, type CategoryTreeNode, type ProductDescription } from '@/lib/api';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-
-function toApiLocale(locale: string) { return locale === 'en' ? 'en' : 'zh_cn'; }
+import { toApiLocale } from '@/i18n/utils';
 
 export default function AdminEditProduct() {
   const { t } = useTranslations();
